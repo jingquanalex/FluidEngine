@@ -3,14 +3,13 @@
 using namespace glm;
 using namespace std;
 
-extern int window_width;
-extern int window_height;
-
 Scene::Scene(Camera* camera)
 {
 	this->camera = camera;
 
-	this->testObj = new Object(camera);
+	testObj = new Object(camera);
+	testObj2 = new Object(camera);
+	testObj2->setPosition(vec3(1, 1, 0));
 }
 
 Scene::~Scene()
@@ -21,16 +20,19 @@ Scene::~Scene()
 void Scene::load()
 {
 	testObj->load();
+	testObj2->load();
 }
 
 void Scene::update(float dt)
 {
 	testObj->update(dt);
+	testObj2->update(dt);
 }
 
 void Scene::draw()
 {
 	testObj->draw();
+	testObj2->draw();
 }
 
 void Scene::mouse(int button, int state)

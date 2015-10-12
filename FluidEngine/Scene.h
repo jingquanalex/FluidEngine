@@ -12,6 +12,7 @@ private:
 	Camera* camera;
 
 	Object* testObj;
+	Object* testObj2;
 
 public:
 

@@ -3,7 +3,11 @@
 
 #define GLM_FORCE_PURE
 
-#include "GL/glew.h"
-#include "GL/freeglut.h"
+#include <GL/glew.h>
+#include <GL/freeglut.h>
+#include <GL/wglext.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <cuda_runtime.h>
+#include <helper_cuda.h>
+#include <helper_functions.h>

@@ -3,42 +3,56 @@
 #include "globalIncludes.h"
 
 // Camera class that builds the projection and view matrices.
+// Base class to build specialized cameras.
 class Camera
 {
 
 protected:
 
 	glm::mat4 matProjection, matView;
-	glm::vec3 position, direction, up, target;
-	float aspectRatio, fov, nearPlane, farPlane;
+	glm::vec3 position, direction, up;
+	float aspectRatio, fov, zNear, zFar;
 	glm::vec2 resolution;
 
-	float moveSpeed;
 	glm::vec3 velocity;
+	int mouseDeltaX, mouseDeltaY, mouseLastX, mouseLastY;
+	float maxSpeed, acceleration, smoothness;
+	float lookSensitivity;
 
 	void updateProjectionMatrix();
 	void updateViewMatrix();
 
 public:
 
-	Camera(int width, int height);
+	Camera();
 	~Camera();
 
 	// === Functions ===
 
 	virtual void update(float dt);
-	void setResolution(int width, int height);
+	virtual void mouse(int button, int state);
+	virtual void mouseMotion(int x, int y);
+	virtual void mouseMotionPassive(int x, int y);
+	virtual void keyboard(int key);
+	virtual void keyboardUp(int key);
+	virtual void keyboardSpecial(int key);
+	virtual void keyboardSpecialUp(int key);
 
 	// === Accessors ===
 
-	void setPosition(glm::vec3 position);
-	void setTarget(glm::vec3 target);
+	void setResolution(int width, int height);
+	void setMaxSpeed(float maxspeed);
+	void setAcceleration(float acceleration);
+	void setSmoothness(float smoothness);
+	void setLookSensitivity(float sensitivity);
 
 	glm::mat4 getMatViewProjection() const;
 	glm::mat4 getMatView() const;
 	glm::mat4 getMatProjection() const;
-	glm::vec3 getPosition() const;
-	glm::vec3 getTarget() const;
 	glm::vec2 getResolution() const;
-	
+	float getMaxSpeed() const;
+	float getAcceleration() const;
+	float getSmoothness() const;
+	float getLookSensitivity() const;
+
 };

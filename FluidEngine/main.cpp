@@ -5,7 +5,7 @@ using namespace std;
 // Initialize all the classes the engine needs.
 void init()
 {
-	camera = new CameraFPS(window_width, window_height);
+	camera = new CameraTarget();
 	fpsTimer = new Timer(1.0f);
 	fpsTimer->start();
 	scene = new Scene(camera);
@@ -87,20 +87,6 @@ void mouseMovePassive(int x, int y)
 	camera->mouseMotionPassive(x, y);
 }
 
-// Function, arrow and other special keys.
-void keyboardSpecial(int key, int x, int y)
-{
-	//camera->keyboardSpecial(key);
-	//scene->keyboardSpecial(key);
-}
-
-// Special key up event.
-void keyboardSpecialUp(int key, int x, int y)
-{
-	//camera->keyboardSpecialUp(key);
-	//scene->keyboardSpecialUp(key);
-}
-
 // Common ascii keys.
 void keyboard(unsigned char key, int x, int y)
 {
@@ -117,32 +103,49 @@ void keyboardUp(unsigned char key, int x, int y)
 	camera->keyboardUp(key);
 }
 
+// Function, arrow and other special keys.
+void keyboardSpecial(int key, int x, int y)
+{
+	camera->keyboardSpecial(key);
+	//scene->keyboardSpecial(key);
+}
+
+// Special key up event.
+void keyboardSpecialUp(int key, int x, int y)
+{
+	camera->keyboardSpecialUp(key);
+	//scene->keyboardSpecialUp(key);
+}
+
 int main(int argc, char** argv)
 {
-	// Initialize glut and create window
 	glutInit(&argc, argv);
 	glutInitWindowPosition(-1, -1);
 	glutInitWindowSize(window_width, window_height);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
 	glutCreateWindow(g_windowTitle.c_str());
 
-	// Enable fullscreen mode if arg provided
+	// Enable fullscreen mode if arg -fullscreen specified
 	stringstream ss;
-	if (argc == 2)
-	{
-		ss << argv[1] << "";
-	}
-
+	if (argc == 2) ss << argv[1] << "";
 	if (ss.str() == "-fullscreen")
 	{
 		glutGameModeString("1280x800:32@60");
 		glutEnterGameMode();
 	}
 
-	// Initialize glew and our classes
 	glewInit();
-	printf("OpenGL version: %s \nGLEW version: %s \n", 
-		glGetString(GL_VERSION), glewGetString(GLEW_VERSION));
+	/*printf("OpenGL version: %s \nGLEW version: %s \n", 
+		glGetString(GL_VERSION), glewGetString(GLEW_VERSION));*/
+
+	// This will pick the best possible CUDA capable device
+	/*cudaDeviceProp deviceProp;
+	int devID = gpuGetMaxGflopsDeviceId();
+	checkCudaErrors(cudaSetDevice(devID));
+	checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
+	printf("GPU Device %d: \"%s\" with compute capability %d.%d\n", 
+		devID, deviceProp.name, deviceProp.major, deviceProp.minor);
+		*/
 
 	init();
 

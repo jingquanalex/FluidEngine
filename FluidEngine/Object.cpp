@@ -8,7 +8,7 @@ extern string g_mediaDirectory;
 Object::Object(Camera* camera)
 {
 	this->camera = camera;
-	setPosition(vec3(0.0f, 0.0f, 0.0f));
+	position = vec3(0.0f, 0.0f, 0.0f);
 }
 
 Object::~Object()
@@ -37,13 +37,18 @@ void Object::load(string shadername)
 		glBindVertexArray(0);
 
 		locationMVP = glGetUniformLocation(program, "mvp");
-		glUniformMatrix4fv(locationMVP, 1, GL_FALSE, value_ptr(camera->getMatViewProjection()));
 	}
 }
 
 void Object::update(float dt)
 {
-	glUniformMatrix4fv(locationMVP, 1, GL_FALSE, value_ptr(camera->getMatViewProjection()));
+	// Apply object transformations
+	matModel = translate(position);
+	matMVP = camera->getMatViewProjection() * matModel;
+
+	glUseProgram(program);
+	glUniformMatrix4fv(locationMVP, 1, GL_FALSE, value_ptr(matMVP));
+	glUseProgram(0);
 }
 
 void Object::draw()
@@ -54,6 +59,7 @@ void Object::draw()
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
+		glUseProgram(0);
 	}
 }
 
@@ -64,7 +70,7 @@ void Object::setPosition(vec3 position)
 
 vec3 Object::getPosition() const
 {
-	return this->position;
+	return position;
 }
 
 // Read and return the contents of a file.
@@ -155,7 +161,7 @@ GLuint Object::makeProgram(string name)
 	glDetachShader(program, vertShader);
 	glDetachShader(program, fragShader);
 
-	cout << "Shader loaded: " << name << endl;
+	cout << "Shader \"" << name << "\" compiled" << endl;
 
 	return program;
 }

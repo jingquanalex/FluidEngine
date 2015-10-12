@@ -20,8 +20,9 @@ private:
 	static const GLuint cubeIndices[36];
 	static const GLfloat cubeColors[24];
 
-	std::string shadername;
+	glm::mat4 matModel, matMVP;
 	glm::vec3 position;
+	std::string shadername;
 	GLuint program;
 	GLuint locationMVP;
 	GLuint vbo;

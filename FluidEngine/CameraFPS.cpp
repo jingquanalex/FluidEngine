@@ -6,12 +6,10 @@ using namespace std;
 extern int window_width;
 extern int window_height;
 
-CameraFPS::CameraFPS(int width, int height) : Camera(width, height)
+CameraFPS::CameraFPS() : Camera()
 {
-	sensitivity = 0.2f;
-	smoothness = 50.0f;
-	yaw = -90;
-	pitch = 0;
+	yaw = -90.0f;
+	pitch = 0.0f;
 	moveSpeed = 10.0f;
 }
 
@@ -23,8 +21,6 @@ CameraFPS::~CameraFPS()
 void CameraFPS::update(float dt)
 {
 	Camera::update(dt);
-
-	this->dt = dt;
 
 	if (stateForward)
 	{
@@ -45,6 +41,16 @@ void CameraFPS::update(float dt)
 	}
 }
 
+void CameraFPS::setPosition(glm::vec3 position)
+{
+	this->position = vec3(position.x, position.y, position.z);
+}
+
+glm::vec3 CameraFPS::getPosition() const
+{
+	return position;
+}
+
 void CameraFPS::mouse(int button, int state)
 {
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
@@ -62,14 +68,11 @@ void CameraFPS::mouseMotion(int x, int y)
 {
 	if (stateLookAround)
 	{
-		mouseDeltaX = x - mouseLastX;
-		mouseDeltaY = y - mouseLastY;
-		mouseLastX = x;
-		mouseLastY = y;
+		Camera::mouseMotion(x, y);
 
 		// Update yaw and pitch and limit pitch
-		yaw += mouseDeltaX * sensitivity;
-		pitch += -mouseDeltaY * sensitivity;
+		yaw += mouseDeltaX * lookSensitivity;
+		pitch += -mouseDeltaY * lookSensitivity;
 
 		//printf("%f, %f \n", yaw, pitch);
 
@@ -81,12 +84,6 @@ void CameraFPS::mouseMotion(int x, int y)
 		direction.z = cos(radians(pitch)) * sin(radians(yaw));
 		direction = normalize(direction);
 	}
-}
-
-void CameraFPS::mouseMotionPassive(int x, int y)
-{
-	mouseLastX = x;
-	mouseLastY = y;
 }
 
 // Keys callback

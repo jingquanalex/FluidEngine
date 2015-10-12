@@ -4,6 +4,7 @@
 #include "globalIncludes.h"
 #include "Timer.h"
 #include "CameraFPS.h"
+#include "CameraTarget.h"
 #include "Scene.h"
 
 std::string g_windowTitle = "FluidEngine b1";
@@ -27,5 +28,5 @@ int currentTime, previousTime = 0;
 
 // Framework classes
 Timer* fpsTimer;
-CameraFPS* camera;
+Camera* camera;
 Scene* scene;

@@ -8,24 +8,25 @@ class CameraFPS : public Camera
 
 private:
 
-	float dt;
-	int mouseDeltaX, mouseDeltaY, mouseLastX, mouseLastY;
-	float sensitivity, smoothness, yaw, pitch;
+	float yaw, pitch;
 	float moveSpeed;
+
 	bool stateLookAround = false;
 	bool stateForward = false, stateBackward = false, 
 		stateLeft = false, stateRight = false;
 
 public:
 
-	CameraFPS(int width, int height);
+	CameraFPS();
 	~CameraFPS();
 
 	void update(float dt);
 
+	void setPosition(glm::vec3 position);
+	glm::vec3 getPosition() const;
+
 	void mouse(int button, int state);
 	void mouseMotion(int x, int y);
-	void mouseMotionPassive(int x, int y);
 	void keyboard(int key);
 	void keyboardUp(int key);
 
