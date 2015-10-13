@@ -1,11 +1,12 @@
 #include "main.h"
 
 using namespace std;
+using namespace glm;
 
 // Initialize all the classes the engine needs.
 void init()
 {
-	camera = new CameraTarget();
+	camera = new CameraTarget(vec3(0.0f, 0.0f, 0.0f), 5.0f);
 	fpsTimer = new Timer(1.0f);
 	fpsTimer->start();
 	scene = new Scene(camera);
@@ -87,6 +88,11 @@ void mouseMovePassive(int x, int y)
 	camera->mouseMotionPassive(x, y);
 }
 
+void mouseWheel(int button, int dir, int x, int y)
+{
+	camera->mouseWheel(dir);
+}
+
 // Common ascii keys.
 void keyboard(unsigned char key, int x, int y)
 {
@@ -155,6 +161,7 @@ int main(int argc, char** argv)
 	glutIdleFunc(idle);
 	glutMouseFunc(mouse);
 	glutMotionFunc(mouseMove);
+	glutMouseWheelFunc(mouseWheel);
 	glutPassiveMotionFunc(mouseMovePassive);
 	glutKeyboardFunc(keyboard);
 	glutKeyboardUpFunc(keyboardUp);

@@ -16,7 +16,7 @@ Camera::Camera()
 	zNear = 0.001f;
 	zFar = 1000.0f;
 
-	lookSensitivity = 0.2f;
+	mouseSensitivity = 0.5f;
 	smoothness = 50.0f;
 
 	setResolution(window_width, window_height);
@@ -33,6 +33,11 @@ Camera::~Camera()
 void Camera::update(float dt)
 {
 	updateViewMatrix();
+
+	mouseDeltaX = mouseSensitivity * (mouseX - mouseLastX);
+	mouseDeltaY = mouseSensitivity * (mouseY - mouseLastY);
+	mouseLastX = mouseX;
+	mouseLastY = mouseY;
 }
 
 // Create projection matrix, maintain viewport aspect ratio.
@@ -55,18 +60,19 @@ void Camera::mouse(int button, int state)
 // Track the delta for the mouse movements
 void Camera::mouseMotion(int x, int y)
 {
-	mouseDeltaX = x - mouseLastX;
-	mouseDeltaY = y - mouseLastY;
-	mouseLastX = x;
-	mouseLastY = y;
+	mouseX = x;
+	mouseY = y;
 }
 
 void Camera::mouseMotionPassive(int x, int y)
 {
-	mouseDeltaX = x - mouseLastX;
-	mouseDeltaY = y - mouseLastY;
-	mouseLastX = x;
-	mouseLastY = y;
+	mouseX = x;
+	mouseY = y;
+}
+
+void Camera::mouseWheel(int dir)
+{
+
 }
 
 void Camera::keyboard(int key)
@@ -116,9 +122,9 @@ void Camera::setSmoothness(float smoothness)
 	this->smoothness = smoothness;
 }
 
-void Camera::setLookSensitivity(float sensitivity)
+void Camera::setMouseSensitivity(float sensitivity)
 {
-	this->lookSensitivity = sensitivity;
+	this->mouseSensitivity = sensitivity;
 }
 
 mat4 Camera::getMatViewProjection() const
@@ -156,7 +162,7 @@ float Camera::getSmoothness() const
 	return smoothness;
 }
 
-float Camera::getLookSensitivity() const
+float Camera::getMouseSensitivity() const
 {
-	return lookSensitivity;
+	return mouseSensitivity;
 }

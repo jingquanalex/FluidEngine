@@ -71,8 +71,8 @@ void CameraFPS::mouseMotion(int x, int y)
 		Camera::mouseMotion(x, y);
 
 		// Update yaw and pitch and limit pitch
-		yaw += mouseDeltaX * lookSensitivity;
-		pitch += -mouseDeltaY * lookSensitivity;
+		yaw += mouseDeltaX * mouseSensitivity;
+		pitch += -mouseDeltaY * mouseSensitivity;
 
 		//printf("%f, %f \n", yaw, pitch);
 
