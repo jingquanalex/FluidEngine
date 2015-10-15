@@ -6,10 +6,14 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "Camera.h"
 
 class Object
 {
+
+	static std::vector<std::pair<GLuint, std::string>> vecShaders;
+	static std::vector<std::pair<GLuint, std::string>>::iterator it;
 
 private:
 
@@ -28,8 +32,6 @@ private:
 	GLuint vbo;
 	GLuint vao;
 	GLuint ebo;
-
-	Camera* camera;
 	
 	// === Private Functions ===
 
@@ -38,11 +40,11 @@ private:
 
 public:
 
-	Object(Camera* camera);
+	Object(glm::vec3 position = glm::vec3());
 	~Object();
 
 	void load(std::string shadername = "basic");
-	void update(float dt);
+	void update(float dt, Camera* camera);
 	void draw();
 
 	// === Accessors ===

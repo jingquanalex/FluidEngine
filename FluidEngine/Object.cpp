@@ -5,10 +5,12 @@ using namespace std;
 
 extern string g_mediaDirectory;
 
-Object::Object(Camera* camera)
+vector<pair<GLuint, string>> Object::vecShaders;
+vector<pair<GLuint, string>>::iterator Object::it;
+
+Object::Object(vec3 position)
 {
-	this->camera = camera;
-	position = vec3(0.0f, 0.0f, 0.0f);
+	this->position = position;
 }
 
 Object::~Object()
@@ -40,7 +42,7 @@ void Object::load(string shadername)
 	}
 }
 
-void Object::update(float dt)
+void Object::update(float dt, Camera* camera)
 {
 	// Apply object transformations
 	matModel = translate(position);
@@ -90,9 +92,19 @@ string Object::readFile(string filename)
 	return strStream.str();
 }
 
+// Get program id from string if same shader has already been compiled.
 // Load, compile and link shader and return program id.
 GLuint Object::makeProgram(string name)
 {
+	/*it = find_if(Object::vecShaders.begin(), Object::vecShaders.end(),
+		[name](const pair<GLuint, string>& element) { return element.second == name; });
+
+	if (it != Object::vecShaders.end())
+	{
+		printf("using dupe shader: %i %s \n", (*it).first, (*it).second.c_str());
+		return (*it).first;
+	}*/
+
 	// Read and compile shader files
 	string vs = readFile(g_mediaDirectory + name + ".vert");
 	string fs = readFile(g_mediaDirectory + name + ".frag");
@@ -158,10 +170,11 @@ GLuint Object::makeProgram(string name)
 		return 0;
 	}
 
+	/*cout << "Shader \"" << name << "\" compiled" << endl;
+	Object::vecShaders.push_back(make_pair(program, name));*/
+
 	glDetachShader(program, vertShader);
 	glDetachShader(program, fragShader);
-
-	cout << "Shader \"" << name << "\" compiled" << endl;
 
 	return program;
 }

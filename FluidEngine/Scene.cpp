@@ -7,9 +7,8 @@ Scene::Scene(Camera* camera)
 {
 	this->camera = camera;
 
-	testObj = new Object(camera);
-	testObj2 = new Object(camera);
-	testObj2->setPosition(vec3(1, 1, 0));
+	testObj = new Object();
+	testObj2 = new Object(vec3(1, 1, 0));
 }
 
 Scene::~Scene()
@@ -25,8 +24,8 @@ void Scene::load()
 
 void Scene::update(float dt)
 {
-	testObj->update(dt);
-	testObj2->update(dt);
+	testObj->update(dt, camera);
+	testObj2->update(dt, camera);
 }
 
 void Scene::draw()
