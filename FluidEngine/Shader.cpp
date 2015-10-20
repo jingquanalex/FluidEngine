@@ -64,8 +64,8 @@ string Shader::readFile(string filename)
 GLuint Shader::makeProgram(string name)
 {
 	// Read and compile shader files
-	string vs = readFile(g_mediaDirectory + name + ".vert");
-	string fs = readFile(g_mediaDirectory + name + ".frag");
+	string vs = readFile(g_mediaDirectory + "shader/" + name + ".vert");
+	string fs = readFile(g_mediaDirectory + "shader/" + name + ".frag");
 	const GLchar* vertSrc = vs.c_str();
 	const GLchar* fragSrc = fs.c_str();
 	if (vertSrc == "" || fragSrc == "") return 0;

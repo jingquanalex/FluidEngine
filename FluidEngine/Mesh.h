@@ -14,6 +14,7 @@ struct Texture
 {
 	GLuint id;
 	std::string type;
+	std::string path;
 };
 
 class Mesh
@@ -37,5 +38,6 @@ public:
 	~Mesh();
 
 	void draw();
+	void bindTexture(GLuint program);
 
 };

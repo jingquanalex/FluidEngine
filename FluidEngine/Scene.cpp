@@ -18,7 +18,7 @@ Scene::~Scene()
 
 void Scene::load()
 {
-	testObj->load();
+	testObj->load("nanosuit/nanosuit.obj");
 	testObj2->load();
 }
 

@@ -8,7 +8,7 @@
 #include "Scene.h"
 
 std::string g_windowTitle = "FluidEngine b1";
-std::string g_mediaDirectory = "../FluidEngine/media/shader/";
+std::string g_mediaDirectory = "../FluidEngine/media/";
 
 // Desired content display area, which maintains its ratio even if the window area is changed.
 // For Camera's ortho matrix but unused at the moment.
