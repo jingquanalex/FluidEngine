@@ -8,35 +8,26 @@
 #include <vector>
 #include <algorithm>
 #include "Camera.h"
+#include "Mesh.h"
+#include "Shader.h"
 
 class Object
 {
 
-	static std::vector<std::pair<GLuint, std::string>> vecShaders;
-	static std::vector<std::pair<GLuint, std::string>>::iterator it;
-
 private:
 
-	// Predefined unit primitives
+	// Predefined unit primitives data
 	static const GLfloat triVertices[9];
 	static const GLuint triIndices[3];
 	static const GLfloat cubeVertices[24];
+	static const GLfloat cubeTexCoords[24];
 	static const GLuint cubeIndices[36];
-	static const GLfloat cubeColors[24];
 
-	glm::mat4 matModel, matMVP;
+	glm::mat4 matModel;
 	glm::vec3 position;
-	std::string shadername;
-	GLuint program;
-	GLuint locationMVP;
-	GLuint vbo;
-	GLuint vao;
-	GLuint ebo;
-	
-	// === Private Functions ===
 
-	std::string readFile(std::string filename);
-	GLuint makeProgram(std::string name);
+	Mesh* mesh;
+	Shader* shader;
 
 public:
 

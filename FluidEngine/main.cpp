@@ -141,8 +141,8 @@ int main(int argc, char** argv)
 	}
 
 	glewInit();
-	/*printf("OpenGL version: %s \nGLEW version: %s \n", 
-		glGetString(GL_VERSION), glewGetString(GLEW_VERSION));*/
+	printf("OpenGL version: %s \nGLEW version: %s \n", 
+		glGetString(GL_VERSION), glewGetString(GLEW_VERSION));
 
 	// This will pick the best possible CUDA capable device
 	/*cudaDeviceProp deviceProp;
