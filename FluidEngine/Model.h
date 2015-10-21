@@ -6,7 +6,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <SOIL.h>
+#include <SOIL2.h>
 #include "Mesh.h"
 
 // Mesh loading code from tutorial: http://learnopengl.com/#!Model-Loading/Model

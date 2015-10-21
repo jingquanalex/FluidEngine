@@ -14,10 +14,10 @@
 class Object
 {
 
-private:
+protected:
 
 	glm::mat4 matModel;
-	glm::vec3 position;
+	glm::vec3 position, rotation, scale;
 
 	Model* model;
 	Shader* shader;
@@ -27,12 +27,18 @@ public:
 	Object(glm::vec3 position = glm::vec3());
 	~Object();
 
-	void load(std::string modelname = "!cube", std::string shadername = "basic");
-	void update(float dt, Camera* camera);
-	void draw();
+	void load(std::string modelname, std::string shadername);
+	virtual void load(std::string shadername);
+	virtual void update(float dt, Camera* camera);
+	virtual void draw();
 
 	// === Accessors ===
 
 	void setPosition(glm::vec3 position);
+	void setRotation(glm::vec3 rotation);
+	void setScale(glm::vec3 scale);
+
 	glm::vec3 getPosition() const;
+	glm::vec3 getRotation() const;
+	glm::vec3 getScale() const;
 };

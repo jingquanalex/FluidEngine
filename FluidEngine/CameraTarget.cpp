@@ -28,10 +28,7 @@ void CameraTarget::update(float dt)
 	mouseLastX = mouseX;
 	mouseLastY = mouseY;
 
-	if (stateLookAround)
-	{
-		updateViewMatrix();
-	}
+	updateViewMatrix();
 }
 
 void CameraTarget::updateViewMatrix()
@@ -97,7 +94,7 @@ void CameraTarget::mouseMotion(int x, int y)
 
 void CameraTarget::mouseWheel(int dir)
 {
-	if (stateLookAround)
+	//if (stateLookAround)
 	{
 		distance += -dir;
 		distance = clamp(distance, 0.0f, 100.0f);

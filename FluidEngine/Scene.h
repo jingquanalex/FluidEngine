@@ -3,6 +3,7 @@
 #include "Timer.h"
 #include "Camera.h"
 #include "Object.h"
+#include "Spheres.h"
 
 class Scene
 {
@@ -13,6 +14,7 @@ private:
 
 	Object* testObj;
 	Object* testObj2;
+	Spheres* spheres;
 
 public:
 

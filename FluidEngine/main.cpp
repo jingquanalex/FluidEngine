@@ -5,12 +5,14 @@ using namespace glm;
 
 void init()
 {
-	camera = new CameraTarget(vec3(0.0f, 0.0f, 0.0f), 5.0f);
+	//camera = new CameraTarget(vec3(0.0f, 0.0f, 0.0f), 5.0f);
+	camera = new CameraFPS();
 	fpsTimer = new Timer(1.0f);
 	fpsTimer->start();
 	scene = new Scene(camera);
 	scene->load();
 
+	srand(static_cast<unsigned> (time(0)));
 	glEnable(GL_DEPTH_TEST);
 }
 
@@ -151,8 +153,8 @@ int main(int argc, char** argv)
 	checkCudaErrors(cudaSetDevice(devID));
 	checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
 	printf("GPU Device %d: \"%s\" with compute capability %d.%d\n", 
-		devID, deviceProp.name, deviceProp.major, deviceProp.minor);
-		*/
+		devID, deviceProp.name, deviceProp.major, deviceProp.minor);*/
+		
 
 	init();
 
