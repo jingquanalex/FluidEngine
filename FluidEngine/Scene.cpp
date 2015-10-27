@@ -34,8 +34,8 @@ void Scene::update(float dt)
 
 void Scene::draw()
 {
-	//testObj->draw();
-	//testObj2->draw();
+	testObj->draw();
+	testObj2->draw();
 	spheres->draw();
 }
 

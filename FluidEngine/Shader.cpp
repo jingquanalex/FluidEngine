@@ -47,28 +47,35 @@ GLuint Shader::getProgram() const
 string Shader::readFile(string filename)
 {
 	ifstream fileStream(filename, ios::in);
-	if (!fileStream.is_open())
+	if (fileStream.is_open())
 	{
-		cout << "Could not open file: " << filename << endl;
-		return "";
+		stringstream strStream;
+		strStream << fileStream.rdbuf();
+		fileStream.close();
+
+		return strStream.str();
 	}
 
-	stringstream strStream;
-	strStream << fileStream.rdbuf();
-	fileStream.close();
-
-	return strStream.str();
+	return "";
 }
 
 // Load, compile and link shader and return program id.
 GLuint Shader::makeProgram(string name)
 {
 	// Read and compile shader files
-	string vs = readFile(g_mediaDirectory + "shader/" + name + ".vert");
-	string fs = readFile(g_mediaDirectory + "shader/" + name + ".frag");
+	string vspath = g_mediaDirectory + "shader/" + name + ".vert";
+	string fspath = g_mediaDirectory + "shader/" + name + ".frag";
+	string gspath = g_mediaDirectory + "shader/" + name + ".gs";
+	string vs = readFile(vspath);
+	string fs = readFile(fspath);
+	string gs = readFile(gspath);
 	const GLchar* vertSrc = vs.c_str();
 	const GLchar* fragSrc = fs.c_str();
-	if (vertSrc == "" || fragSrc == "") return 0;
+	const GLchar* geomSrc = gs.c_str();
+
+	if (vs == "") cout << "Cannot open shader: " << vspath << endl;
+	if (fs == "") cout << "Cannot open shader: " << fspath << endl;
+	if (vs == "" || fs == "") return 0;
 
 	GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -110,6 +117,31 @@ GLuint Shader::makeProgram(string name)
 	GLuint program = glCreateProgram();
 	glAttachShader(program, vertShader);
 	glAttachShader(program, fragShader);
+
+	// Compile and link geometry shader if available
+	GLuint geomShader = glCreateShader(GL_GEOMETRY_SHADER);
+
+	if (gs != "")
+	{
+		glShaderSource(geomShader, 1, &geomSrc, NULL);
+		glCompileShader(geomShader);
+
+		glGetShaderiv(geomShader, GL_COMPILE_STATUS, &success);
+		if (success == GL_FALSE)
+		{
+			GLint logLength;
+			glGetShaderiv(geomShader, GL_INFO_LOG_LENGTH, &logLength);
+			vector<GLchar> infoLog(logLength);
+			glGetShaderInfoLog(geomShader, logLength, &logLength, &infoLog[0]);
+			cout << "=== GEOMETRY SHADER ERROR ===" << endl;
+			cout << &infoLog[0] << endl;
+			glDeleteShader(geomShader);
+			return 0;
+		}
+
+		glAttachShader(program, geomShader);
+	}
+
 	glLinkProgram(program);
 
 	// Linking error checking
@@ -124,6 +156,7 @@ GLuint Shader::makeProgram(string name)
 		cout << &infoLog[0] << endl;
 		glDeleteShader(vertShader);
 		glDeleteShader(fragShader);
+		if (gs != "") glDeleteShader(geomShader);
 		glDeleteProgram(program);
 		return 0;
 	}
@@ -133,6 +166,7 @@ GLuint Shader::makeProgram(string name)
 
 	glDetachShader(program, vertShader);
 	glDetachShader(program, fragShader);
+	if (gs != "") glDetachShader(program, geomShader);
 
 	return program;
 }

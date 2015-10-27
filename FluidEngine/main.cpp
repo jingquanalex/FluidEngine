@@ -14,6 +14,9 @@ void init()
 
 	srand(static_cast<unsigned> (time(0)));
 	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 // Update loop for game logic and physics.
@@ -144,8 +147,10 @@ int main(int argc, char** argv)
 	}
 
 	glewInit();
-	printf("OpenGL version: %s \nGLEW version: %s \n", 
-		glGetString(GL_VERSION), glewGetString(GLEW_VERSION));
+
+	printf("Renderer: %s\n", glGetString(GL_RENDERER));
+	printf("OpenGL version: %s\n", glGetString(GL_VERSION));
+	printf("GLEW version: %s\n", glewGetString(GLEW_VERSION));
 
 	// This will pick the best possible CUDA capable device
 	/*cudaDeviceProp deviceProp;

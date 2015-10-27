@@ -3,6 +3,8 @@
 using namespace glm;
 using namespace std;
 
+extern string g_mediaDirectory;
+
 Spheres::Spheres()
 {
 
@@ -20,10 +22,9 @@ void Spheres::load()
 	for (int i = 0; i < 10; i++)
 	{
 		Sphere sphere;
-		sphere.position.x = static_cast<float> (rand() % 20 - 10) / 3;
-		sphere.position.y = static_cast<float> (rand() % 20 - 10) / 3;
-		sphere.position.z = static_cast<float> (rand() % 20 - 10) / 3;
-		sphere.radius = static_cast<float> (rand() % 9 + 1) / 3;
+		sphere.position.x = static_cast<float> (rand() % 20 - 10) / 5;
+		sphere.position.y = static_cast<float> (rand() % 20 - 10) / 5;
+		sphere.position.z = static_cast<float> (rand() % 20 - 10) / 5;
 		spheres.push_back(sphere);
 	}
 
@@ -38,11 +39,17 @@ void Spheres::load()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Sphere),
 		(GLvoid*)0);
 
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Sphere),
-		(GLvoid*)offsetof(Sphere, Sphere::radius));
-
 	glBindVertexArray(0);
+
+	texid = SOIL_load_OGL_texture((g_mediaDirectory + "cat.png").c_str(), SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+
+	glBindTexture(GL_TEXTURE_2D, texid);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Spheres::update(float dt, Camera* camera)
@@ -53,6 +60,7 @@ void Spheres::update(float dt, Camera* camera)
 void Spheres::draw()
 {
 	glUseProgram(shader->getProgram());
+	glBindTexture(GL_TEXTURE_2D, texid);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_POINTS, 0, 10);
 	glBindVertexArray(0);

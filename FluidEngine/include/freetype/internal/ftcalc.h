@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Arithmetic computations (specification).                             */
 /*                                                                         */
-/*  Copyright 1996-2006, 2008, 2009, 2012-2014 by                          */
+/*  Copyright 1996-2015 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -297,6 +297,18 @@ FT_BEGIN_HEADER
   FT_Vector_Transform_Scaled( FT_Vector*        vector,
                               const FT_Matrix*  matrix,
                               FT_Long           scaling );
+
+
+  /*
+   *  This function normalizes a vector and returns its original length.
+   *  The normalized vector is a 16.16 fixed-point unit vector with length
+   *  close to 0x10000.  The accuracy of the returned length is limited to
+   *  16 bits also.  The function utilizes quick inverse square root
+   *  approximation without divisions and square roots relying on Newton's
+   *  iterations instead.
+   */
+  FT_BASE( FT_UInt32 )
+  FT_Vector_NormLen( FT_Vector*  vector );
 
 
   /*
