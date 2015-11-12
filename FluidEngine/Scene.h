@@ -15,6 +15,7 @@ private:
 	Object* testObj;
 	Object* testObj2;
 	Spheres* spheres;
+	Object* plane;
 
 public:
 

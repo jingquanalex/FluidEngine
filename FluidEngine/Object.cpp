@@ -39,9 +39,7 @@ void Object::draw()
 {
 	glUseProgram(shader->getProgram());
 	glUniformMatrix4fv(10, 1, GL_FALSE, value_ptr(matModel));
-
 	if (model != NULL) model->draw(shader->getProgram());
-
 	glUseProgram(0);
 }
 

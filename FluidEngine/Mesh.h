@@ -30,6 +30,8 @@ private:
 	GLuint vao;
 	GLuint ebo;
 
+	void bindTexture(GLuint program);
+
 public:
 
 	Mesh(const std::vector<Vertex>& vertices, 
@@ -37,7 +39,6 @@ public:
 		const std::vector<Texture>& textures);
 	~Mesh();
 
-	void draw();
-	void bindTexture(GLuint program);
+	void draw(GLuint program);
 
 };

@@ -44,15 +44,13 @@ void Model::draw(GLuint program)
 {
 	if (filename == "!cube")
 	{
-		cube->bindTexture(program);
-		cube->draw();
+		cube->draw(program);
 	}
 	else
 	{
 		for (Mesh& mesh : meshes)
 		{
-			mesh.bindTexture(program);
-			mesh.draw();
+			mesh.draw(program);
 		}
 	}
 }
@@ -129,12 +127,13 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	{
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-		vector<Texture> diffuseMaps = loadMaterialTextures(material, 
-			aiTextureType_DIFFUSE, "texture_diffuse");
+		vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse");
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-		vector<Texture> specularMaps = loadMaterialTextures(material, 
-			aiTextureType_SPECULAR, "texture_specular");
+		vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "normal");
+		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+
+		vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "specular");
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 	}
 
@@ -170,7 +169,7 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
 			texture.type = typeName;
 			texture.path = str.C_Str();
 			textures.push_back(texture);
-			textures_loaded.push_back(texture); // Add to loaded textures
+			textures_loaded.push_back(texture);
 		}
 	}
 
