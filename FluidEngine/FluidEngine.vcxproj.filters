@@ -13,12 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Voxel">
+      <UniqueIdentifier>{6ba71040-9632-4a21-80aa-82033ab085f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Voxel">
+      <UniqueIdentifier>{9aa99dcd-3f62-4a5e-83c9-13d169366775}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="globalIncludes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
@@ -52,6 +55,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Font.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Block.h">
+      <Filter>Header Files\Voxel</Filter>
+    </ClInclude>
+    <ClInclude Include="Chunk.h">
+      <Filter>Header Files\Voxel</Filter>
+    </ClInclude>
+    <ClInclude Include="Includes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -90,6 +105,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Font.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Block.cpp">
+      <Filter>Source Files\Voxel</Filter>
+    </ClCompile>
+    <ClCompile Include="Chunk.cpp">
+      <Filter>Source Files\Voxel</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

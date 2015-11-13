@@ -1,6 +1,7 @@
 #pragma once
 
-#include "globalIncludes.h"
+#include "Includes.h"
+#include "Shader.h"
 
 // Camera class that builds the projection and view matrices.
 // Base class to build specialized cameras.

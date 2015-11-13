@@ -14,7 +14,7 @@ void Timer::updateTimers(float dt)
 		if (timer->getToDelete())
 		{
 			delete timer;
-			timer = NULL;
+			timer = nullptr;
 		}
 		else
 		{
@@ -22,7 +22,7 @@ void Timer::updateTimers(float dt)
 		}
 	});
 	listTimers.erase(remove(listTimers.begin(), listTimers.end(), 
-		static_cast<Timer*>(NULL)), listTimers.end());
+		static_cast<Timer*>(nullptr)), listTimers.end());
 }
 
 // New timer constructor. 

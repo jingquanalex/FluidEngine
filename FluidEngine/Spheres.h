@@ -1,6 +1,6 @@
 #pragma once
 
-#include "globalIncludes.h"
+#include "Includes.h"
 #include <vector>
 #include "Object.h"
 
@@ -26,7 +26,7 @@ public:
 	~Spheres();
 
 	void load();
-	void update(float dt, Camera* camera);
+	void update(float dt);
 	void draw();
 
 };

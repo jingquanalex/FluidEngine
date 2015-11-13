@@ -7,11 +7,14 @@ Scene::Scene(Camera* camera)
 {
 	this->camera = camera;
 
+	light = new Light();
 	testObj = new Object();
 	testObj2 = new Object(vec3(1, 1, 0));
 	testObj2->setRotation(vec3(0, 45, 0));
 	spheres = new Spheres();
 	plane = new Object();
+
+	
 }
 
 Scene::~Scene()
@@ -21,18 +24,18 @@ Scene::~Scene()
 
 void Scene::load()
 {
-	testObj->load("!cube", "basic");
-	testObj2->load("!cube", "basic");
+	testObj->load("cube.obj", "basic");
+	testObj2->load("!cube");
 	spheres->load();
-	plane->load("plane.obj", "basic");
+	plane->load("plane.obj");
 }
 
 void Scene::update(float dt)
 {
-	testObj->update(dt, camera);
-	testObj2->update(dt, camera);
-	//spheres->update(dt, camera);
-	plane->update(dt, camera);
+	testObj->update(dt);
+	testObj2->update(dt);
+	//spheres->update(dt);
+	plane->update(dt);
 }
 
 void Scene::draw()

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "globalIncludes.h"
+#include "Includes.h"
 #include <string>
 #include <vector>
 #include <assimp/Importer.hpp>
@@ -18,6 +18,7 @@ class Model
 	static const GLfloat triVertices[9];
 	static const GLuint triIndices[3];
 	static const GLfloat cubeVertices[24];
+	static const GLfloat cubeNormals[24];
 	static const GLfloat cubeTexCoords[24];
 	static const GLuint cubeIndices[36];
 

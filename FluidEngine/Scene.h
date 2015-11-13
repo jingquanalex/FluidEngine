@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "Object.h"
 #include "Spheres.h"
+#include "Light.h"
 
 class Scene
 {
@@ -11,11 +12,14 @@ class Scene
 private:
 
 	Camera* camera;
+	Light* light;
 
 	Object* testObj;
 	Object* testObj2;
 	Spheres* spheres;
 	Object* plane;
+
+	
 
 public:
 
@@ -27,7 +31,6 @@ public:
 	void load();
 	void update(float dt);
 	void draw();
-
 
 	// === Callbacks ===
 

@@ -5,23 +5,33 @@ using namespace std;
 
 extern string g_mediaDirectory;
 
-bool Shader::hasUboMatrices;
+GLuint Shader::uboMatrices;
+GLuint Shader::uboLighting;
 
 Shader::Shader(string shadername)
 {
 	program = makeProgram(shadername);
 
-	if (Shader::hasUboMatrices != true)
+	// Setup uniforms that all shaders can use
+	if (uboMatrices == 0)
 	{
-		// Predefined set of uniforms to pass to all shaders
 		glGenBuffers(1, &uboMatrices);
 		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-		glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(mat4), NULL, GL_STATIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(mat4), NULL, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(mat4));
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboMatrices);
+	}
 
-		Shader::hasUboMatrices = true;
+	if (uboLighting == 0)
+	{
+		glGenBuffers(1, &uboLighting);
+		glBindBuffer(GL_UNIFORM_BUFFER, uboLighting);
+		glBufferData(GL_UNIFORM_BUFFER, 5 * sizeof(vec3), NULL, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+		//glBindBufferRange(GL_UNIFORM_BUFFER, 1, uboLighting, 0, 5 * sizeof(vec3));
+		glBindBufferBase(GL_UNIFORM_BUFFER, 1, uboLighting);
 	}
 }
 
@@ -30,12 +40,9 @@ Shader::~Shader()
 
 }
 
-void Shader::update(float dt, Camera* camera)
+void Shader::update(float dt)
 {
-	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(mat4), value_ptr(camera->getMatProjection()));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(mat4), sizeof(mat4), value_ptr(camera->getMatView()));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	
 }
 
 GLuint Shader::getProgram() const
@@ -119,10 +126,11 @@ GLuint Shader::makeProgram(string name)
 	glAttachShader(program, fragShader);
 
 	// Compile and link geometry shader if available
-	GLuint geomShader = glCreateShader(GL_GEOMETRY_SHADER);
+	GLuint geomShader;
 
 	if (gs != "")
 	{
+		geomShader = glCreateShader(GL_GEOMETRY_SHADER);
 		glShaderSource(geomShader, 1, &geomSrc, NULL);
 		glCompileShader(geomShader);
 

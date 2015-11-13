@@ -1,28 +1,27 @@
 #pragma once
 
-#include "globalIncludes.h"
+#include "Includes.h"
 #include <string>
-#include "Camera.h"
 
 class Shader
 {
 
-	static bool hasUboMatrices;
-
 private:
 
 	GLuint program;
-	GLuint uboMatrices;
 
 	std::string readFile(std::string filename);
 	GLuint makeProgram(std::string name);
 
 public:
 
+	static GLuint uboMatrices;
+	static GLuint uboLighting;
+
 	Shader(std::string shadername);
 	~Shader();
 
-	void update(float dt, Camera* camera);
+	void update(float dt);
 
 	GLuint getProgram() const;
 

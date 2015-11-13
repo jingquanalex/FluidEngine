@@ -17,10 +17,11 @@ Model::Model(string filename)
 		{
 			Vertex vertex;
 			vertex.Position = vec3(cubeVertices[i * 3 + 0], cubeVertices[i * 3 + 1], cubeVertices[i * 3 + 2]);
-			vertex.Normal = vec3();
+			vertex.Normal = vec3(cubeNormals[i * 3 + 0], cubeNormals[i * 3 + 1], cubeNormals[i * 3 + 2]);
 			vertex.TexCoords = vec2(cubeTexCoords[i * 2 + 0], cubeTexCoords[i * 2 + 1]);
 			vertices.push_back(vertex);
 		}
+
 		vector<GLuint> indices(cubeIndices, cubeIndices + 36);
 		vector<Texture> textures;
 		Texture texture;
@@ -207,8 +208,23 @@ const GLuint Model::triIndices[] =
 	0, 1, 2
 };
 
-// Cube vertices, color, texcoord
+// Cube vertices, normals, texcoord
 const GLfloat Model::cubeVertices[] =
+{
+	// Front
+	-0.5, -0.5, 0.5,
+	0.5, -0.5, 0.5,
+	0.5, 0.5, 0.5,
+	-0.5, 0.5, 0.5,
+
+	// Back
+	-0.5, -0.5, -0.5,
+	0.5, -0.5, -0.5,
+	0.5, 0.5, -0.5,
+	-0.5, 0.5, -0.5
+};
+
+const GLfloat Model::cubeNormals[] =
 {
 	// Front
 	-0.5, -0.5, 0.5,

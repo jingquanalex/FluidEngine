@@ -1,6 +1,6 @@
 #pragma once
 
-#include "globalIncludes.h"
+#include "Includes.h"
 #include "Camera.h"
 
 class CameraFPS : public Camera

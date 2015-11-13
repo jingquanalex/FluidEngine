@@ -90,11 +90,14 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Block.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraFPS.h" />
     <ClInclude Include="CameraTarget.h" />
+    <ClInclude Include="Chunk.h" />
     <ClInclude Include="Font.h" />
-    <ClInclude Include="globalIncludes.h" />
+    <ClInclude Include="Includes.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
@@ -105,10 +108,13 @@
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Block.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraFPS.cpp" />
     <ClCompile Include="CameraTarget.cpp" />
+    <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="Font.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />

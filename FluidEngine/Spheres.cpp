@@ -52,9 +52,9 @@ void Spheres::load()
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Spheres::update(float dt, Camera* camera)
+void Spheres::update(float dt)
 {
-	shader->update(dt, camera);
+	shader->update(dt);
 }
 
 void Spheres::draw()

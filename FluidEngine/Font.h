@@ -1,6 +1,6 @@
 #pragma once
 
-#include "globalIncludes.h"
+#include "Includes.h"
 #include <map>
 #include <ft2build.h>
 #include FT_FREETYPE_H

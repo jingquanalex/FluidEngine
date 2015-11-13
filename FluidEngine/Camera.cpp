@@ -44,12 +44,24 @@ void Camera::update(float dt)
 void Camera::updateProjectionMatrix()
 {
 	matProjection = perspective(radians(fov), aspectRatio, zNear, zFar);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboMatrices);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(mat4), value_ptr(getMatProjection()));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 // Create view matrix based on position.
 void Camera::updateViewMatrix()
 {
 	matView = lookAt(position, position + direction, up);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboMatrices);
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(mat4), sizeof(mat4), value_ptr(getMatView()));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboLighting);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vec3), value_ptr(position));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void Camera::mouse(int button, int state)

@@ -7,9 +7,13 @@ extern string g_mediaDirectory;
 
 Object::Object(vec3 position)
 {
+	model = nullptr;
+	shader = nullptr;
+
 	this->position = position;
 	this->rotation = vec3(0.0);
 	this->scale = vec3(1.0);
+	this->color = vec3(0.3, 0.5, 0.1);
 }
 
 Object::~Object()
@@ -23,24 +27,22 @@ void Object::load(string modelname, string shadername)
 	shader = new Shader(shadername);
 }
 
-void Object::load(string shadername)
+void Object::update(float dt)
 {
-	model = NULL;
-	shader = new Shader(shadername);
-}
-
-void Object::update(float dt, Camera* camera)
-{
-	shader->update(dt, camera);
 	matModel = glm::scale(scale) * eulerAngleXYZ(rotation.x, rotation.y, rotation.z) * translate(position);
+	if (shader != nullptr) shader->update(dt);
 }
 
 void Object::draw()
 {
-	glUseProgram(shader->getProgram());
-	glUniformMatrix4fv(10, 1, GL_FALSE, value_ptr(matModel));
-	if (model != NULL) model->draw(shader->getProgram());
-	glUseProgram(0);
+	if (shader != nullptr)
+	{
+		glUseProgram(shader->getProgram());
+		glUniformMatrix4fv(10, 1, GL_FALSE, value_ptr(matModel));
+		glUniform3fv(20, 1, value_ptr(color));
+		if (model != nullptr) model->draw(shader->getProgram());
+		glUseProgram(0);
+	}
 }
 
 void Object::setPosition(vec3 position)
