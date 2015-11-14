@@ -2,6 +2,8 @@
 
 #include "Timer.h"
 #include "Camera.h"
+#include "CameraFPS.h"
+#include "CameraTarget.h"
 #include "Object.h"
 #include "Spheres.h"
 #include "Light.h"
@@ -11,6 +13,7 @@ class Scene
 
 private:
 
+	Timer* frameTimer;
 	Camera* camera;
 	Light* light;
 
@@ -19,22 +22,31 @@ private:
 	Spheres* spheres;
 	Object* plane;
 
-	
+	const float maxframeTime = 1 / 4.0f;
+	const float dt = 1 / 60.0f;
+
+	float accumulator = 0.0f;
+	int fps = 0;
+	int currentTime, previousTime = 0;
 
 public:
 
-	Scene(Camera* camera);
+	Scene();
 	~Scene();
 
 	// === Functions ===
 
 	void load();
-	void update(float dt);
-	void draw();
 
 	// === Callbacks ===
 
+	void idle();
+	void display();
+	void reshape(int width, int height);
 	void mouse(int button, int state);
+	void mouseMove(int x, int y);
+	void mouseMovePassive(int x, int y);
+	void mouseWheel(int button, int dir, int x, int y);
 	void keyboard(unsigned char key);
 	void keyboardUp(unsigned char key);
 	void keyboardSpecial(int key);

@@ -63,7 +63,7 @@ void Timer::update(float dt)
 		}
 
 		currentTime = 0.0f;
-		ticked = true;
+		hasTicked = true;
 	}
 
 	// Stop timer if it has ran its duration
@@ -73,11 +73,11 @@ void Timer::update(float dt)
 	}
 }
 
-bool Timer::hasTicked()
+bool Timer::ticked()
 {
-	if (ticked)
+	if (hasTicked)
 	{
-		ticked = false;
+		hasTicked = false;
 		return true;
 	}
 

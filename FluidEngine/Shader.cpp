@@ -7,11 +7,10 @@ extern string g_mediaDirectory;
 
 GLuint Shader::uboMatrices;
 GLuint Shader::uboLighting;
+vector<pair<GLuint, string>> Shader::programList;
 
-Shader::Shader(string shadername)
+void Shader::setupUniformBuffers()
 {
-	program = makeProgram(shadername);
-
 	// Setup uniforms that all shaders can use
 	if (uboMatrices == 0)
 	{
@@ -27,11 +26,28 @@ Shader::Shader(string shadername)
 	{
 		glGenBuffers(1, &uboLighting);
 		glBindBuffer(GL_UNIFORM_BUFFER, uboLighting);
-		glBufferData(GL_UNIFORM_BUFFER, 5 * sizeof(vec3), NULL, GL_DYNAMIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, 5 * sizeof(vec4), NULL, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		//glBindBufferRange(GL_UNIFORM_BUFFER, 1, uboLighting, 0, 5 * sizeof(vec3));
+		//glBindBufferRange(GL_UNIFORM_BUFFER, 1, uboLighting, 0, 5 * sizeof(vec4));
 		glBindBufferBase(GL_UNIFORM_BUFFER, 1, uboLighting);
+	}
+}
+
+Shader::Shader(string shadername)
+{
+	// Check program list for the shader, if unavailable, compile it.
+	vector<pair<GLuint, string>>::iterator it = find_if(programList.begin(), programList.end(),
+		[shadername](const pair<GLuint, string>& element){ return element.second == shadername; });
+
+	if (it == programList.end())
+	{
+		program = makeProgram(shadername);
+		if (program) programList.push_back(make_pair(program, shadername));
+	}
+	else
+	{
+		program = (*it).first;
 	}
 }
 

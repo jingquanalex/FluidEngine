@@ -16,7 +16,7 @@ Camera::Camera()
 	zNear = 0.1f;
 	zFar = 1000.0f;
 
-	mouseSensitivity = 0.5f;
+	mouseSensitivity = 0.25f;
 	smoothness = 50.0f;
 
 	setResolution(window_width, window_height);
@@ -34,8 +34,8 @@ void Camera::update(float dt)
 {
 	updateViewMatrix();
 
-	mouseDeltaX = mouseSensitivity * (mouseX - mouseLastX);
-	mouseDeltaY = mouseSensitivity * (mouseY - mouseLastY);
+	mouseDeltaX = (float)(mouseX - mouseLastX);
+	mouseDeltaY = (float)(mouseY - mouseLastY);
 	mouseLastX = mouseX;
 	mouseLastY = mouseY;
 }
@@ -60,7 +60,7 @@ void Camera::updateViewMatrix()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboLighting);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vec3), value_ptr(position));
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vec4), value_ptr(position));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -157,6 +157,11 @@ mat4 Camera::getMatProjection() const
 vec2 Camera::getResolution() const
 {
 	return resolution;
+}
+
+vec3 Camera::getPosition() const
+{
+	return position;
 }
 
 float Camera::getMaxSpeed() const

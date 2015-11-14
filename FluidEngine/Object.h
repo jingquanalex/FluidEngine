@@ -1,12 +1,6 @@
 #pragma once
 
 #include "Includes.h"
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <string>
-#include <vector>
-#include <algorithm>
 #include "Camera.h"
 #include "Model.h"
 #include "Shader.h"
@@ -16,12 +10,15 @@ class Object
 
 protected:
 
-	glm::mat4 matModel;
+	glm::mat4 matModel, matNormal;
 	glm::vec3 position, rotation, scale;
 	glm::vec3 color;
 
 	Model* model;
 	Shader* shader;
+
+	void updateModelMatrix();
+	void updateNormalMatrix();
 
 public:
 

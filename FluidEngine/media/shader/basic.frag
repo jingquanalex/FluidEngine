@@ -26,5 +26,9 @@ void main()
 	vec3 norm = normalize(Normal);
 	vec3 lightDir = normalize(lightPos - FragPos);
 	
-	outColor = vec4(matColor * diffuseColor, 1.0);
+	float diffuseMag = max(dot(norm, lightDir), 0.0);
+	vec3 diffuse = diffuseColor * diffuseMag;
+	vec3 ambient = ambientColor;
+	
+	outColor = vec4(ambient + diffuse, 1.0);
 }

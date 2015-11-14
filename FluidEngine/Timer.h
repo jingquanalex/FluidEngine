@@ -22,7 +22,7 @@ private:
 	float tickDuration;
 	float durationLeft;
 	bool isRunning = false;
-	bool ticked = false;
+	bool hasTicked = false;
 
 	bool getToDelete() const;
 
@@ -35,7 +35,7 @@ public:
 
 	void update(float dt);
 	void destroy();
-	bool hasTicked();
+	bool ticked();
 	void start();
 	void stop();
 	void reset();

@@ -5,128 +5,72 @@ using namespace glm;
 
 void init()
 {
-	//camera = new CameraTarget(vec3(0.0f, 0.0f, 0.0f), 5.0f);
-	camera = new CameraFPS();
-	fpsTimer = new Timer(1.0f);
-	fpsTimer->start();
-	scene = new Scene(camera);
+	scene = new Scene();
 	scene->load();
-
-	srand(static_cast<unsigned> (time(0)));
-	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 // Update loop for game logic and physics.
 void idle()
 {
-	// Calculate frame time
-	currentTime = glutGet(GLUT_ELAPSED_TIME);
-	float frameTime = (currentTime - previousTime) / 1000.0f;
-	if (frameTime > maxframeTime) frameTime = maxframeTime;
-	previousTime = currentTime;
-
-	// Calculate FPS
-	fps++;
-	if (fpsTimer->hasTicked())
-	{
-		stringstream title;
-		title << g_windowTitle << " [" << fps << "]";
-		glutSetWindowTitle(title.str().c_str());
-
-		fps = 0;
-	}
-
-	// Update timers in timer list
-	Timer::updateTimers(frameTime);
-
-	// Update logic once every dt
-	accumulator += frameTime;
-	while (accumulator >= dt)
-	{
-		accumulator -= dt;
-
-		camera->update(dt);
-		scene->update(dt);
-	}
-	
-	glutPostRedisplay();
+	scene->idle();
 }
 
 // Update loop for rendering.
 void display()
 {
-	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	scene->draw();
-	
-	glutSwapBuffers();
+	scene->display();
 }
 
 // Window dimension changed, recalculate camera proj matrix.
 void reshape(int width, int height)
 {
-	glViewport(0, 0, width, height);
-	camera->setResolution(width, height);
-	window_width = width;
-	window_height = height;
+	scene->reshape(width, height);
 }
 
-// Mouse buttons
+
 void mouse(int button, int state, int x, int y)
 {
-	camera->mouse(button, state);
-	//scene->mouse(button, state);
+	scene->mouse(button, state);
 }
 
-// Mouse moved with button press
+
 void mouseMove(int x, int y)
 {
-	camera->mouseMotion(x, y);
+	scene->mouseMove(x, y);
 }
 
-// Mouse moved without button press
 void mouseMovePassive(int x, int y)
 {
-	camera->mouseMotionPassive(x, y);
+	scene->mouseMovePassive(x, y);
 }
 
 void mouseWheel(int button, int dir, int x, int y)
 {
-	camera->mouseWheel(dir);
+	scene->mouseWheel(button, dir, x, y);
 }
 
-// Common ascii keys.
+
 void keyboard(unsigned char key, int x, int y)
 {
-	if (key == 27) exit(0);
-	//else if (key == 'l') scene->load();
-	//scene->keyboard(key);
-	camera->keyboard(key);
+	scene->keyboard(key);
 }
 
-// Common keys up event.
+
 void keyboardUp(unsigned char key, int x, int y)
 {
-	//scene->keyboardUp(key);
-	camera->keyboardUp(key);
+	scene->keyboardUp(key);
 }
 
-// Function, arrow and other special keys.
+
 void keyboardSpecial(int key, int x, int y)
 {
-	camera->keyboardSpecial(key);
-	//scene->keyboardSpecial(key);
+	scene->keyboardSpecial(key);
 }
 
-// Special key up event.
+
 void keyboardSpecialUp(int key, int x, int y)
 {
-	camera->keyboardSpecialUp(key);
-	//scene->keyboardSpecialUp(key);
+	scene->keyboardSpecialUp(key);
 }
 
 int main(int argc, char** argv)
@@ -160,7 +104,6 @@ int main(int argc, char** argv)
 	printf("GPU Device %d: \"%s\" with compute capability %d.%d\n", 
 		devID, deviceProp.name, deviceProp.major, deviceProp.minor);*/
 		
-
 	init();
 
 	// Callback Functions

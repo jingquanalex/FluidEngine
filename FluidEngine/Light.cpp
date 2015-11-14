@@ -13,10 +13,10 @@ Light::Light()
 	specularColor = vec3(1.0, 1.0, 1.0);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboLighting);
-	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(vec3), sizeof(vec3), value_ptr(position));
-	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(vec3), sizeof(vec3), value_ptr(ambientColor));
-	glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(vec3), sizeof(vec3), value_ptr(diffuseColor));
-	glBufferSubData(GL_UNIFORM_BUFFER, 4 * sizeof(vec3), sizeof(vec3), value_ptr(specularColor));
+	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(vec4), sizeof(vec4), value_ptr(position));
+	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(vec4), sizeof(vec4), value_ptr(ambientColor));
+	glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(vec4), sizeof(vec4), value_ptr(diffuseColor));
+	glBufferSubData(GL_UNIFORM_BUFFER, 4 * sizeof(vec4), sizeof(vec4), value_ptr(specularColor));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -48,19 +48,31 @@ glm::vec3 Light::getSpecularColor() const
 void Light::setPosition(glm::vec3 position)
 {
 	this->position = position;
+	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboLighting);
+	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(vec4), sizeof(vec4), value_ptr(position));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void Light::setAmbientColor(glm::vec3 color)
 {
 	this->ambientColor = color;
+	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboLighting);
+	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(vec4), sizeof(vec4), value_ptr(ambientColor));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void Light::setDiffuseColor(glm::vec3 color)
 {
 	this->diffuseColor = color;
+	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboLighting);
+	glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(vec4), sizeof(vec4), value_ptr(diffuseColor));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void Light::setSpecularColor(glm::vec3 color)
 {
 	this->specularColor = color;
+	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboLighting);
+	glBufferSubData(GL_UNIFORM_BUFFER, 4 * sizeof(vec4), sizeof(vec4), value_ptr(specularColor));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

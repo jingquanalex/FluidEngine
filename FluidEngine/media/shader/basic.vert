@@ -14,13 +14,14 @@ layout (std140, binding = 0) uniform Matrices
     mat4 view;
 };
 
-layout (location = 10) uniform mat4 model;
+layout (location = 10) uniform mat4 matModel;
+layout (location = 11) uniform mat4 matNormal;
 
 void main()
 {
-	Normal = normals;
+	Normal = vec3(matNormal * vec4(normals, 1.0));
 	Texcoord = texcoord;
-	FragPos = vec3(model * vec4(position, 1.0));
+	FragPos = vec3(matModel * vec4(position, 1.0));
 	
-	gl_Position = projection * view * model * vec4(position, 1.0);
+	gl_Position = projection * view * matModel * vec4(position, 1.0);
 }
