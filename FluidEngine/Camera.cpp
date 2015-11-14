@@ -9,7 +9,7 @@ extern int window_height;
 // Input: width and height of the window as int.
 Camera::Camera()
 {
-	position = vec3(2.0f, 3.0f, 5.0f);
+	position = vec3(0.0f, 3.0f, 5.0f);
 	direction = vec3(0.0f, 0.0f, -1.0f);
 	up = vec3(0.0f, 1.0f, 0.0f);
 	fov = 85.0f;

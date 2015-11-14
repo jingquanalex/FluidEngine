@@ -3,14 +3,12 @@
 using namespace glm;
 using namespace std;
 
-
-
 Light::Light()
 {
 	position = vec3(10, 10, 10);
-	ambientColor = vec3(0.1, 0.1, 0.2);
+	ambientColor = vec3(0.2, 0.2, 0.3);
 	diffuseColor = vec3(0.7, 0.8, 0.9);
-	specularColor = vec3(1.0, 1.0, 1.0);
+	specularColor = vec3(0.5, 0.5, 0.5);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboLighting);
 	glBufferSubData(GL_UNIFORM_BUFFER, 1 * sizeof(vec4), sizeof(vec4), value_ptr(position));

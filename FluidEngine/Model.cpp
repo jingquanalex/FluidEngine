@@ -8,32 +8,7 @@ extern string g_mediaDirectory;
 
 Model::Model(string filename)
 {
-	this->filename = filename;
-	if (filename == "!cube")
-	{
-		// Make cube data vectors
-		vector<Vertex> vertices;
-		for (int i = 0; i < 8; i++)
-		{
-			Vertex vertex;
-			vertex.Position = vec3(cubeVertices[i * 3 + 0], cubeVertices[i * 3 + 1], cubeVertices[i * 3 + 2]);
-			vertex.Normal = vec3(cubeNormals[i * 3 + 0], cubeNormals[i * 3 + 1], cubeNormals[i * 3 + 2]);
-			vertex.TexCoords = vec2(cubeTexCoords[i * 2 + 0], cubeTexCoords[i * 2 + 1]);
-			vertices.push_back(vertex);
-		}
-
-		vector<GLuint> indices(cubeIndices, cubeIndices + 36);
-		vector<Texture> textures;
-		Texture texture;
-		texture.id = TextureFromFile("cat.png", g_mediaDirectory);
-		textures.push_back(texture);
-
-		cube = new Mesh(vertices, indices, textures);
-	}
-	else
-	{
-		loadModel(g_mediaDirectory + "model/" + filename);
-	}
+	loadModel(g_mediaDirectory + "model/" + filename);
 }
 
 Model::~Model()
@@ -43,16 +18,9 @@ Model::~Model()
 
 void Model::draw(GLuint program)
 {
-	if (filename == "!cube")
+	for (Mesh& mesh : meshes)
 	{
-		cube->draw(program);
-	}
-	else
-	{
-		for (Mesh& mesh : meshes)
-		{
-			mesh.draw(program);
-		}
+		mesh.draw(program);
 	}
 }
 
@@ -166,7 +134,7 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
 		{
 			// If texture hasn't been loaded already, load it
 			Texture texture;
-			texture.id = TextureFromFile(str.C_Str(), this->directory);
+			texture.id = TextureFromFile(str.C_Str());
 			texture.type = typeName;
 			texture.path = str.C_Str();
 			textures.push_back(texture);
@@ -177,13 +145,13 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
 	return textures;
 }
 
-GLint Model::TextureFromFile(const char* path, string directory)
+GLint Model::TextureFromFile(const char* path)
 {
 	// Generate texture ID and load texture data 
-	string filename = string(path);
-	filename = directory + '/' + filename;
+	string filepath = string(path);
+	filepath = directory + '/' + filepath;
 
-	GLuint textureID = SOIL_load_OGL_texture(filename.c_str(), SOIL_LOAD_AUTO, 
+	GLuint textureID = SOIL_load_OGL_texture(filepath.c_str(), SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 
 	glBindTexture(GL_TEXTURE_2D, textureID);
@@ -195,81 +163,3 @@ GLint Model::TextureFromFile(const char* path, string directory)
 
 	return textureID;
 }
-
-const GLfloat Model::triVertices[] =
-{
-	-0.5f, -0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f,
-	0.0f, 0.5f, 0.0f
-};
-
-const GLuint Model::triIndices[] =
-{
-	0, 1, 2
-};
-
-// Cube vertices, normals, texcoord
-const GLfloat Model::cubeVertices[] =
-{
-	// Front
-	-0.5, -0.5, 0.5,
-	0.5, -0.5, 0.5,
-	0.5, 0.5, 0.5,
-	-0.5, 0.5, 0.5,
-
-	// Back
-	-0.5, -0.5, -0.5,
-	0.5, -0.5, -0.5,
-	0.5, 0.5, -0.5,
-	-0.5, 0.5, -0.5
-};
-
-const GLfloat Model::cubeNormals[] =
-{
-	// Front
-	-0.5, -0.5, 0.5,
-	0.5, -0.5, 0.5,
-	0.5, 0.5, 0.5,
-	-0.5, 0.5, 0.5,
-
-	// Back
-	-0.5, -0.5, -0.5,
-	0.5, -0.5, -0.5,
-	0.5, 0.5, -0.5,
-	-0.5, 0.5, -0.5
-};
-
-const GLfloat Model::cubeTexCoords[] =
-{
-	0.0, 0.0,
-	1.0, 0.0,
-	1.0, 1.0,
-	0.0, 1.0,
-
-	1.0, 0.0,
-	0.0, 0.0,
-	0.0, 1.0,
-	1.0, 1.0
-};
-
-const GLuint Model::cubeIndices[] =
-{
-	// Front
-	0, 1, 2,
-	2, 3, 0,
-	// Top
-	3, 2, 6,
-	6, 7, 3,
-	// Back
-	7, 6, 5,
-	5, 4, 7,
-	// Bottom
-	4, 5, 1,
-	1, 0, 4,
-	// Left
-	4, 0, 3,
-	3, 7, 4,
-	// Right
-	1, 5, 6,
-	6, 2, 1
-};

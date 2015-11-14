@@ -22,9 +22,12 @@ class Mesh
 
 private:
 
+	bool hasIndices;
+
 	std::vector<Vertex> vertices;
 	std::vector<GLuint> indices;
 	std::vector<Texture> textures;
+	std::vector<float> posVertices;
 
 	GLuint vbo;
 	GLuint vao;
@@ -34,11 +37,13 @@ private:
 
 public:
 
+	Mesh(const std::vector<float>& vertices);
 	Mesh(const std::vector<Vertex>& vertices, 
 		const std::vector<GLuint>& indices, 
 		const std::vector<Texture>& textures);
 	~Mesh();
 
+	void draw();
 	void draw(GLuint program);
 
 };

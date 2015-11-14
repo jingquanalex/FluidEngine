@@ -19,17 +19,18 @@ Scene::Scene()
 
 	frameTimer = new Timer(1.0f);
 	frameTimer->start();
+
 	//camera = new CameraTarget(vec3(0.0f, 0.0f, 0.0f), 5.0f);
 	camera = new CameraFPS();
 	light = new Light();
 
+	spheres = new Spheres();
 	testObj = new Object(vec3(2, 2, 0));
 	testObj2 = new Object(vec3(1, 1, 0));
 	testObj2->setRotation(vec3(0, 45, 0));
-	spheres = new Spheres();
 	plane = new Object();
 
-	
+	testObj->setPosition(light->getPosition());
 	
 	
 }
@@ -59,13 +60,13 @@ void Scene::idle()
 	accumulator += frameTime;
 	while (accumulator >= dt)
 	{
-		camera->update(dt);
+		//spheres->update(dt);
 		testObj->update(dt);
 		testObj2->update(dt);
-		//spheres->update(dt);
 		plane->update(dt);
 
-		light->setPosition(camera->getPosition());
+		//light->setPosition(camera->getPosition());
+		camera->update(dt);
 
 		accumulator -= dt;
 	}
@@ -91,9 +92,9 @@ void Scene::display()
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	//spheres->draw();
 	testObj->draw();
 	testObj2->draw();
-	//spheres->draw();
 	plane->draw();
 
 	glutSwapBuffers();

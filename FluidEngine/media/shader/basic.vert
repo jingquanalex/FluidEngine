@@ -19,9 +19,9 @@ layout (location = 11) uniform mat4 matNormal;
 
 void main()
 {
-	Normal = vec3(matNormal * vec4(normals, 1.0));
+	Normal = (matNormal * vec4(normals, 1.0)).xyz;
 	Texcoord = texcoord;
-	FragPos = vec3(matModel * vec4(position, 1.0));
+	FragPos = (matModel * vec4(position, 1.0)).xyz;
 	
 	gl_Position = projection * view * matModel * vec4(position, 1.0);
 }
