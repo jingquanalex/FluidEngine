@@ -20,6 +20,12 @@ void Shader::setupUniformBuffers()
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboMatrices);
+
+		// Set matrices to identity
+		glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboMatrices);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(mat4), value_ptr(mat4(1)));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(mat4), sizeof(mat4), value_ptr(mat4(1)));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 
 	if (uboLighting == 0)

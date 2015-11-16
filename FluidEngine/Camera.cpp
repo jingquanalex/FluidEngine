@@ -109,6 +109,11 @@ void Camera::keyboardSpecialUp(int key)
 
 // Accessors definitions
 
+void Camera::setPosition(glm::vec3 position)
+{
+	this->position = vec3(position.x, position.y, position.z);
+}
+
 // Input: width and height of the window as int.
 // Calculate aspect ratio of window, call on window reshape.
 void Camera::setResolution(int width, int height)

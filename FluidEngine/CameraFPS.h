@@ -22,9 +22,6 @@ public:
 
 	void update(float dt);
 
-	void setPosition(glm::vec3 position);
-	glm::vec3 getPosition() const;
-
 	void mouse(int button, int state);
 	void mouseMotion(int x, int y);
 	void keyboard(int key);

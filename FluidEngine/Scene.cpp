@@ -20,13 +20,17 @@ Scene::Scene()
 	frameTimer = new Timer(1.0f);
 	frameTimer->start();
 
-	//camera = new CameraTarget(vec3(0.0f, 0.0f, 0.0f), 5.0f);
+	//camera = new CameraTarget(vec3(0), 5.0f);
 	camera = new CameraFPS();
+	camera->setPosition(vec3(0, 3, 5));
+
 	light = new Light();
 
+	skyQuad = new Quad();
 	spheres = new Spheres();
-	testObj = new Object(vec3(2, 2, 0));
-	testObj2 = new Object(vec3(1, 1, 0));
+	testObj = new Object(vec3(0, 0, 0));
+	testObj->getMaterial()->setEmissiveColor(vec3(1.0));
+	testObj2 = new Object(vec3(0, 2, 0));
 	testObj2->setRotation(vec3(0, 45, 0));
 	plane = new Object();
 
@@ -42,6 +46,7 @@ Scene::~Scene()
 
 void Scene::load()
 {
+	skyQuad->load();
 	spheres->load();
 	testObj->load("cube.obj");
 	testObj2->load("cube.obj");
@@ -50,13 +55,13 @@ void Scene::load()
 
 void Scene::idle()
 {
-	// Calculate frame time in seconds
+	// frameTime - time to render a frame in seconds
 	currentTime = glutGet(GLUT_ELAPSED_TIME);
 	float frameTime = (currentTime - previousTime) / 1000.0f;
 	if (frameTime > maxframeTime) frameTime = maxframeTime;
 	previousTime = currentTime;
 
-	// Update at a constant dt
+	// Update logic at a constant dt, seperate from frame time
 	accumulator += frameTime;
 	while (accumulator >= dt)
 	{
@@ -71,7 +76,7 @@ void Scene::idle()
 		accumulator -= dt;
 	}
 
-	// Calculate FPS
+	// Calculate frames per second
 	fps++;
 	if (frameTimer->ticked())
 	{
@@ -81,7 +86,7 @@ void Scene::idle()
 		fps = 0;
 	}
 
-	// Update timers in timer list
+	// Update all timers in timer list
 	Timer::updateTimers(frameTime);
 
 	glutPostRedisplay();
@@ -92,6 +97,7 @@ void Scene::display()
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	skyQuad->draw();
 	//spheres->draw();
 	testObj->draw();
 	testObj2->draw();
@@ -99,7 +105,6 @@ void Scene::display()
 
 	glutSwapBuffers();
 }
-	
 
 void Scene::reshape(int width, int height)
 {
@@ -127,7 +132,7 @@ void Scene::mouseMovePassive(int x, int y)
 	camera->mouseMotionPassive(x, y);
 }
 
-
+// Mouse wheel
 void Scene::mouseWheel(int button, int dir, int x, int y)
 {
 	camera->mouseWheel(dir);

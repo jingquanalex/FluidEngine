@@ -21,6 +21,7 @@ uniform sampler2D specular1;
 
 struct Material
 {
+	vec3 emissive;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -46,5 +47,5 @@ void main()
 	float specularMag = pow(max(dot(N, halfDir), 0.0), material.shininess);
 	vec3 specular = specularMag * specularColor * material.specular;
 	
-	outColor = vec4(ambient + diffuse + specular, 1.0);
+	outColor = vec4(material.emissive + ambient + diffuse + specular, 1.0);
 }

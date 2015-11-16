@@ -41,16 +41,6 @@ void CameraFPS::update(float dt)
 	}
 }
 
-void CameraFPS::setPosition(glm::vec3 position)
-{
-	this->position = vec3(position.x, position.y, position.z);
-}
-
-glm::vec3 CameraFPS::getPosition() const
-{
-	return position;
-}
-
 void CameraFPS::mouse(int button, int state)
 {
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)

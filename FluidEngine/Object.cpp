@@ -58,10 +58,11 @@ void Object::draw()
 		glUseProgram(program);
 		glUniformMatrix4fv(10, 1, GL_FALSE, value_ptr(matModel));
 		glUniformMatrix4fv(11, 1, GL_FALSE, value_ptr(matNormal));
-		glUniform3fv(glGetUniformLocation(program, "material.ambient"), 1, value_ptr(material.ambientColor));
-		glUniform3fv(glGetUniformLocation(program, "material.diffuse"), 1, value_ptr(material.diffuseColor));
-		glUniform3fv(glGetUniformLocation(program, "material.specular"), 1, value_ptr(material.specularColor));
-		glUniform1f(glGetUniformLocation(program, "material.shininess"), material.shininess);
+		glUniform3fv(glGetUniformLocation(program, "material.emissive"), 1, value_ptr(material.getEmissiveColor()));
+		glUniform3fv(glGetUniformLocation(program, "material.ambient"), 1, value_ptr(material.getAmbientColor()));
+		glUniform3fv(glGetUniformLocation(program, "material.diffuse"), 1, value_ptr(material.getDiffuseColor()));
+		glUniform3fv(glGetUniformLocation(program, "material.specular"), 1, value_ptr(material.getSpecularColor()));
+		glUniform1f(glGetUniformLocation(program, "material.shininess"), material.getShininess());
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, defaultTexId);

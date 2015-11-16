@@ -3,24 +3,6 @@
 using namespace glm;
 using namespace std;
 
-// Mesh with only positional vertices
-Mesh::Mesh(const std::vector<float>& vertices)
-{
-	this->hasIndices = true;
-	this->posVertices = vertices;
-
-	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vbo);
-
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-	glBindVertexArray(0);
-}
-
 Mesh::Mesh(const vector<Vertex>& vertices, const vector<GLuint>& indices, const vector<Texture>& textures)
 {
 	this->hasIndices = true;
@@ -59,20 +41,12 @@ Mesh::~Mesh()
 
 }
 
-void Mesh::draw()
-{
-	glBindVertexArray(vao);
-	if (hasIndices)
-		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-	else
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-	glBindVertexArray(0);
-}
-
 void Mesh::draw(GLuint program)
 {
 	if (!textures.empty() && program != NULL) bindTexture(program);
-	draw();
+	glBindVertexArray(vao);
+	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
