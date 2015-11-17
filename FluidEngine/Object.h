@@ -5,7 +5,6 @@
 #include "Model.h"
 #include "Shader.h"
 
-// Lazy to make class?
 struct Material
 {
 private:
@@ -38,15 +37,12 @@ public:
 class Object
 {
 
-private:
-
-	static GLuint defaultTexId;
-
 protected:
 
 	glm::mat4 matModel, matNormal;
 	glm::vec3 position, rotation, scale;
 	Material material;
+	static GLuint defaultTexId;
 
 	Model* model;
 	Shader* shader;

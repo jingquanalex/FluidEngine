@@ -8,5 +8,5 @@ uniform samplerCube cubemap;
 
 void main()
 {
-    outColor = texture(cubemap, EyeDir);
+    outColor = textureLod(cubemap, EyeDir, 1);
 }

@@ -53,7 +53,7 @@ Shader::Shader(string shadername)
 	}
 	else
 	{
-		program = (*it).first;
+		program = it->first;
 	}
 }
 

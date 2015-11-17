@@ -33,7 +33,7 @@ void Object::load(string modelname, string shadername)
 	// Create default white diffuse texture
 	if (defaultTexId == NULL)
 	{
-		defaultTexId = SOIL_load_OGL_texture((g_mediaDirectory + "white.png").c_str(), SOIL_LOAD_AUTO,
+		defaultTexId = SOIL_load_OGL_texture((g_mediaDirectory + "cat.png").c_str(), SOIL_LOAD_AUTO,
 			SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 
 		glBindTexture(GL_TEXTURE_2D, defaultTexId);

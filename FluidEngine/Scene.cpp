@@ -11,7 +11,7 @@ Scene::Scene()
 {
 	srand(static_cast<unsigned> (time(0)));
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -28,11 +28,14 @@ Scene::Scene()
 
 	skyQuad = new Quad();
 	spheres = new Spheres();
-	testObj = new Object(vec3(0, 0, 0));
+	testObj = new Object(vec3(1, 1, 0));
 	testObj->getMaterial()->setEmissiveColor(vec3(1.0));
 	testObj2 = new Object(vec3(0, 2, 0));
 	testObj2->setRotation(vec3(0, 45, 0));
 	plane = new Object();
+
+	chunk = new Chunk();
+	//chunk->getMaterial()->setEmissiveColor(vec3(1.0));
 
 	testObj->setPosition(light->getPosition());
 	
@@ -46,11 +49,12 @@ Scene::~Scene()
 
 void Scene::load()
 {
-	skyQuad->load();
+	//skyQuad->load();
 	spheres->load();
 	testObj->load("cube.obj");
 	testObj2->load("cube.obj");
 	plane->load("plane.obj");
+	chunk->load(50);
 }
 
 void Scene::idle()
@@ -65,12 +69,8 @@ void Scene::idle()
 	accumulator += frameTime;
 	while (accumulator >= dt)
 	{
-		//spheres->update(dt);
-		testObj->update(dt);
-		testObj2->update(dt);
-		plane->update(dt);
 
-		//light->setPosition(camera->getPosition());
+		light->setPosition(camera->getPosition());
 		camera->update(dt);
 
 		accumulator -= dt;
@@ -97,11 +97,12 @@ void Scene::display()
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	skyQuad->draw();
+	//skyQuad->draw();
 	//spheres->draw();
 	testObj->draw();
-	testObj2->draw();
-	plane->draw();
+	//testObj2->draw();
+	//plane->draw();
+	chunk->draw();
 
 	glutSwapBuffers();
 }

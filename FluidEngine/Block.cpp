@@ -2,7 +2,7 @@
 
 Block::Block()
 {
-
+	visible = true;
 }
 
 Block::~Block()
@@ -10,12 +10,12 @@ Block::~Block()
 
 }
 
-bool Block::getEnabled()
+bool Block::getVisible()
 {
-	return enabled;
+	return visible;
 }
 
-void Block::setEnabled(bool value)
+void Block::setVisible(bool isvisible)
 {
-	enabled = value;
+	visible = isvisible;
 }

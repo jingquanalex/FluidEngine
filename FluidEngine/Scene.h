@@ -8,6 +8,7 @@
 #include "Spheres.h"
 #include "Light.h"
 #include "Quad.h"
+#include "Chunk.h"
 
 class Scene
 {
@@ -23,6 +24,7 @@ private:
 	Object* testObj2;
 	Spheres* spheres;
 	Object* plane;
+	Chunk* chunk;
 
 	const float maxframeTime = 1 / 4.0f;
 	const float dt = 1 / 60.0f;

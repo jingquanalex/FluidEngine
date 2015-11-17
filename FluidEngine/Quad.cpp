@@ -18,17 +18,18 @@ Quad::~Quad()
 void Quad::load(string shadername)
 {
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	glDepthFunc(GL_LEQUAL);
 
 	shader = new Shader(shadername);
 
 	float quadVertices[18] = 
 	{
-		-1.0f, 1.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f 
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f 
 	};
 
 	// Quad vbo
@@ -53,7 +54,7 @@ void Quad::load(string shadername)
 		(g_mediaDirectory + "ncity/negz.jpg").c_str(),
 		SOIL_LOAD_RGB,
 		SOIL_CREATE_NEW_ID,
-		0
+		SOIL_FLAG_MIPMAPS
 		);
 
 	if (texid == 0)
@@ -62,8 +63,8 @@ void Quad::load(string shadername)
 	}
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texid);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -72,13 +73,9 @@ void Quad::load(string shadername)
 
 void Quad::draw()
 {
-	glDisable(GL_DEPTH_TEST);
-
 	glUseProgram(shader->getProgram());
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texid);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
-
-	glEnable(GL_DEPTH_TEST);
 }

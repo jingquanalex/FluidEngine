@@ -5,14 +5,14 @@ class Block
 
 private:
 
-	bool enabled;
+	bool visible;
 
 public:
 
 	Block();
 	~Block();
 
-	bool getEnabled();
-	void setEnabled(bool value);
+	bool getVisible();
+	void setVisible(bool isvisible);
 
 };
