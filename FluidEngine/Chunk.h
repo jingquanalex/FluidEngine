@@ -5,6 +5,16 @@
 #include "Block.h"
 #include <unordered_map>
 
+struct Section
+{
+	Section(glm::ivec3 a, glm::ivec3 b, int c) :
+		index(a), sections(b), mapwidth(c) { }
+
+	glm::ivec3 index;
+	glm::ivec3 sections;
+	int mapwidth;
+};
+
 class Chunk : public Object
 {
 
@@ -26,15 +36,18 @@ private:
 	{
 		size_t operator()(const glm::ivec3& key) const
 		{
-			return std::hash<int>()(key.x) ^ std::hash<int>()(key.y) ^ std::hash<int>()(key.z);
+			return ((key.x * 73856093) ^ (key.y * 19349663)) ^ (key.z * 83492791);
 		}
 	};
 
 	std::unordered_map<glm::ivec3, Block, KeyHash> blocks;
 
 	std::vector<Vertex> vertices;
+	int verticesSize;
 	GLuint vbo;
 	GLuint vao;
+	glm::mat4 matModel;
+	bool isempty;
 
 	void addFace(glm::vec3 pos, float size, CubeFace face);
 
@@ -43,7 +56,8 @@ public:
 	Chunk();
 	~Chunk();
 
-	void load(int size);
+	void load(unsigned char *heightMap, Section sectionBuffer, int chunksize, float blocksize);
 	void draw();
 
+	void setPosition(glm::vec3 position);
 };

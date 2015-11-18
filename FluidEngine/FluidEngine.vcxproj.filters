@@ -72,6 +72,9 @@
     <ClInclude Include="Quad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ChunkManager.h">
+      <Filter>Header Files\Voxel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -121,6 +124,9 @@
     </ClCompile>
     <ClCompile Include="Quad.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ChunkManager.cpp">
+      <Filter>Source Files\Voxel</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

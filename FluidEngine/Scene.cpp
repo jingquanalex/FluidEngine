@@ -28,16 +28,14 @@ Scene::Scene()
 
 	skyQuad = new Quad();
 	spheres = new Spheres();
-	testObj = new Object(vec3(1, 1, 0));
+	testObj = new Object(vec3(0, 0, 0));
 	testObj->getMaterial()->setEmissiveColor(vec3(1.0));
 	testObj2 = new Object(vec3(0, 2, 0));
 	testObj2->setRotation(vec3(0, 45, 0));
 	plane = new Object();
 
-	chunk = new Chunk();
+	chunkManager = new ChunkManager();
 	//chunk->getMaterial()->setEmissiveColor(vec3(1.0));
-
-	testObj->setPosition(light->getPosition());
 	
 	
 }
@@ -49,12 +47,17 @@ Scene::~Scene()
 
 void Scene::load()
 {
+	int loadst = glutGet(GLUT_ELAPSED_TIME);
+
 	//skyQuad->load();
 	spheres->load();
 	testObj->load("cube.obj");
 	testObj2->load("cube.obj");
 	plane->load("plane.obj");
-	chunk->load(50);
+	chunkManager->load("hm.jpg", vec3(2,0,1), 32, 1.0f);
+
+	float loadtime = (glutGet(GLUT_ELAPSED_TIME) - loadst) / 1000.0f;
+	cout << "Load time: " << loadtime << "s" << endl;
 }
 
 void Scene::idle()
@@ -102,7 +105,7 @@ void Scene::display()
 	testObj->draw();
 	//testObj2->draw();
 	//plane->draw();
-	chunk->draw();
+	chunkManager->draw();
 
 	glutSwapBuffers();
 }
