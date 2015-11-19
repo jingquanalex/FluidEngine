@@ -42,7 +42,7 @@ protected:
 	glm::mat4 matModel, matNormal;
 	glm::vec3 position, rotation, scale;
 	Material material;
-	static GLuint defaultTexId;
+	static GLuint defaultTexID;
 
 	Model* model;
 	Shader* shader;

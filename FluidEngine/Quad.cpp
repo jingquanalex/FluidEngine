@@ -15,7 +15,7 @@ Quad::~Quad()
 
 }
 
-void Quad::load(string shadername)
+void Quad::load(string mapname, string shadername)
 {
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glDepthFunc(GL_LEQUAL);
@@ -46,12 +46,12 @@ void Quad::load(string shadername)
 
 	// Load cubemap textures
 	texid = SOIL_load_OGL_cubemap(
-		(g_mediaDirectory + "ncity/posx.jpg").c_str(),
-		(g_mediaDirectory + "ncity/negx.jpg").c_str(),
-		(g_mediaDirectory + "ncity/posy.jpg").c_str(),
-		(g_mediaDirectory + "ncity/negy.jpg").c_str(),
-		(g_mediaDirectory + "ncity/posz.jpg").c_str(),
-		(g_mediaDirectory + "ncity/negz.jpg").c_str(),
+		(g_mediaDirectory + mapname + "/posx.jpg").c_str(),
+		(g_mediaDirectory + mapname + "/negx.jpg").c_str(),
+		(g_mediaDirectory + mapname + "/posy.jpg").c_str(),
+		(g_mediaDirectory + mapname + "/negy.jpg").c_str(),
+		(g_mediaDirectory + mapname + "/posz.jpg").c_str(),
+		(g_mediaDirectory + mapname + "/negz.jpg").c_str(),
 		SOIL_LOAD_RGB,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS
@@ -78,4 +78,9 @@ void Quad::draw()
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
+}
+
+GLuint Quad::getCubeMapID() const
+{
+	return texid;
 }

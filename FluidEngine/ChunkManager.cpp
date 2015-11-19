@@ -67,10 +67,10 @@ void ChunkManager::load(string mapname, ivec3 sections, int chunksize, float blo
 	SOIL_free_image_data(heightMap);
 }
 
-void ChunkManager::draw()
+void ChunkManager::draw(GLuint envMapId)
 {
 	for (pair<ivec3, Chunk*> e : chunks)
 	{
-		e.second->draw();
+		e.second->draw(envMapId);
 	}
 }

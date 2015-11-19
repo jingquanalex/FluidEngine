@@ -5,7 +5,7 @@ using namespace std;
 
 extern string g_mediaDirectory;
 
-GLuint Object::defaultTexId;
+GLuint Object::defaultTexID;
 
 Object::Object(vec3 position)
 {
@@ -31,17 +31,15 @@ void Object::load(string modelname, string shadername)
 	shader = new Shader(shadername);
 
 	// Create default white diffuse texture
-	if (defaultTexId == NULL)
+	if (defaultTexID == NULL)
 	{
-		defaultTexId = SOIL_load_OGL_texture((g_mediaDirectory + "cat.png").c_str(), SOIL_LOAD_AUTO,
+		defaultTexID = SOIL_load_OGL_texture((g_mediaDirectory + "grass.png").c_str(), SOIL_LOAD_AUTO,
 			SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 
-		glBindTexture(GL_TEXTURE_2D, defaultTexId);
+		glBindTexture(GL_TEXTURE_2D, defaultTexID);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glBindTexture(GL_TEXTURE_2D, 0);
-
-		glUniform1i(glGetUniformLocation(shader->getProgram(), "diffuse1"), defaultTexId);
 	}
 }
 
@@ -65,7 +63,7 @@ void Object::draw()
 		glUniform1f(glGetUniformLocation(program, "material.shininess"), material.getShininess());
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, defaultTexId);
+		glBindTexture(GL_TEXTURE_2D, defaultTexID);
 		if (model != nullptr) model->draw(program);
 	}
 }

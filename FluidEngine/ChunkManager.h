@@ -25,6 +25,6 @@ public:
 	~ChunkManager();
 
 	void load(std::string mapname, glm::ivec3 sections, int chunksize, float blocksize);
-	void draw();
+	void draw(GLuint envMapId);
 
 };

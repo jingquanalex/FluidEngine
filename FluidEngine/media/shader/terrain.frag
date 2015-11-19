@@ -16,34 +16,37 @@ layout (std140, binding = 1) uniform Lighting
 };
 
 uniform sampler2D diffuse1;
+uniform samplerCube cubemap1;
 
-struct Material
+vec3 checker(vec2 uv, vec3 color1, vec3 color2)
 {
-	vec3 emissive;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    float shininess;
-};
-
-uniform Material material;
+	float checkSize = 4.0;
+	float fmodResult = mod(floor(checkSize * uv.x) + floor(checkSize * uv.y), 2.0);
+	if (fmodResult < 1.0)
+		return color1;
+	else
+		return color2;
+}
 
 void main()
 {
 	vec3 N = normalize(Normal);
 	vec3 lightDir = normalize(lightPos - FragPos);
-	vec3 viewDir = normalize(viewPos - FragPos);
-	vec3 halfDir = normalize(lightDir + viewDir);
 	
 	vec3 diffuseMap = vec3(texture(diffuse1, Texcoord));
 	
-	vec3 ambient = ambientColor * material.ambient * diffuseMap;
+	vec3 I = normalize(FragPos - viewPos);
+    vec3 R = reflect(I, N);
 	
-	float diffuseMag = max(dot(N, lightDir), 0.0);
-	vec3 diffuse = diffuseMag * diffuseColor * material.diffuse * diffuseMap;
+	float hz = FragPos.y / 10;
 	
-	float specularMag = pow(max(dot(N, halfDir), 0.0), material.shininess);
-	vec3 specular = specularMag * specularColor * material.specular;
+	vec3 envMapA = texture(cubemap1, N).xyz;
+	vec3 envMapS = textureLod(cubemap1, R, 8).xyz;
 	
-	outColor = vec4(material.emissive + ambient + diffuse + specular, 1.0);
+	diffuseMap = checker(Texcoord, vec3(0.2), vec3(0.3));
+	
+	vec3 colorGrade = vec3(hz * 0.15 + (hz * hz * hz) * 0.03, hz * 1.0 + (hz * hz) * 0.11, (hz * hz * hz) * 0.3);
+	vec3 color = envMapA * colorGrade;// * diffuseMap;
+	
+	outColor = vec4(color, 1.0);
 }

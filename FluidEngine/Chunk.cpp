@@ -9,6 +9,10 @@ Chunk::Chunk() : Object()
 {
 	matModel = mat4();
 	isempty = false;
+	//material.setAmbientColor(vec3(0.3f, 0.3f, 0.6f));
+	//material.setDiffuseColor(vec3(1.0f));
+	material.setSpecularColor(vec3(0.1f));
+	material.setShininess(8.0f);
 }
 
 Chunk::~Chunk()
@@ -95,14 +99,6 @@ void Chunk::load(unsigned char *heightMap, Section sectionBuffer, int chunksize,
 	vertices.clear();
 
 	shader = new Shader("terrain");
-	GLuint program = shader->getProgram();
-	glUseProgram(program);
-	glUniform3fv(glGetUniformLocation(program, "material.emissive"), 1, value_ptr(material.getEmissiveColor()));
-	glUniform3fv(glGetUniformLocation(program, "material.ambient"), 1, value_ptr(material.getAmbientColor()));
-	glUniform3fv(glGetUniformLocation(program, "material.diffuse"), 1, value_ptr(material.getDiffuseColor()));
-	glUniform3fv(glGetUniformLocation(program, "material.specular"), 1, value_ptr(material.getSpecularColor()));
-	glUniform1f(glGetUniformLocation(program, "material.shininess"), material.getShininess());
-	glUseProgram(0);
 }
 
 // Make a face of a cube at center [pos] with square width of [size * 2]
@@ -165,15 +161,20 @@ void Chunk::addFace(vec3 pos, float size, CubeFace face)
 }
 
 // Create quad for all visible faces
-void Chunk::draw()
+void Chunk::draw(GLuint envMapId)
 {
 	if (isempty) return;
 
 	GLuint program = shader->getProgram();
 	glUseProgram(program);
 	glUniformMatrix4fv(10, 1, GL_FALSE, value_ptr(matModel));
+	glUniform1i(glGetUniformLocation(program, "diffuse1"), 0);
+	glUniform1i(glGetUniformLocation(program, "cubemap1"), 1);
 
-	glBindTexture(GL_TEXTURE_2D, defaultTexId);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, defaultTexID);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, envMapId);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, verticesSize);
 	glBindVertexArray(0);

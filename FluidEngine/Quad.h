@@ -17,7 +17,9 @@ public:
 	Quad(glm::vec3 position = glm::vec3());
 	~Quad();
 
-	void load(std::string shadername = "quad");
+	void load(std::string mapname, std::string shadername = "quad");
 	void draw();
+
+	GLuint getCubeMapID() const;
 
 };

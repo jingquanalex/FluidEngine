@@ -8,5 +8,8 @@ uniform samplerCube cubemap;
 
 void main()
 {
-    outColor = textureLod(cubemap, EyeDir, 1);
+	vec3 envmap = textureLod(cubemap, EyeDir, 1).xyz;
+	
+	
+    outColor = vec4(envmap, 1.0);
 }

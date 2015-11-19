@@ -57,7 +57,7 @@ public:
 	~Chunk();
 
 	void load(unsigned char *heightMap, Section sectionBuffer, int chunksize, float blocksize);
-	void draw();
+	void draw(GLuint envMapId);
 
 	void setPosition(glm::vec3 position);
 };
