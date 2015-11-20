@@ -22,7 +22,7 @@ Scene::Scene()
 
 	//camera = new CameraTarget(vec3(0), 5.0f);
 	camera = new CameraFPS();
-	camera->setPosition(vec3(0, 3, 5));
+	camera->setPosition(vec3(0, 33, 5));
 
 	light = new Light();
 	light->setPosition(vec3(0, 50, 0));
@@ -51,12 +51,15 @@ void Scene::load()
 	int loadst = glutGet(GLUT_ELAPSED_TIME);
 
 	skyQuad->load("lake");
+	// gen buffers gives wrong id??
+	//thread tChunkMgr(&ChunkManager::load, chunkManager, "hm.jpg", vec3(2, 0, 1), 32, 1.0f);
+	//tChunkMgr.join();
+	chunkManager->load("hm.jpg", vec3(8, 8, 4), vec3(8, 8, 8), 1.0f);
 	spheres->load();
 	testObj->load("cube.obj");
 	testObj2->load("cube.obj");
 	plane->load("plane.obj");
-	chunkManager->load("hm.jpg", vec3(4,0,1), 32, 1.0f);
-
+	
 	float loadtime = (glutGet(GLUT_ELAPSED_TIME) - loadst) / 1000.0f;
 	cout << "Load time: " << loadtime << "s" << endl;
 }
@@ -102,12 +105,12 @@ void Scene::display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	skyQuad->draw();
+	chunkManager->draw(skyQuad->getCubeMapID());
 	//spheres->draw();
 	testObj->draw();
 	//testObj2->draw();
 	//plane->draw();
-	chunkManager->draw(skyQuad->getCubeMapID());
-
+	
 	glutSwapBuffers();
 }
 

@@ -3,6 +3,7 @@
 in vec3 Normal;
 in vec2 Texcoord;
 in vec3 FragPos;
+in float OccFactor;
 
 out vec4 outColor;
 
@@ -17,6 +18,7 @@ layout (std140, binding = 1) uniform Lighting
 
 uniform sampler2D diffuse1;
 uniform samplerCube cubemap1;
+uniform float maxheight;
 
 vec3 checker(vec2 uv, vec3 color1, vec3 color2)
 {
@@ -38,15 +40,17 @@ void main()
 	vec3 I = normalize(FragPos - viewPos);
     vec3 R = reflect(I, N);
 	
-	float hz = FragPos.y / 10;
+	float hz = FragPos.y / maxheight;
 	
 	vec3 envMapA = texture(cubemap1, N).xyz;
 	vec3 envMapS = textureLod(cubemap1, R, 8).xyz;
 	
 	diffuseMap = checker(Texcoord, vec3(0.2), vec3(0.3));
 	
-	vec3 colorGrade = vec3(hz * 0.15 + (hz * hz * hz) * 0.03, hz * 1.0 + (hz * hz) * 0.11, (hz * hz * hz) * 0.3);
-	vec3 color = envMapA * colorGrade;// * diffuseMap;
+	//vec3 colorGrade = vec3(hz * 0.15 + (hz * hz * hz) * 0.23, hz * 1.0 + (hz * hz) * 0.31, (hz * hz * hz) * 0.3);
+	vec3 colorGrade = vec3(hz * hz * 1.0 + hz * hz * 0.3, hz * 1.0 + hz * hz * 0.7, (hz * hz * hz) * 2.5);
+	colorGrade = (colorGrade);
+	vec3 color = envMapA * OccFactor * colorGrade;
 	
 	outColor = vec4(color, 1.0);
 }

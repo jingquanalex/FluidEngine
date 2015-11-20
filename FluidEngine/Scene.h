@@ -9,6 +9,7 @@
 #include "Light.h"
 #include "Quad.h"
 #include "ChunkManager.h"
+#include <thread>
 
 class Scene
 {

@@ -12,7 +12,7 @@ Camera::Camera()
 	position = vec3(0.0f, 3.0f, 5.0f);
 	direction = vec3(0.0f, 0.0f, -1.0f);
 	up = vec3(0.0f, 1.0f, 0.0f);
-	fov = 85.0f;
+	fov = 75.0f;
 	zNear = 0.1f;
 	zFar = 1000.0f;
 

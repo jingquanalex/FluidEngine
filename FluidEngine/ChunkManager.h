@@ -2,6 +2,7 @@
 
 #include "Includes.h"
 #include "Chunk.h"
+#include "Shader.h"
 #include <unordered_map>
 
 class ChunkManager
@@ -19,12 +20,15 @@ private:
 
 	std::unordered_map<glm::ivec3, Chunk*, KeyHash> chunks;
 
+	Shader* shader;
+	float maxHeight;
+
 public:
 
 	ChunkManager();
 	~ChunkManager();
 
-	void load(std::string mapname, glm::ivec3 sections, int chunksize, float blocksize);
+	void load(std::string mapname, glm::ivec3 sections, glm::ivec3 chunksize, float blocksize);
 	void draw(GLuint envMapId);
 
 };

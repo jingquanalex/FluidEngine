@@ -7,27 +7,29 @@
 
 struct Section
 {
-	Section(glm::ivec3 a, glm::ivec3 b, int c) :
-		index(a), sections(b), mapwidth(c) { }
+	Section(glm::ivec3 a, glm::ivec3 b, glm::ivec2 c) :
+		positionIndex(a), sectionDimension(b), mapDimension(c) { }
 
-	glm::ivec3 index;
-	glm::ivec3 sections;
-	int mapwidth;
+	glm::ivec3 positionIndex;
+	glm::ivec3 sectionDimension;
+	glm::ivec2 mapDimension;
 };
 
-class Chunk : public Object
+class Chunk
 {
 
 private:
 
 	struct Vertex
 	{
-		Vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 texcoord) :
-			Position(position), Normal(normal), TexCoords(texcoord) { }
+		Vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 texcoord, float occlusion) :
+			Position(position), Normal(normal), 
+			TexCoords(texcoord), Occlusion(occlusion) { }
 
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoords;
+		float Occlusion;
 	};
 
 	enum class CubeFace { Top, Bottom, Left, Right, Front, Back };
@@ -47,17 +49,19 @@ private:
 	GLuint vbo;
 	GLuint vao;
 	glm::mat4 matModel;
-	bool isempty;
+	bool isempty, hasloaded;
 
-	void addFace(glm::vec3 pos, float size, CubeFace face);
+	void addFace(glm::vec3 pos, float size, CubeFace face, glm::vec4 occ);
+	float findAOFactor(bool side1, bool side2, bool corner);
 
 public:
 
 	Chunk();
 	~Chunk();
 
-	void load(unsigned char *heightMap, Section sectionBuffer, int chunksize, float blocksize);
-	void draw(GLuint envMapId);
+	void load(unsigned char *heightMap, Section sBuffer, glm::ivec3 chunksize, float blocksize);
+	void draw();
 
 	void setPosition(glm::vec3 position);
+	glm::mat4 getModelMatrix() const;
 };

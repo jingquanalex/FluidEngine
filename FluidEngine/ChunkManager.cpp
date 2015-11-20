@@ -22,7 +22,7 @@ ChunkManager::~ChunkManager()
 }
 
 // sectionsize - width of section of heightmap
-void ChunkManager::load(string mapname, ivec3 sections, int chunksize, float blocksize)
+void ChunkManager::load(string mapname, ivec3 sections, ivec3 chunksize, float blocksize)
 {
 	//glPolygonMode(GL_FRONT, GL_LINE);
 
@@ -48,29 +48,44 @@ void ChunkManager::load(string mapname, ivec3 sections, int chunksize, float blo
 
 	for (int i = 0; i < sections.x; i++)
 	{
-		for (int j = 0; j < sections.x; j++)
+		for (int j = 0; j < sections.y; j++)
 		{
 			for (int k = 0; k < sections.z; k++)
 			{
 				Chunk* chunk = new Chunk();
-				Section sectionBuffer(ivec3(i, j, k), sections, mapWidth);
-				chunk->load(heightMap, sectionBuffer, chunksize, blocksize);
+				Section sBuffer(ivec3(i, j, k), sections, ivec2(mapWidth, mapHeight));
+				chunk->load(heightMap, sBuffer, chunksize, blocksize);
 				chunk->setPosition(vec3(
-					i * chunksize * blocksize,
-					k * chunksize * blocksize,
-					j * chunksize * blocksize));
+					i * chunksize.x * blocksize,
+					k * chunksize.z * blocksize,
+					j * chunksize.y * blocksize));
 				chunks.insert(make_pair(ivec3(i, k, j), chunk));
 			}
 		}
 	}
 
 	SOIL_free_image_data(heightMap);
+
+	shader = new Shader("terrain");
+	maxHeight = sections.z * chunksize.z * blocksize;
 }
 
 void ChunkManager::draw(GLuint envMapId)
 {
+	GLuint program = shader->getProgram();
+	glUseProgram(program);
+	glUniform1i(glGetUniformLocation(program, "diffuse1"), 0);
+	glUniform1i(glGetUniformLocation(program, "cubemap1"), 1);
+	glUniform1f(glGetUniformLocation(program, "maxheight"), maxHeight);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, envMapId);
+
 	for (pair<ivec3, Chunk*> e : chunks)
 	{
-		e.second->draw(envMapId);
+		glUniformMatrix4fv(10, 1, GL_FALSE, value_ptr(e.second->getModelMatrix()));
+		e.second->draw();
 	}
 }
