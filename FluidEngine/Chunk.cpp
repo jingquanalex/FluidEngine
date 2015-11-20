@@ -5,11 +5,12 @@ using namespace std;
 
 extern string g_mediaDirectory;
 
-Chunk::Chunk()
+Chunk::Chunk(const unordered_map<ivec3, Chunk*, KeyHash>& chunks)
 {
+	this->chunks = &chunks;
 	matModel = mat4();
-	isempty = false;
-	hasloaded = false;
+	isEmpty = false;
+	isMeshed = false;
 }
 
 Chunk::~Chunk()
@@ -19,30 +20,32 @@ Chunk::~Chunk()
 
 // Build the 3D array of blocks of size in all dimension
 // sBuffer(x index, y index, section width)
-void Chunk::load(unsigned char *heightMap, Section sBuffer, ivec3 chunksize, float blocksize)
+void Chunk::load(SectionBuffer sBuffer)
 {
-	blocks.reserve(chunksize.x * chunksize.y * chunksize.z);
+	this->sBuffer = sBuffer;
+	blocks.reserve(sBuffer.ChunkSize.x * sBuffer.ChunkSize.y * sBuffer.ChunkSize.z);
 
 	// Generate chunk of blocks based on a section of heightmap
-	for (int i = 0; i < chunksize.x; i++)
+	// Image Coords
+	for (int i = 0; i < sBuffer.ChunkSize.x; i++)
 	{
-		for (int j = 0; j < chunksize.y; j++)
+		for (int j = 0; j < sBuffer.ChunkSize.y; j++)
 		{
 			// Sample depth value of chunk[i, j] at section[indexX, indexY] of heightmap
-			int sectionWidth = sBuffer.mapDimension.x / sBuffer.sectionDimension.x;
-			int sectionHeight = sBuffer.mapDimension.y / sBuffer.sectionDimension.y;
-			int cellX = sectionWidth / chunksize.x;
-			int cellY = sectionHeight / chunksize.y;
-			int indexX = cellX / 2 + cellX * i + sBuffer.positionIndex.x * sectionWidth;
-			int indexY = cellY / 2 + cellY * j + sBuffer.positionIndex.y * sectionWidth;
-			unsigned char depthValue = heightMap[indexX + indexY * sBuffer.mapDimension.x];
+			int sectionWidth = sBuffer.MapDimension.x / sBuffer.SectionSize.x;
+			int sectionHeight = sBuffer.MapDimension.y / sBuffer.SectionSize.y;
+			int cellX = sectionWidth / sBuffer.ChunkSize.x;
+			int cellY = sectionHeight / sBuffer.ChunkSize.y;
+			int indexX = cellX / 2 + cellX * i + sBuffer.SectionIndex.x * sectionWidth;
+			int indexY = cellY / 2 + cellY * j + sBuffer.SectionIndex.z * sectionWidth;
+			unsigned char depthValue = sBuffer.HeightMap[indexX + indexY * sBuffer.MapDimension.x];
 
 			// Generate block if posValue lower than sampled depth value
-			int sectionDepth = 256 / sBuffer.sectionDimension.z;
-			int cellZ = sectionDepth / chunksize.z;
-			for (int k = 0; k < chunksize.z; k++)
+			int sectionDepth = 256 / sBuffer.SectionSize.z;
+			int cellZ = sectionDepth / sBuffer.ChunkSize.z;
+			for (int k = 0; k < sBuffer.ChunkSize.z; k++)
 			{
-				int posValue = cellZ / 2 + cellZ * k + sBuffer.positionIndex.z * sectionDepth;
+				int posValue = cellZ / 2 + cellZ * k + sBuffer.SectionIndex.y * sectionDepth;
 				if (posValue < depthValue)
 				{
 					blocks.insert(make_pair(ivec3(i, k, j), Block()));
@@ -51,143 +54,154 @@ void Chunk::load(unsigned char *heightMap, Section sBuffer, ivec3 chunksize, flo
 		}
 	}
 
-	isempty = blocks.empty();
-	if (isempty) return;
+	isEmpty = blocks.empty();
+}
 
-	// Create mesh for each block
+void Chunk::mesh()
+{
+	if (isEmpty) return;
+
+	// Create mesh for each chunk
 	vec4 occlusionFactor;
 	float topLeftFactor, bottomLeftFactor, bottomRightFactor, topRightFactor;
-	float blockHalfSize = blocksize / 2;
-	for (pair<vec3, Block> e : blocks)
+	float blockHalfSize = sBuffer.BlockSize / 2;
+	for (pair<ivec3, Block> e : blocks)
 	{
-		// Make face if no neighbor voxel present
-		// Then search certain neighbors to find occlusion factor
-		if (blocks.find(ivec3(e.first.x + 1, e.first.y, e.first.z)) == blocks.end())
+		// If no neighbor block present, make a face there
+		if (findNeighbor(e.first + ivec3(1, 0, 0)) == false)
 		{
+			// Search block neighbors to find occlusion factor for all 4 face vertices
 			topLeftFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x + 1, e.first.y + 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y + 1, e.first.z + 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(1, 1, 0)),
+				findNeighbor(e.first + ivec3(1, 0, 1)),
+				findNeighbor(e.first + ivec3(1, 1, 1)));
 			bottomLeftFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x + 1, e.first.y, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y - 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y - 1, e.first.z + 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(1, 0, 1)),
+				findNeighbor(e.first + ivec3(1, -1, 0)),
+				findNeighbor(e.first + ivec3(1, -1, 1)));
 			bottomRightFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x + 1, e.first.y, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y - 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y - 1, e.first.z - 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(1, 0, -1)),
+				findNeighbor(e.first + ivec3(1, -1, 0)),
+				findNeighbor(e.first + ivec3(1, -1, -1)));
 			topRightFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x + 1, e.first.y + 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y + 1, e.first.z - 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(1, 1, 0)),
+				findNeighbor(e.first + ivec3(1, 0, -1)),
+				findNeighbor(e.first + ivec3(1, 1, -1)));
 			occlusionFactor = vec4(topLeftFactor, bottomLeftFactor, bottomRightFactor, topRightFactor);
 			addFace(e.first, blockHalfSize, CubeFace::Right, occlusionFactor);
 		}
-		if (blocks.find(ivec3(e.first.x - 1, e.first.y, e.first.z)) == blocks.end())
+		if (findNeighbor(e.first + ivec3(-1, 0, 0)) == false)
 		{
 			topLeftFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x - 1, e.first.y + 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y + 1, e.first.z - 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(-1, 1, 0)),
+				findNeighbor(e.first + ivec3(-1, 0, -1)),
+				findNeighbor(e.first + ivec3(-1, 1, -1)));
 			bottomLeftFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x - 1, e.first.y, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y - 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y - 1, e.first.z - 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(-1, 0, -1)),
+				findNeighbor(e.first + ivec3(-1, -1, 0)),
+				findNeighbor(e.first + ivec3(-1, -1, -1)));
 			bottomRightFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x - 1, e.first.y, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y - 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y - 1, e.first.z + 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(-1, 0, 1)),
+				findNeighbor(e.first + ivec3(-1, -1, 0)),
+				findNeighbor(e.first + ivec3(-1, -1, 1)));
 			topRightFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x - 1, e.first.y + 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y + 1, e.first.z + 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(-1, 1, 0)),
+				findNeighbor(e.first + ivec3(-1, 0, 1)),
+				findNeighbor(e.first + ivec3(-1, 1, 1)));
 			occlusionFactor = vec4(topLeftFactor, bottomLeftFactor, bottomRightFactor, topRightFactor);
 			addFace(e.first, blockHalfSize, CubeFace::Left, occlusionFactor);
 		}
-		if (blocks.find(ivec3(e.first.x, e.first.y + 1, e.first.z)) == blocks.end())
+		if (findNeighbor(e.first + ivec3(0, 1, 0)) == false)
 		{
 			topLeftFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x - 1, e.first.y + 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y + 1, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y + 1, e.first.z - 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(-1, 1, 0)),
+				findNeighbor(e.first + ivec3(0, 1, -1)),
+				findNeighbor(e.first + ivec3(-1, 1, -1)));
 			bottomLeftFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x - 1, e.first.y + 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y + 1, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y + 1, e.first.z + 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(-1, 1, 0)),
+				findNeighbor(e.first + ivec3(0, 1, 1)),
+				findNeighbor(e.first + ivec3(-1, 1, 1)));
 			bottomRightFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x + 1, e.first.y + 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y + 1, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y + 1, e.first.z + 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(1, 1, 0)),
+				findNeighbor(e.first + ivec3(0, 1, 1)),
+				findNeighbor(e.first + ivec3(1, 1, 1)));
 			topRightFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x + 1, e.first.y + 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y + 1, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y + 1, e.first.z - 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(1, 1, 0)),
+				findNeighbor(e.first + ivec3(0, 1, -1)),
+				findNeighbor(e.first + ivec3(1, 1, -1)));
 			occlusionFactor = vec4(topLeftFactor, bottomLeftFactor, bottomRightFactor, topRightFactor);
 			addFace(e.first, blockHalfSize, CubeFace::Top, occlusionFactor);
 		}
-		if (blocks.find(ivec3(e.first.x, e.first.y - 1, e.first.z)) == blocks.end())
+		if (findNeighbor(e.first + ivec3(0, -1, 0)) == false)
 		{
 			topLeftFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x - 1, e.first.y - 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y - 1, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y - 1, e.first.z + 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(-1, -1, 0)),
+				findNeighbor(e.first + ivec3(0, -1, 1)),
+				findNeighbor(e.first + ivec3(-1, -1, 1)));
 			bottomLeftFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x - 1, e.first.y - 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y - 1, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y - 1, e.first.z - 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(-1, -1, 0)),
+				findNeighbor(e.first + ivec3(0, -1, -1)),
+				findNeighbor(e.first + ivec3(-1, -1, -1)));
 			bottomRightFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x + 1, e.first.y - 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y - 1, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y - 1, e.first.z - 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(1, -1, 0)),
+				findNeighbor(e.first + ivec3(0, -1, -1)),
+				findNeighbor(e.first + ivec3(1, -1, -1)));
 			topRightFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x + 1, e.first.y - 1, e.first.z)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y - 1, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y - 1, e.first.z + 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(1, -1, 0)),
+				findNeighbor(e.first + ivec3(0, -1, 1)),
+				findNeighbor(e.first + ivec3(1, -1, 1)));
 			occlusionFactor = vec4(topLeftFactor, bottomLeftFactor, bottomRightFactor, topRightFactor);
 			addFace(e.first, blockHalfSize, CubeFace::Bottom, occlusionFactor);
 		}
-		if (blocks.find(ivec3(e.first.x, e.first.y, e.first.z + 1)) == blocks.end())
+		if (findNeighbor(e.first + ivec3(0, 0, 1)) == false)
 		{
 			topLeftFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x - 1, e.first.y, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y + 1, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y + 1, e.first.z + 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(-1, 0, 1)),
+				findNeighbor(e.first + ivec3(0, 1, 1)),
+				findNeighbor(e.first + ivec3(-1, 1, 1)));
 			bottomLeftFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x - 1, e.first.y, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y - 1, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y - 1, e.first.z + 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(-1, 0, 1)),
+				findNeighbor(e.first + ivec3(0, -1, 1)),
+				findNeighbor(e.first + ivec3(-1, -1, 1)));
 			bottomRightFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x + 1, e.first.y, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y - 1, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y - 1, e.first.z + 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(1, 0, 1)),
+				findNeighbor(e.first + ivec3(0, -1, 1)),
+				findNeighbor(e.first + ivec3(1, -1, 1)));
 			topRightFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x + 1, e.first.y, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y + 1, e.first.z + 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y + 1, e.first.z + 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(1, 0, 1)),
+				findNeighbor(e.first + ivec3(0, 1, 1)),
+				findNeighbor(e.first + ivec3(1, 1, 1)));
 			occlusionFactor = vec4(topLeftFactor, bottomLeftFactor, bottomRightFactor, topRightFactor);
 			addFace(e.first, blockHalfSize, CubeFace::Front, occlusionFactor);
 		}
-		if (blocks.find(ivec3(e.first.x, e.first.y, e.first.z - 1)) == blocks.end())
+		if (findNeighbor(e.first + ivec3(0, 0, -1)) == false)
 		{
 			topLeftFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x + 1, e.first.y, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y + 1, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y + 1, e.first.z - 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(1, 0, -1)),
+				findNeighbor(e.first + ivec3(0, 1, -1)),
+				findNeighbor(e.first + ivec3(1, 1, -1)));
 			bottomLeftFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x + 1, e.first.y, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y - 1, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x + 1, e.first.y - 1, e.first.z - 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(1, 0, -1)),
+				findNeighbor(e.first + ivec3(0, -1, -1)),
+				findNeighbor(e.first + ivec3(1, -1, -1)));
 			bottomRightFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x - 1, e.first.y, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y - 1, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y - 1, e.first.z - 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(-1, 0, -1)),
+				findNeighbor(e.first + ivec3(0, -1, -1)),
+				findNeighbor(e.first + ivec3(-1, -1, -1)));
 			topRightFactor = findAOFactor(
-				blocks.find(ivec3(e.first.x - 1, e.first.y, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x, e.first.y + 1, e.first.z - 1)) != blocks.end(),
-				blocks.find(ivec3(e.first.x - 1, e.first.y + 1, e.first.z - 1)) != blocks.end());
+				findNeighbor(e.first + ivec3(-1, 0, -1)),
+				findNeighbor(e.first + ivec3(0, 1, -1)),
+				findNeighbor(e.first + ivec3(-1, 1, -1)));
 			occlusionFactor = vec4(topLeftFactor, bottomLeftFactor, bottomRightFactor, topRightFactor);
 			addFace(e.first, blockHalfSize, CubeFace::Back, occlusionFactor);
 		}
+	}
+
+	// All faces culled, chunk is considered empty
+	if (vertices.size() == 0)
+	{
+		isEmpty = true;
+		return;
 	}
 
 	// Send vertices to GPU
@@ -218,7 +232,7 @@ void Chunk::load(unsigned char *heightMap, Section sBuffer, ivec3 chunksize, flo
 	verticesSize = vertices.size();
 	vertices.clear();
 
-	hasloaded = true;
+	isMeshed = true;
 }
 
 // Calculate the occlusion factor based on the presence of left, right, and corner neighbor voxel
@@ -235,6 +249,68 @@ float Chunk::findAOFactor(bool side1, bool side2, bool corner)
 		level = level;
 
 	return 0.7f + level * 0.1f;
+}
+
+// Find local neighbor
+bool Chunk::findNeighbor(ivec3 index)
+{
+	bool hasLocalNeighbor = blocks.find(index) != blocks.end();
+	if (!hasLocalNeighbor)
+	{
+		return findNeighborInChunk(index);
+	}
+	return hasLocalNeighbor;
+}
+
+// Find local neighbor in neighboring chunk
+bool Chunk::findNeighborInChunk(ivec3 index)
+{
+	ivec3 chunkIndex, newIndex = index;
+	
+	// Search in chunkIndex for block at newIndex
+	// NOTE: ChunkSize is in image coord
+	if (index.x == sBuffer.ChunkSize.x) // Right
+	{
+		chunkIndex = sBuffer.SectionIndex + ivec3(1, 0, 0);
+		newIndex.x = 0;
+	}
+	else if (index.x == -1) // Left
+	{
+		chunkIndex = sBuffer.SectionIndex + ivec3(-1, 0, 0);
+		newIndex.x = sBuffer.ChunkSize.x - 1;
+	}
+	else if (index.y == sBuffer.ChunkSize.z) // Top
+	{
+		chunkIndex = sBuffer.SectionIndex + ivec3(0, 1, 0);
+		newIndex.y = 0;
+	}
+	else if (index.y == -1) // Bottom
+	{
+		chunkIndex = sBuffer.SectionIndex + ivec3(0, -1, 0);
+		newIndex.y = sBuffer.ChunkSize.z - 1;
+	}
+	else if (index.z == sBuffer.ChunkSize.y) // Front
+	{
+		chunkIndex = sBuffer.SectionIndex + ivec3(0, 0, 1);
+		newIndex.z = 0;
+	}
+	else if (index.z == -1) // Back
+	{
+		chunkIndex = sBuffer.SectionIndex + ivec3(0, 0, -1);
+		newIndex.z = sBuffer.ChunkSize.y - 1;
+	}
+	else
+	{
+		return false;
+	}
+
+	auto it = chunks->find(chunkIndex);
+	if (it != chunks->end())
+	{
+		return it->second->findNeighbor(newIndex);
+	}
+
+	return false;
 }
 
 // Make a face of a cube at center [pos] with square width of [size * 2]
@@ -421,7 +497,7 @@ void Chunk::addFace(vec3 pos, float size, CubeFace face, vec4 occ)
 // Create quad for all visible faces
 void Chunk::draw()
 {
-	if (isempty || !hasloaded) return;
+	if (isEmpty || !isMeshed) return;
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, verticesSize);

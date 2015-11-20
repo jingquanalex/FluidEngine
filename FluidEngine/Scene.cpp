@@ -12,8 +12,8 @@ Scene::Scene()
 	srand(static_cast<unsigned> (time(0)));
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	Shader::setupUniformBuffers();
 
@@ -76,7 +76,7 @@ void Scene::idle()
 	accumulator += frameTime;
 	while (accumulator >= dt)
 	{
-
+		chunkManager->update(camera->getPosition());
 		//light->setPosition(camera->getPosition());
 		camera->update(dt);
 

@@ -7,7 +7,8 @@ extern string g_mediaDirectory;
 
 ChunkManager::ChunkManager()
 {
-
+	oldPos = ivec3(-1);
+	searchSize = ivec3(1);
 }
 
 ChunkManager::~ChunkManager()
@@ -22,39 +23,34 @@ ChunkManager::~ChunkManager()
 }
 
 // sectionsize - width of section of heightmap
-void ChunkManager::load(string mapname, ivec3 sections, ivec3 chunksize, float blocksize)
+void ChunkManager::load(string mapname, ivec3 sectionsize, ivec3 chunksize, float blocksize)
 {
 	//glPolygonMode(GL_FRONT, GL_LINE);
 
+	shader = new Shader("terrain");
+	maxHeight = sectionsize.z * chunksize.z * blocksize;
+
 	// Assume heightmaps of dimension power of twos
 	int mapWidth, mapHeight, mapChannels;
-	unsigned char *heightMap = SOIL_load_image((g_mediaDirectory + mapname).c_str(),
+	sBuffer.HeightMap = SOIL_load_image((g_mediaDirectory + mapname).c_str(),
 		&mapWidth, &mapHeight, &mapChannels, SOIL_LOAD_L);
 
-	// Flip Y
-	/*for (int j = 0; j * 2 < mapWidth; ++j)
-	{
-		int index1 = j * mapWidth;
-		int index2 = (mapWidth - 1 - j) * mapWidth;
-		for (int i = mapWidth; i > 0; --i)
-		{
-			GLubyte temp = heightMap[index1];
-			heightMap[index1] = heightMap[index2];
-			heightMap[index2] = temp;
-			++index1;
-			++index2;
-		}
-	}*/
+	sBuffer.MapDimension = ivec2(mapWidth, mapHeight);
+	sBuffer.SectionSize = sectionsize;
+	sBuffer.ChunkSize = chunksize;
+	sBuffer.BlockSize = blocksize;
 
-	for (int i = 0; i < sections.x; i++)
+	// Load voxels from heightmap
+	for (int i = 0; i < sectionsize.x; i++)
 	{
-		for (int j = 0; j < sections.y; j++)
+		for (int j = 0; j < sectionsize.y; j++)
 		{
-			for (int k = 0; k < sections.z; k++)
+			for (int k = 0; k < sectionsize.z; k++)
 			{
-				Chunk* chunk = new Chunk();
-				Section sBuffer(ivec3(i, j, k), sections, ivec2(mapWidth, mapHeight));
-				chunk->load(heightMap, sBuffer, chunksize, blocksize);
+				// Convert to opengl coordinates to store block positions as keys
+				Chunk* chunk = new Chunk(chunks);
+				sBuffer.SectionIndex = ivec3(i, k, j);
+				chunk->load(sBuffer);
 				chunk->setPosition(vec3(
 					i * chunksize.x * blocksize,
 					k * chunksize.z * blocksize,
@@ -64,10 +60,52 @@ void ChunkManager::load(string mapname, ivec3 sections, ivec3 chunksize, float b
 		}
 	}
 
-	SOIL_free_image_data(heightMap);
+	// Mesh voxels
+	for (pair<ivec3, Chunk*> e : chunks)
+	{
+		e.second->mesh();
+	}
 
-	shader = new Shader("terrain");
-	maxHeight = sections.z * chunksize.z * blocksize;
+	//SOIL_free_image_data(heightMap);
+}
+
+void ChunkManager::update(vec3 cameraPosition)
+{
+	return;
+	ivec3 localPosition = vec3(
+		cameraPosition.x / sBuffer.ChunkSize.x,
+		cameraPosition.z / sBuffer.ChunkSize.z,
+		cameraPosition.y / sBuffer.ChunkSize.y) / sBuffer.BlockSize;
+
+	if (localPosition != oldPos)
+	{
+		oldPos = localPosition;
+
+		for (int i = -searchSize.x; i <= searchSize.x; i++)
+		{
+			for (int j = -searchSize.y; j <= searchSize.y; j++)
+			{
+				for (int k = -searchSize.z; k <= searchSize.z; k++)
+				{
+					ivec3 sectionPos = localPosition + ivec3(i, j, k);
+					sectionPos = clamp(sectionPos, ivec3(0), sBuffer.SectionSize - ivec3(1));
+
+					if (chunks.find(sectionPos) == chunks.end())
+					{
+						Chunk* chunk = new Chunk(chunks);
+						sBuffer.SectionIndex = sectionPos;
+						chunk->load(sBuffer);
+						chunk->setPosition(vec3(
+							sectionPos.x * sBuffer.ChunkSize.x * sBuffer.BlockSize,
+							sectionPos.z * sBuffer.ChunkSize.z * sBuffer.BlockSize,
+							sectionPos.y * sBuffer.ChunkSize.y * sBuffer.BlockSize));
+						chunks.insert(make_pair(sectionPos, chunk));
+						cout << sectionPos.x << ", " << sectionPos.y << ", " << sectionPos.z << endl;
+					}
+				}
+			}
+		}
+	}
 }
 
 void ChunkManager::draw(GLuint envMapId)
