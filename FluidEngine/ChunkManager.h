@@ -17,7 +17,8 @@ private:
 	SectionBuffer sBuffer;
 
 	glm::ivec3 oldPos;
-	glm::ivec3 searchSize;
+	glm::ivec3 voxelRange;
+	glm::ivec3 meshRange;
 
 public:
 

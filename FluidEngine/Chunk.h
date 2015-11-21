@@ -73,8 +73,11 @@ public:
 
 	void load(SectionBuffer sBuffer);
 	void mesh();
+	void uploadVbo();
 	void draw();
 
 	void setPosition(glm::vec3 position);
 	glm::mat4 getModelMatrix() const;
+	bool getIsMeshed();
+	bool getIsEmpty();
 };

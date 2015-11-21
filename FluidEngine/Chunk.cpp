@@ -204,6 +204,13 @@ void Chunk::mesh()
 		return;
 	}
 
+	isMeshed = true;
+
+	uploadVbo();
+}
+
+void Chunk::uploadVbo()
+{
 	// Send vertices to GPU
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
@@ -231,8 +238,6 @@ void Chunk::mesh()
 
 	verticesSize = vertices.size();
 	vertices.clear();
-
-	isMeshed = true;
 }
 
 // Calculate the occlusion factor based on the presence of left, right, and corner neighbor voxel
@@ -497,7 +502,7 @@ void Chunk::addFace(vec3 pos, float size, CubeFace face, vec4 occ)
 // Create quad for all visible faces
 void Chunk::draw()
 {
-	if (isEmpty || !isMeshed) return;
+	if (verticesSize == 0) return;
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, verticesSize);
@@ -512,4 +517,14 @@ void Chunk::setPosition(glm::vec3 position)
 mat4 Chunk::getModelMatrix() const
 {
 	return matModel;
+}
+
+bool Chunk::getIsMeshed()
+{
+	return isMeshed;
+}
+
+bool Chunk::getIsEmpty()
+{
+	return isEmpty;
 }

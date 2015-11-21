@@ -52,9 +52,9 @@ void Scene::load()
 
 	skyQuad->load("lake");
 	// gen buffers gives wrong id??
-	//thread tChunkMgr(&ChunkManager::load, chunkManager, "hm.jpg", vec3(2, 0, 1), 32, 1.0f);
+	//thread tChunkMgr(&ChunkManager::load, chunkManager, "hm.jpg", vec3(4, 4, 1), vec3(16, 16, 32), 1.0f);
 	//tChunkMgr.join();
-	chunkManager->load("hm.jpg", vec3(8, 8, 4), vec3(8, 8, 8), 1.0f);
+	chunkManager->load("hm.jpg", vec3(4, 4, 1), vec3(16, 16, 32), 1.0f);
 	spheres->load();
 	testObj->load("cube.obj");
 	testObj2->load("cube.obj");
