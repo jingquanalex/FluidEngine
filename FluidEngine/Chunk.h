@@ -57,7 +57,7 @@ private:
 	GLuint vbo;
 	GLuint vao;
 	glm::mat4 matModel;
-	bool isEmpty, isMeshed;
+	bool hasLoaded, isEmpty, isMeshed;
 	glm::ivec3 sectionIndex;
 	SectionBuffer sBuffer;
 

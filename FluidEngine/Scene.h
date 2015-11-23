@@ -9,6 +9,7 @@
 #include "Light.h"
 #include "Quad.h"
 #include "ChunkManager.h"
+#include "Airplane.h"
 #include <thread>
 
 class Scene
@@ -18,13 +19,14 @@ private:
 
 	Timer* frameTimer;
 	Camera* camera;
+	CameraTarget* cameraTarget;
 	Light* light;
 
 	Quad* skyQuad;
 	Object* testObj;
-	Object* testObj2;
+	Object* lightBox;
 	Spheres* spheres;
-	Object* plane;
+	Airplane* plane;
 	ChunkManager* chunkManager;
 
 	const float maxframeTime = 1 / 4.0f;

@@ -20,20 +20,26 @@ Scene::Scene()
 	frameTimer = new Timer(1.0f);
 	frameTimer->start();
 
-	//camera = new CameraTarget(vec3(0), 5.0f);
+	cameraTarget = new CameraTarget();
+	cameraTarget->setActive(true);
 	camera = new CameraFPS();
-	camera->setPosition(vec3(0, 33, 5));
+	camera->setPosition(vec3(0, 32, 0));
+	
 
 	light = new Light();
-	light->setPosition(vec3(0, 50, 0));
+	light->setPosition(vec3(60, 80, 60));
+	lightBox = new Object(light->getPosition());
+	lightBox->getMaterial()->setEmissiveColor(vec3(0.8, 0, 0));
 
 	skyQuad = new Quad();
 	spheres = new Spheres();
 	testObj = new Object(vec3(0, 0, 0));
 	testObj->getMaterial()->setEmissiveColor(vec3(1.0));
-	testObj2 = new Object(vec3(0, 2, 0));
-	testObj2->setRotation(vec3(0, 45, 0));
-	plane = new Object();
+	
+	plane = new Airplane(vec3(0, 32, 0));
+	cameraTarget->setDistance(8.0f);
+	cameraTarget->setTarget(plane->getPosition());
+	cameraTarget->setOrientation(180.0f, -45.0f);
 
 	chunkManager = new ChunkManager();
 	//chunk->getMaterial()->setEmissiveColor(vec3(1.0));
@@ -54,11 +60,12 @@ void Scene::load()
 	// gen buffers gives wrong id??
 	//thread tChunkMgr(&ChunkManager::load, chunkManager, "hm.jpg", vec3(4, 4, 1), vec3(16, 16, 32), 1.0f);
 	//tChunkMgr.join();
-	chunkManager->load("hm.jpg", vec3(4, 4, 1), vec3(16, 16, 32), 1.0f);
+	chunkManager->load("hm.jpg", vec3(1, 1, 1), vec3(32, 32, 32), 1.0f);
+	//chunkManager->load("hm.jpg", vec3(8, 8, 1), vec3(32, 32, 32), 1.0f);
 	spheres->load();
 	testObj->load("cube.obj");
-	testObj2->load("cube.obj");
-	plane->load("plane.obj");
+	lightBox->load("cube.obj");
+	plane->load();
 	
 	float loadtime = (glutGet(GLUT_ELAPSED_TIME) - loadst) / 1000.0f;
 	cout << "Load time: " << loadtime << "s" << endl;
@@ -76,9 +83,12 @@ void Scene::idle()
 	accumulator += frameTime;
 	while (accumulator >= dt)
 	{
-		chunkManager->update(camera->getPosition());
-		//light->setPosition(camera->getPosition());
-		camera->update(dt);
+		chunkManager->update(plane->getPosition());
+		plane->update(dt);
+
+		//camera->update(dt);
+		cameraTarget->setTarget(plane->getPosition());
+		cameraTarget->update(dt);
 
 		accumulator -= dt;
 	}
@@ -108,8 +118,8 @@ void Scene::display()
 	chunkManager->draw(skyQuad->getCubeMapID());
 	//spheres->draw();
 	testObj->draw();
-	//testObj2->draw();
-	//plane->draw();
+	lightBox->draw();
+	plane->draw();
 	
 	glutSwapBuffers();
 }
@@ -118,6 +128,7 @@ void Scene::reshape(int width, int height)
 {
 	glViewport(0, 0, width, height);
 	camera->setResolution(width, height);
+	cameraTarget->setResolution(width, height);
 	window_width = width;
 	window_height = height;
 }
@@ -126,24 +137,30 @@ void Scene::reshape(int width, int height)
 void Scene::mouse(int button, int state)
 {
 	camera->mouse(button, state);
+	cameraTarget->mouse(button, state);
 }
 
 // Mouse moved with button press
 void Scene::mouseMove(int x, int y)
 {
 	camera->mouseMotion(x, y);
+	cameraTarget->mouseMotion(x, y);
+	plane->mouseMotion(x, y);
 }
 
 // Mouse moved without button press
 void Scene::mouseMovePassive(int x, int y)
 {
 	camera->mouseMotionPassive(x, y);
+	cameraTarget->mouseMotionPassive(x, y);
+	plane->mouseMotionPassive(x, y);
 }
 
 // Mouse wheel
 void Scene::mouseWheel(int button, int dir, int x, int y)
 {
 	camera->mouseWheel(dir);
+	cameraTarget->mouseWheel(dir);
 }
 
 // Common ascii keys
@@ -151,22 +168,26 @@ void Scene::keyboard(unsigned char key)
 {
 	if (key == 27) exit(0);
 	camera->keyboard(key);
+	plane->keyboard(key);
 }
 
 // Common keys up event
 void Scene::keyboardUp(unsigned char key)
 {
 	camera->keyboardUp(key);
+	plane->keyboardUp(key);
 }
 
 // Function, arrow and other special keys
 void Scene::keyboardSpecial(int key)
 {
 	camera->keyboardSpecial(key);
+	plane->keyboardSpecial(key);
 }
 
 // Special key up event
 void Scene::keyboardSpecialUp(int key)
 {
 	camera->keyboardSpecialUp(key);
+	plane->keyboardSpecialUp(key);
 }

@@ -9,6 +9,7 @@ Chunk::Chunk(const unordered_map<ivec3, Chunk*, KeyHash>& chunks)
 {
 	this->chunks = &chunks;
 	matModel = mat4();
+	hasLoaded = false;
 	isEmpty = false;
 	isMeshed = false;
 }
@@ -55,6 +56,7 @@ void Chunk::load(SectionBuffer sBuffer)
 	}
 
 	isEmpty = blocks.empty();
+	hasLoaded = true;
 }
 
 void Chunk::mesh()

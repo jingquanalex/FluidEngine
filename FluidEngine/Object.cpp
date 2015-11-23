@@ -70,7 +70,7 @@ void Object::draw()
 
 void Object::updateModelMatrix()
 {
-	matModel = glm::scale(scale) * eulerAngleXYZ(rotation.x, rotation.y, rotation.z) * translate(position);
+	matModel = translate(position) * glm::scale(scale) * eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
 }
 
 void Object::updateNormalMatrix()

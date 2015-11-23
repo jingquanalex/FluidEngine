@@ -7,7 +7,6 @@ extern string g_mediaDirectory;
 
 ChunkManager::ChunkManager()
 {
-	oldPos = ivec3(-1);
 	voxelRange = ivec3(2);
 	meshRange = ivec3(1);
 }
@@ -41,12 +40,12 @@ void ChunkManager::load(string mapname, ivec3 sectionsize, ivec3 chunksize, floa
 	sBuffer.ChunkSize = chunksize;
 	sBuffer.BlockSize = blocksize;
 
-	// Load voxels from heightmap
-	for (int i = 0; i < sectionsize.x; i++)
+	// Load starting voxels from heightmap
+	/*for (int i = 0; i < sectionsize.x / 2; i++)
 	{
-		for (int j = 0; j < sectionsize.y; j++)
+		for (int j = 0; j < sectionsize.y / 2; j++)
 		{
-			for (int k = 0; k < sectionsize.z; k++)
+			for (int k = 0; k < sectionsize.z / 2; k++)
 			{
 				// Convert to opengl coordinates to store block positions as keys
 				Chunk* chunk = new Chunk(chunks);
@@ -65,35 +64,30 @@ void ChunkManager::load(string mapname, ivec3 sectionsize, ivec3 chunksize, floa
 	for (pair<ivec3, Chunk*> e : chunks)
 	{
 		e.second->mesh();
-	}
+	}*/
 
 	//SOIL_free_image_data(heightMap);
 }
 
 void ChunkManager::update(vec3 cameraPosition)
 {
-	return;
 	// Load voxels near camera position then build mesh for the center chunk
 	ivec3 localPosition = vec3(
 		cameraPosition.x / sBuffer.ChunkSize.x,
-		cameraPosition.y / sBuffer.ChunkSize.y,
-		cameraPosition.z / sBuffer.ChunkSize.z) / sBuffer.BlockSize;
+		cameraPosition.y / sBuffer.ChunkSize.z,
+		cameraPosition.z / sBuffer.ChunkSize.y) / sBuffer.BlockSize;
 
 	if (localPosition != oldPos)
 	{
-		oldPos = localPosition;
-
 		for (int i = -voxelRange.x; i <= voxelRange.x; i++)
 		{
 			for (int j = -voxelRange.y; j <= voxelRange.y; j++)
 			{
 				for (int k = -voxelRange.z; k <= voxelRange.z; k++)
 				{
-					localPosition = clamp(localPosition, ivec3(1), ivec3(
-						sBuffer.SectionSize.x, 
-						sBuffer.SectionSize.z, 
-						sBuffer.SectionSize.y) - ivec3(2));
 					ivec3 sectionPos = localPosition + ivec3(i, j, k);
+					sectionPos = clamp(sectionPos, ivec3(0), ivec3(
+						sBuffer.SectionSize.x, sBuffer.SectionSize.z, sBuffer.SectionSize.y) - ivec3(1));
 					
 					if (chunks.find(sectionPos) == chunks.end())
 					{
@@ -105,7 +99,8 @@ void ChunkManager::update(vec3 cameraPosition)
 							sectionPos.y * sBuffer.ChunkSize.z * sBuffer.BlockSize,
 							sectionPos.z * sBuffer.ChunkSize.y * sBuffer.BlockSize));
 						chunks.insert(make_pair(sectionPos, chunk));
-						cout << sectionPos.x << ", " << sectionPos.y << ", " << sectionPos.z << endl;
+						cout << "voxel: " << sectionPos.x << ", " << sectionPos.y << ", " 
+							<< sectionPos.z << endl;
 					}
 				}
 			}
@@ -117,20 +112,22 @@ void ChunkManager::update(vec3 cameraPosition)
 			{
 				for (int k = -meshRange.z; k <= meshRange.z; k++)
 				{
-					localPosition = clamp(localPosition, ivec3(1), ivec3(
-						sBuffer.SectionSize.x,
-						sBuffer.SectionSize.z,
-						sBuffer.SectionSize.y) - ivec3(2));
 					ivec3 sectionPos = localPosition + ivec3(i, j, k);
+					sectionPos = clamp(sectionPos, ivec3(0), ivec3(
+						sBuffer.SectionSize.x, sBuffer.SectionSize.z, sBuffer.SectionSize.y) - ivec3(1));
 
 					auto it = chunks.find(sectionPos);
 					if (it != chunks.end() && !it->second->getIsEmpty() && !it->second->getIsMeshed())
 					{
 						it->second->mesh();
+						cout << "mesh: " << sectionPos.x << ", " << sectionPos.y << ", " 
+							<< sectionPos.z << endl;
 					}
 				}
 			}
 		}
+
+		oldPos = localPosition;
 	}
 }
 

@@ -8,6 +8,10 @@
 class Camera
 {
 
+private:
+
+	bool isActive;
+
 protected:
 
 	glm::mat4 matProjection, matView;
@@ -15,7 +19,6 @@ protected:
 	float aspectRatio, fov, zNear, zFar;
 	glm::vec2 resolution;
 
-	glm::vec3 velocity;
 	int mouseX, mouseY, mouseLastX, mouseLastY;
 	float mouseDeltaX, mouseDeltaY;
 	float maxSpeed, acceleration, smoothness;
@@ -49,6 +52,7 @@ public:
 	void setAcceleration(float acceleration);
 	void setSmoothness(float smoothness);
 	void setMouseSensitivity(float sensitivity);
+	void setActive(bool isActive);
 
 	glm::mat4 getMatViewProjection() const;
 	glm::mat4 getMatView() const;
@@ -59,5 +63,6 @@ public:
 	float getAcceleration() const;
 	float getSmoothness() const;
 	float getMouseSensitivity() const;
+	bool getActive() const;
 
 };

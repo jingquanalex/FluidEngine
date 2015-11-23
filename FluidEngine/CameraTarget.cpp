@@ -57,13 +57,20 @@ void CameraTarget::updateViewMatrix()
 	position = target + rotate(position - target, radians(mouseDeltaX), up);
 	position = target + rotate(position - target, radians(mouseDeltaY), right);*/
 
-	vec3 posVec = rotate(vec3(0.0f, 0.0f, distance), radians(yaw), up);
-	vec3 dirVec = normalize(-posVec);
-	vec3 right = normalize(cross(dirVec, up));
+	vec3 dirVec = rotate(vec3(0, 0, 1), radians(yaw), up);
+	vec3 right = cross(-dirVec, up);
 
-	position = target + rotate(posVec, radians(pitch), right);
+	position = target + rotate(dirVec, radians(pitch), right) * distance;
 
 	matView = lookAt(position, target, up);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboMatrices);
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(mat4), sizeof(mat4), value_ptr(getMatView()));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboLighting);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vec4), value_ptr(position));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void CameraTarget::mouse(int button, int state)
@@ -86,7 +93,7 @@ void CameraTarget::mouseMotion(int x, int y)
 		Camera::mouseMotion(x, y);
 
 		// Update yaw and pitch and limit pitch
-		yaw += mouseDeltaX * mouseSensitivity;
+		yaw += -mouseDeltaX * mouseSensitivity;
 		pitch += -mouseDeltaY * mouseSensitivity;
 		pitch = clamp(pitch, -89.0f, 89.0f);
 	}
@@ -106,7 +113,23 @@ void CameraTarget::setTarget(glm::vec3 target)
 	this->target = target;
 }
 
+void CameraTarget::setDistance(float distance)
+{
+	this->distance = distance;
+}
+
+void CameraTarget::setOrientation(float yaw, float pitch)
+{
+	this->yaw = yaw;
+	this->pitch = pitch;
+}
+
 glm::vec3 CameraTarget::getTarget() const
 {
 	return target;
+}
+
+float CameraTarget::getDistance() const
+{
+	return distance;
 }

@@ -9,6 +9,9 @@ extern int window_height;
 // Input: width and height of the window as int.
 Camera::Camera()
 {
+	mouseLastX = 0;
+	mouseLastY = 0;
+	isActive = false;
 	position = vec3(0.0f, 3.0f, 5.0f);
 	direction = vec3(0.0f, 0.0f, -1.0f);
 	up = vec3(0.0f, 1.0f, 0.0f);
@@ -32,6 +35,8 @@ Camera::~Camera()
 // Call in main update loop.
 void Camera::update(float dt)
 {
+	//if (!isActive) return;
+
 	updateViewMatrix();
 
 	mouseDeltaX = (float)(mouseX - mouseLastX);
@@ -144,6 +149,17 @@ void Camera::setMouseSensitivity(float sensitivity)
 	this->mouseSensitivity = sensitivity;
 }
 
+void Camera::setActive(bool isActive)
+{
+	this->isActive = isActive;
+
+	if (isActive)
+	{
+		updateProjectionMatrix();
+		updateViewMatrix();
+	}
+}
+
 mat4 Camera::getMatViewProjection() const
 {
 	return matProjection * matView;
@@ -187,4 +203,9 @@ float Camera::getSmoothness() const
 float Camera::getMouseSensitivity() const
 {
 	return mouseSensitivity;
+}
+
+bool Camera::getActive() const
+{
+	return isActive;
 }
