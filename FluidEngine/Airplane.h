@@ -9,10 +9,12 @@ private:
 
 	bool isWrappingPointer;
 	bool isAirborne, isEnabled;
-	float speed, maxSpeed, minSpeed;
 	float acceleration;
+	float speed, maxAirborneSpeed, minAirborneSpeed;
 	float yaw, pitch, roll;
+	glm::vec3 rotationAcceleration;
 	glm::vec3 rotationSpeed;
+	glm::vec3 rotationMaxSpeed;
 	glm::vec3 forward;
 
 	bool stateAccelerate = false;

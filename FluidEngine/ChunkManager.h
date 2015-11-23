@@ -29,4 +29,6 @@ public:
 	void update(glm::vec3 cameraPosition);
 	void draw(GLuint envMapId);
 
+	bool isCollidingAt(glm::vec3 position);
+
 };

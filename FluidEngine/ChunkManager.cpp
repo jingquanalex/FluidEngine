@@ -13,6 +13,8 @@ ChunkManager::ChunkManager()
 
 ChunkManager::~ChunkManager()
 {
+	SOIL_free_image_data(sBuffer.HeightMap);
+
 	if (!chunks.empty())
 	{
 		for (pair<ivec3, Chunk*> e : chunks)
@@ -65,8 +67,6 @@ void ChunkManager::load(string mapname, ivec3 sectionsize, ivec3 chunksize, floa
 	{
 		e.second->mesh();
 	}*/
-
-	//SOIL_free_image_data(heightMap);
 }
 
 void ChunkManager::update(vec3 cameraPosition)
@@ -149,4 +149,9 @@ void ChunkManager::draw(GLuint envMapId)
 		glUniformMatrix4fv(10, 1, GL_FALSE, value_ptr(e.second->getModelMatrix()));
 		e.second->draw();
 	}
+}
+
+bool ChunkManager::isCollidingAt(glm::vec3 position)
+{
+
 }

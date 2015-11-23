@@ -48,8 +48,17 @@ protected:
 	Model* model;
 	Shader* shader;
 
-	void updateModelMatrix();
-	void updateNormalMatrix();
+	BoundingBox bb1, bb2;
+	GLuint lineVbo;
+	GLuint lineVao;
+	std::vector<glm::vec3> lineVertices;
+	std::vector<glm::vec3> faceNormals;
+	bool isDrawBoundingBox;
+
+	virtual void updateModelMatrix();
+	virtual void updateNormalMatrix();
+
+	void makeBoundingBoxVertices(std::vector<glm::vec3>& list);
 
 public:
 
@@ -65,10 +74,13 @@ public:
 	void setPosition(glm::vec3 position);
 	void setRotation(glm::vec3 rotation);
 	void setScale(glm::vec3 scale);
+	void setDrawBoundingBox(bool isdrawn);
 
 	glm::vec3 getPosition() const;
 	glm::vec3 getRotation() const;
 	glm::vec3 getScale() const;
 	glm::mat4 getRotationMatrix() const;
-	Material* getMaterial() { return &material; };
+	Material* getMaterial();
+	bool getIsDrawBoundingBox() const;
+	const std::vector<glm::vec3>* getFaceNormals() const;
 };

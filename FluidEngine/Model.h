@@ -9,12 +9,19 @@
 #include <SOIL2.h>
 #include "Mesh.h"
 
+struct BoundingBox
+{
+	BoundingBox() { }
+	BoundingBox(glm::vec3 min, glm::vec3 max) : Min(min), Max(max) { }
+	glm::vec3 Min, Max;
+};
+
 class Model
 {
 
 private:
 
-	Mesh* cube;
+	BoundingBox bbox;
 	std::vector<Mesh> meshes;
 	std::string directory;
 
@@ -30,5 +37,7 @@ public:
 	~Model();
 
 	void draw(GLuint program);
+
+	BoundingBox getBoundingBox() const;
 
 };

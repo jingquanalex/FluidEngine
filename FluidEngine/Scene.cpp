@@ -25,7 +25,6 @@ Scene::Scene()
 	camera = new CameraFPS();
 	camera->setPosition(vec3(0, 32, 0));
 	
-
 	light = new Light();
 	light->setPosition(vec3(60, 80, 60));
 	lightBox = new Object(light->getPosition());
@@ -37,9 +36,10 @@ Scene::Scene()
 	testObj->getMaterial()->setEmissiveColor(vec3(1.0));
 	
 	plane = new Airplane(vec3(0, 32, 0));
+	plane->setDrawBoundingBox(true);
 	cameraTarget->setDistance(8.0f);
 	cameraTarget->setTargetObject(plane);
-	cameraTarget->setOrientation(180.0f, -45.0f);
+	cameraTarget->setOrientation(180.0f, -15.0f);
 
 	chunkManager = new ChunkManager();
 	//chunk->getMaterial()->setEmissiveColor(vec3(1.0));

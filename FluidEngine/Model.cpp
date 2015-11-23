@@ -78,6 +78,14 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 			vertex.TexCoords = vec2();
 		}
 
+		// Make bounding box
+		bbox.Min.x = vertex.Position.x < bbox.Min.x ? vertex.Position.x : bbox.Min.x;
+		bbox.Max.x = vertex.Position.x > bbox.Max.x ? vertex.Position.x : bbox.Max.x;
+		bbox.Min.y = vertex.Position.y < bbox.Min.y ? vertex.Position.y : bbox.Min.y;
+		bbox.Max.y = vertex.Position.y > bbox.Max.y ? vertex.Position.y : bbox.Max.y;
+		bbox.Min.z = vertex.Position.z < bbox.Min.z ? vertex.Position.z : bbox.Min.z;
+		bbox.Max.z = vertex.Position.z > bbox.Max.z ? vertex.Position.z : bbox.Max.z;
+
 		vertices.push_back(vertex);
 	}
 	
@@ -162,4 +170,9 @@ GLint Model::TextureFromFile(const char* path)
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	return textureID;
+}
+
+BoundingBox Model::getBoundingBox() const
+{
+	return bbox;
 }
