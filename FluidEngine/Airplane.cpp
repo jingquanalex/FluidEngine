@@ -18,9 +18,6 @@ Airplane::Airplane(vec3 position) : Object(position)
 	minSpeed = 5.0f;
 	acceleration = 140.0f;
 	rotationSpeed = vec3(0.5, 0.5, 0.5);
-	matRotation = mat4(1);
-	right = vec3(1, 0, 0);
-	up = vec3(0, 1, 0);
 	forward = vec3(0, 0, 1);
 }
 
@@ -65,17 +62,18 @@ void Airplane::update(float dt)
 
 	if (stateYawLeft)
 	{
-		yaw = -100 * rotationSpeed.y * dt;
+		yaw = 100 * rotationSpeed.y * dt;
 	}
 	if (stateYawRight)
 	{
-		yaw = 100 * rotationSpeed.y * dt;
+		yaw = -100 * rotationSpeed.y * dt;
 	}
 
-	quat qz = angleAxis(radians(roll), vec3(matRotation[2][0], matRotation[2][1], matRotation[2][2]));
 	quat qx = angleAxis(radians(pitch), vec3(matRotation[0][0], matRotation[0][1], matRotation[0][2]));
-	matRotation = mat4_cast(qz * qx) * matRotation;
-	forward = vec3(mat4_cast(qz * qx) * vec4(forward.x, forward.y, forward.z, 1));
+	quat qy = angleAxis(radians(yaw), vec3(matRotation[1][0], matRotation[1][1], matRotation[1][2]));
+	quat qz = angleAxis(radians(roll), vec3(matRotation[2][0], matRotation[2][1], matRotation[2][2]));
+	matRotation = mat4_cast(qz * qx * qy) * matRotation;
+	forward = vec3(mat4_cast(qz * qx * qy) * vec4(forward.x, forward.y, forward.z, 1));
 
 	/*matRotation = mat4(
 		right.x, up.x, forward.x, 0.0f,

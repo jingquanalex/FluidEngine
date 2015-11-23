@@ -2,13 +2,14 @@
 
 #include "Includes.h"
 #include "Camera.h"
+#include "Object.h"
 
 class CameraTarget : public Camera
 {
 
 private:
 
-	glm::vec3 target;
+	Object* targetObject;
 	float yaw, pitch, distance;
 
 	bool stateLookAround = false;
@@ -17,7 +18,7 @@ private:
 
 public:
 
-	CameraTarget(glm::vec3 target = glm::vec3(), float distance = 5.0f);
+	CameraTarget(Object* target = nullptr, float distance = 5.0f);
 	~CameraTarget();
 
 	void update(float dt);
@@ -26,9 +27,9 @@ public:
 	void mouseMotion(int x, int y);
 	void mouseWheel(int dir);
 
-	void setTarget(glm::vec3 target);
+	void setTargetObject(Object* target);
 	void setDistance(float distance);
 	void setOrientation(float yaw, float pitch);
-	glm::vec3 getTarget() const;
+	Object* getTargetObject() const;
 	float getDistance() const;
 };

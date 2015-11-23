@@ -18,6 +18,7 @@ Object::Object(vec3 position)
 
 	updateModelMatrix();
 	matNormal = mat4();
+	matRotation = mat4();
 }
 
 Object::~Object()
@@ -70,7 +71,8 @@ void Object::draw()
 
 void Object::updateModelMatrix()
 {
-	matModel = translate(position) * glm::scale(scale) * eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
+	matRotation = eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
+	matModel = translate(position) * glm::scale(scale) * matRotation;
 }
 
 void Object::updateNormalMatrix()
@@ -111,4 +113,9 @@ vec3 Object::getRotation() const
 vec3 Object::getScale() const
 {
 	return scale;
+}
+
+mat4 Object::getRotationMatrix() const
+{
+	return matRotation;
 }

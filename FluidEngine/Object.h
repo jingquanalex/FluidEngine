@@ -39,6 +39,7 @@ class Object
 
 protected:
 
+	glm::mat4 matRotation;
 	glm::mat4 matModel, matNormal;
 	glm::vec3 position, rotation, scale;
 	Material material;
@@ -68,5 +69,6 @@ public:
 	glm::vec3 getPosition() const;
 	glm::vec3 getRotation() const;
 	glm::vec3 getScale() const;
+	glm::mat4 getRotationMatrix() const;
 	Material* getMaterial() { return &material; };
 };

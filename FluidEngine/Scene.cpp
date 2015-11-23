@@ -38,7 +38,7 @@ Scene::Scene()
 	
 	plane = new Airplane(vec3(0, 32, 0));
 	cameraTarget->setDistance(8.0f);
-	cameraTarget->setTarget(plane->getPosition());
+	cameraTarget->setTargetObject(plane);
 	cameraTarget->setOrientation(180.0f, -45.0f);
 
 	chunkManager = new ChunkManager();
@@ -87,7 +87,6 @@ void Scene::idle()
 		plane->update(dt);
 
 		//camera->update(dt);
-		cameraTarget->setTarget(plane->getPosition());
 		cameraTarget->update(dt);
 
 		accumulator -= dt;

@@ -12,10 +12,7 @@ private:
 	float speed, maxSpeed, minSpeed;
 	float acceleration;
 	float yaw, pitch, roll;
-	glm::mat4 matRotation;
 	glm::vec3 rotationSpeed;
-	glm::vec3 right;
-	glm::vec3 up;
 	glm::vec3 forward;
 
 	bool stateAccelerate = false;

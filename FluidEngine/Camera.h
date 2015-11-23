@@ -10,9 +10,11 @@ class Camera
 
 private:
 
-	bool isActive;
+	
 
 protected:
+
+	bool isActive;
 
 	glm::mat4 matProjection, matView;
 	glm::vec3 position, direction, up;

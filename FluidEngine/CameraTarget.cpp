@@ -6,13 +6,13 @@ using namespace std;
 extern int window_width;
 extern int window_height;
 
-CameraTarget::CameraTarget(vec3 target, float distance) : Camera()
+CameraTarget::CameraTarget(Object* target, float distance) : Camera()
 {
 	yaw = 0.0f;
 	pitch = 0.0f;
-	this->target = target;
+	this->targetObject = target;
 	this->distance = distance;
-	
+
 	updateViewMatrix();
 }
 
@@ -23,6 +23,8 @@ CameraTarget::~CameraTarget()
 
 void CameraTarget::update(float dt)
 {
+	if (!isActive || targetObject == nullptr) return;
+
 	mouseDeltaX = mouseSensitivity * (mouseX - mouseLastX);
 	mouseDeltaY = mouseSensitivity * (mouseY - mouseLastY);
 	mouseLastX = mouseX;
@@ -33,36 +35,26 @@ void CameraTarget::update(float dt)
 
 void CameraTarget::updateViewMatrix()
 {
-	/*vec3 dirVec = normalize(target - position);
-	vec3 right = normalize(cross(dirVec, up));
-	vec3 newUp = normalize(cross(right, dirVec));
+	if (targetObject == nullptr) return;
 
-	quat orientation = angleAxis(radians(mouseDeltaY), right) * angleAxis(radians(mouseDeltaX), up);
-	position = target + vec3(toMat4(orientation) * vec4(-dirVec, 0.0f)) * distance;
+	if (stateLookAround)
+	{
+		vec3 dirVec = rotate(vec3(0, 0, 1), radians(yaw), up);
+		vec3 right = cross(-dirVec, up);
 
-	vec3 newDir = rotate(-dirVec, radians(yaw), up);
-	position = target + newDir * distance;*/
+		position = targetObject->getPosition() + rotate(dirVec, radians(pitch), right) * distance;
+		matView = lookAt(position, targetObject->getPosition(), up);
+	}
+	else
+	{
+		mat4 matRotation = targetObject->getRotationMatrix();
+		vec3 forward = vec3(matRotation[2][0], matRotation[2][1], matRotation[2][2]);
+		vec3 up = vec3(matRotation[1][0], matRotation[1][1], matRotation[1][2]);
+		vec3 right = vec3(matRotation[0][0], matRotation[0][1], matRotation[0][2]);
 
-	//printf("%f %f \n", yaw, pitch);
-
-	/*mat4 rotation = eulerAngleYXZ(radians(yaw), radians(pitch), 0.0f);
-	vec3 translation = vec3(vec4(0.0f, 0.0f, distance, 0.0f) * rotation);
-	vec3 newUp = vec3(vec4(up, 0.0f) * rotation);
-	position = target + translation;*/
-
-	/*vec3 dirVec = normalize(target - position);
-	vec3 right = normalize(cross(dirVec, up));
-	vec3 newUp = normalize(cross(right, dirVec));
-
-	position = target + rotate(position - target, radians(mouseDeltaX), up);
-	position = target + rotate(position - target, radians(mouseDeltaY), right);*/
-
-	vec3 dirVec = rotate(vec3(0, 0, 1), radians(yaw), up);
-	vec3 right = cross(-dirVec, up);
-
-	position = target + rotate(dirVec, radians(pitch), right) * distance;
-
-	matView = lookAt(position, target, up);
+		position = targetObject->getPosition() + rotate(-forward, radians(-pitch), right) * distance;
+		matView = lookAt(position, targetObject->getPosition(), up);
+	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboMatrices);
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(mat4), sizeof(mat4), value_ptr(getMatView()));
@@ -108,9 +100,9 @@ void CameraTarget::mouseWheel(int dir)
 	}
 }
 
-void CameraTarget::setTarget(glm::vec3 target)
+void CameraTarget::setTargetObject(Object* target)
 {
-	this->target = target;
+	this->targetObject = target;
 }
 
 void CameraTarget::setDistance(float distance)
@@ -124,9 +116,9 @@ void CameraTarget::setOrientation(float yaw, float pitch)
 	this->pitch = pitch;
 }
 
-glm::vec3 CameraTarget::getTarget() const
+Object* CameraTarget::getTargetObject() const
 {
-	return target;
+	return targetObject;
 }
 
 float CameraTarget::getDistance() const
