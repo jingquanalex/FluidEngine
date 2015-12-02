@@ -97,6 +97,7 @@
     <ClInclude Include="CameraTarget.h" />
     <ClInclude Include="Chunk.h" />
     <ClInclude Include="ChunkManager.h" />
+    <ClInclude Include="Collision.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="Includes.h" />
     <ClInclude Include="Light.h" />
@@ -118,6 +119,7 @@
     <ClCompile Include="CameraTarget.cpp" />
     <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="ChunkManager.cpp" />
+    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />

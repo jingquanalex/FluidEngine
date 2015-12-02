@@ -9,6 +9,8 @@ extern int window_height;
 // Input: width and height of the window as int.
 Camera::Camera()
 {
+	isWrappingPointer = false;
+	mouseTriggered = false;
 	isActive = false;
 	mouseLastX = 0;
 	mouseLastY = 0;
@@ -77,14 +79,62 @@ void Camera::mouse(int button, int state)
 // Track the delta for the mouse movements
 void Camera::mouseMotion(int x, int y)
 {
-	mouseX = x;
-	mouseY = y;
+	if (!mouseTriggered)
+	{
+		mouseX = x;
+		mouseY = y;
+	}
+	else
+	{
+		if (!isWrappingPointer)
+		{
+			mouseX = x;
+			mouseY = y;
+
+			if (mouseX != glutGet(GLUT_WINDOW_WIDTH) / 2 || mouseY != glutGet(GLUT_WINDOW_HEIGHT) / 2)
+			{
+				isWrappingPointer = true;
+				glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
+			}
+		}
+		else
+		{
+			isWrappingPointer = false;
+			mouseLastX = glutGet(GLUT_WINDOW_WIDTH) / 2;
+			mouseLastY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
+		}
+	}
 }
 
 void Camera::mouseMotionPassive(int x, int y)
 {
-	mouseX = x;
-	mouseY = y;
+	// NOTE: glutWarpPointer calls mouseMotionPassive to move the mouse
+	// No mouse trigger, just update mouse X Y position
+	if (!mouseTriggered)
+	{
+		mouseX = x;
+		mouseY = y;
+	}
+	else
+	{
+		if (!isWrappingPointer)
+		{
+			mouseX = x;
+			mouseY = y;
+
+			if (mouseX != glutGet(GLUT_WINDOW_WIDTH) / 2 || mouseY != glutGet(GLUT_WINDOW_HEIGHT) / 2)
+			{
+				isWrappingPointer = true;
+				glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
+			}
+		}
+		else
+		{
+			isWrappingPointer = false;
+			mouseLastX = glutGet(GLUT_WINDOW_WIDTH) / 2;
+			mouseLastY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
+		}
+	}
 }
 
 void Camera::mouseWheel(int dir)

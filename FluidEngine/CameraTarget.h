@@ -10,6 +10,7 @@ class CameraTarget : public Camera
 private:
 
 	Object* targetObject;
+	float defaultYaw, defaultPitch;
 	float yaw, pitch, distance;
 
 	bool stateLookAround = false;
@@ -25,6 +26,7 @@ public:
 
 	void mouse(int button, int state);
 	void mouseMotion(int x, int y);
+	void mouseMotionPassive(int x, int y);
 	void mouseWheel(int dir);
 
 	void setTargetObject(Object* target);

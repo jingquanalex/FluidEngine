@@ -8,8 +8,8 @@ extern int window_height;
 
 CameraTarget::CameraTarget(Object* target, float distance) : Camera()
 {
-	yaw = 0.0f;
-	pitch = 0.0f;
+	defaultYaw = yaw = 0.0f;
+	defaultPitch = pitch = 0.0f;
 	this->targetObject = target;
 	this->distance = distance;
 
@@ -52,7 +52,7 @@ void CameraTarget::updateViewMatrix()
 		vec3 up = vec3(matRotation[1][0], matRotation[1][1], matRotation[1][2]);
 		vec3 right = vec3(matRotation[0][0], matRotation[0][1], matRotation[0][2]);
 
-		position = targetObject->getPosition() + rotate(-forward, radians(-pitch), right) * distance;
+		position = targetObject->getPosition() + rotate(-forward, radians(-defaultPitch), right) * distance;
 		matView = lookAt(position, targetObject->getPosition(), up);
 	}
 
@@ -70,10 +70,19 @@ void CameraTarget::mouse(int button, int state)
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
 	{
 		stateLookAround = true;
+		mouseTriggered = true;
+		isWrappingPointer = true;
+		glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
+		mouseLastX = glutGet(GLUT_WINDOW_WIDTH) / 2;
+		mouseLastY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
 	}
 	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP)
 	{
 		stateLookAround = false;
+		mouseTriggered = false;
+		yaw = defaultYaw;
+		pitch = defaultPitch;
+
 	}
 }
 
@@ -88,6 +97,14 @@ void CameraTarget::mouseMotion(int x, int y)
 		yaw += -mouseDeltaX * mouseSensitivity;
 		pitch += -mouseDeltaY * mouseSensitivity;
 		pitch = clamp(pitch, -89.0f, 89.0f);
+	}
+}
+
+void CameraTarget::mouseMotionPassive(int x, int y)
+{
+	if (stateLookAround)
+	{
+		Camera::mouseMotionPassive(x, y);
 	}
 }
 
@@ -112,8 +129,8 @@ void CameraTarget::setDistance(float distance)
 
 void CameraTarget::setOrientation(float yaw, float pitch)
 {
-	this->yaw = yaw;
-	this->pitch = pitch;
+	defaultYaw = this->yaw = yaw;
+	defaultPitch = this->pitch = pitch;
 }
 
 Object* CameraTarget::getTargetObject() const

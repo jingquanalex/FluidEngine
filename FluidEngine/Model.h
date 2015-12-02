@@ -14,6 +14,8 @@ struct BoundingBox
 	BoundingBox() { }
 	BoundingBox(glm::vec3 min, glm::vec3 max) : Min(min), Max(max) { }
 	glm::vec3 Min, Max;
+	std::vector<glm::vec3> Vertices;
+	std::vector<glm::vec3> SATNormals;
 };
 
 class Model

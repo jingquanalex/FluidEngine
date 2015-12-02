@@ -521,12 +521,17 @@ mat4 Chunk::getModelMatrix() const
 	return matModel;
 }
 
-bool Chunk::getIsMeshed()
+bool Chunk::getIsMeshed() const
 {
 	return isMeshed;
 }
 
-bool Chunk::getIsEmpty()
+bool Chunk::getIsEmpty() const
 {
 	return isEmpty;
+}
+
+bool Chunk::hasBlock(glm::ivec3 index) const
+{
+	return blocks.find(index) != blocks.end();
 }

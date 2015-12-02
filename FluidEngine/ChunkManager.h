@@ -3,17 +3,17 @@
 #include "Includes.h"
 #include "Chunk.h"
 #include "Shader.h"
+#include "Object.h"
 
 class ChunkManager
 {
 
 private:
 
-	std::unordered_map<glm::ivec3, Chunk*, KeyHash> chunks;
-
 	Shader* shader;
 	float maxHeight;
 
+	std::unordered_map<glm::ivec3, Chunk*, KeyHash> chunks;
 	SectionBuffer sBuffer;
 
 	glm::ivec3 oldPos;
@@ -29,6 +29,7 @@ public:
 	void update(glm::vec3 cameraPosition);
 	void draw(GLuint envMapId);
 
-	bool isCollidingAt(glm::vec3 position);
+	const std::unordered_map<glm::ivec3, Chunk*, KeyHash>* getSections() const;
+	const SectionBuffer* getSectionBuffer() const;
 
 };

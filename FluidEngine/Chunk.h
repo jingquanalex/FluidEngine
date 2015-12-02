@@ -78,6 +78,7 @@ public:
 
 	void setPosition(glm::vec3 position);
 	glm::mat4 getModelMatrix() const;
-	bool getIsMeshed();
-	bool getIsEmpty();
+	bool getIsMeshed() const;
+	bool getIsEmpty() const;
+	bool hasBlock(glm::ivec3 index) const;
 };

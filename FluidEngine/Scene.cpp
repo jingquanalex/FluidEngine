@@ -33,10 +33,11 @@ Scene::Scene()
 	skyQuad = new Quad();
 	spheres = new Spheres();
 	testObj = new Object(vec3(0, 0, 0));
+	testObj->setScale(vec3(0.2f));
 	testObj->getMaterial()->setEmissiveColor(vec3(1.0));
 	
 	plane = new Airplane(vec3(0, 32, 0));
-	plane->setDrawBoundingBox(true);
+	plane->setBoundingBoxVisible(true);
 	cameraTarget->setDistance(8.0f);
 	cameraTarget->setTargetObject(plane);
 	cameraTarget->setOrientation(180.0f, -15.0f);
@@ -44,7 +45,7 @@ Scene::Scene()
 	chunkManager = new ChunkManager();
 	//chunk->getMaterial()->setEmissiveColor(vec3(1.0));
 	
-	
+	collision = new Collision();
 }
 
 Scene::~Scene()
@@ -60,8 +61,8 @@ void Scene::load()
 	// gen buffers gives wrong id??
 	//thread tChunkMgr(&ChunkManager::load, chunkManager, "hm.jpg", vec3(4, 4, 1), vec3(16, 16, 32), 1.0f);
 	//tChunkMgr.join();
-	chunkManager->load("hm.jpg", vec3(1, 1, 1), vec3(32, 32, 32), 1.0f);
-	//chunkManager->load("hm.jpg", vec3(8, 8, 1), vec3(32, 32, 32), 1.0f);
+	//chunkManager->load("hm.jpg", vec3(4, 4, 1), vec3(8, 8, 32), 1.0f);
+	chunkManager->load("hm.jpg", vec3(8, 8, 1), vec3(32, 32, 32), 1.0f);
 	spheres->load();
 	testObj->load("cube.obj");
 	lightBox->load("cube.obj");
@@ -85,6 +86,8 @@ void Scene::idle()
 	{
 		chunkManager->update(plane->getPosition());
 		plane->update(dt);
+
+		collision->resolveTerrainObject(chunkManager, plane);
 
 		//camera->update(dt);
 		cameraTarget->update(dt);
@@ -144,7 +147,6 @@ void Scene::mouseMove(int x, int y)
 {
 	camera->mouseMotion(x, y);
 	cameraTarget->mouseMotion(x, y);
-	plane->mouseMotion(x, y);
 }
 
 // Mouse moved without button press
@@ -152,7 +154,6 @@ void Scene::mouseMovePassive(int x, int y)
 {
 	camera->mouseMotionPassive(x, y);
 	cameraTarget->mouseMotionPassive(x, y);
-	plane->mouseMotionPassive(x, y);
 }
 
 // Mouse wheel

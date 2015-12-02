@@ -5,7 +5,6 @@ using namespace std;
 
 Airplane::Airplane(vec3 position) : Object(position)
 {
-	isWrappingPointer = false;
 	isEnabled = true;
 	isAirborne = false;
 	mouseLastX = 0;
@@ -16,8 +15,9 @@ Airplane::Airplane(vec3 position) : Object(position)
 	acceleration = 10.0f;
 	speed = 0.0f;
 	maxAirborneSpeed = 20.0f;
-	minAirborneSpeed = 5.0f;
-	rotationAcceleration = vec3(110, 110, 190);
+	minAirborneSpeed = 10.0f;
+	defaultRotationAcceleration = vec3(110, 110, 190);
+	rotationAcceleration = defaultRotationAcceleration;
 	rotationSpeed = vec3(0);
 	rotationMaxSpeed = vec3(50, 70, 130);
 	glm::vec3 rotationAcceleration;
@@ -33,6 +33,24 @@ Airplane::~Airplane()
 void Airplane::load(string modelname, string shadername)
 {
 	Object::load(modelname, shadername);
+
+	// Make 2 bounding boxes and line strips buffer
+	bb1 = BoundingBox(
+		model->getBoundingBox().Min + vec3(4.2, 0, 0),
+		model->getBoundingBox().Max - vec3(4.2, 0, 0));
+	bb2 = BoundingBox(
+		model->getBoundingBox().Min + vec3(0, 0.55, 3.35),
+		model->getBoundingBox().Max - vec3(0, 0.3, 2.5));
+
+	listBoundingBox.clear();
+	listBoundingBox.push_back(bb1);
+	listBoundingBox.push_back(bb2);
+
+	makeBoundingBoxData();
+
+	// Reinitialize vbo memory
+	glBindBuffer(GL_ARRAY_BUFFER, lineVbo);
+	glBufferData(GL_ARRAY_BUFFER, lineVertices.size() * sizeof(vec3), NULL, GL_STREAM_DRAW);
 }
 
 void Airplane::update(float dt)
@@ -43,6 +61,10 @@ void Airplane::update(float dt)
 	mouseLastY = mouseY;
 
 	yaw = pitch = roll = 0.0f;
+
+	// Slower rotation acceleration if speed is slow
+	rotationAcceleration = defaultRotationAcceleration * glm::max(speed / maxAirborneSpeed, 0.4f);
+	cout << speed << endl;
 
 	if (stateYawLeft)
 	{
@@ -109,7 +131,7 @@ void Airplane::update(float dt)
 			rotationSpeed.z = 0.0f;
 		}
 	}
-	
+
 	yaw = rotationSpeed.y * dt;
 	pitch = rotationSpeed.x * dt;
 	roll = rotationSpeed.z * dt;
@@ -117,8 +139,16 @@ void Airplane::update(float dt)
 	quat qy = angleAxis(radians(yaw), vec3(matRotation[1][0], matRotation[1][1], matRotation[1][2]));
 	quat qx = angleAxis(radians(pitch), vec3(matRotation[0][0], matRotation[0][1], matRotation[0][2]));
 	quat qz = angleAxis(radians(roll), vec3(matRotation[2][0], matRotation[2][1], matRotation[2][2]));
-	matRotation = mat4_cast(qz * qx * qy) * matRotation;
-	forward = vec3(mat4_cast(qz * qx * qy) * vec4(forward.x, forward.y, forward.z, 1));
+	quat qrot = qz * qx * qy;
+
+	// Plane face down when speed too slow
+	/*if (speed <= maxAirborneSpeed * 0.75)
+	{
+		qrot += (maxAirborneSpeed * 0.75 - speed) * 50 * dt;
+	}*/
+
+	matRotation = mat4_cast(qrot) * matRotation;
+	forward = vec3(mat4_cast(qrot) * vec4(forward.x, forward.y, forward.z, 1));
 
 	/*matRotation = mat4(
 		right.x, up.x, forward.x, 0.0f,
@@ -133,7 +163,7 @@ void Airplane::update(float dt)
 	}
 	if (stateDecelerate)
 	{
-		speed -= acceleration * dt;
+		speed -= acceleration / 3 * dt;
 		if (isAirborne)
 		{
 			speed = speed < minAirborneSpeed ? minAirborneSpeed : speed;
@@ -146,6 +176,9 @@ void Airplane::update(float dt)
 
 	position += forward * speed * dt;
 
+	// Make plane fall if too slow
+	position.y -= (maxAirborneSpeed - speed) * dt;
+
 	updateModelMatrix();
 	updateNormalMatrix();
 
@@ -155,53 +188,6 @@ void Airplane::update(float dt)
 void Airplane::updateModelMatrix()
 {
 	matModel = translate(position) * matRotation;
-}
-
-void Airplane::mouseMotion(int x, int y)
-{
-	if (!isEnabled) return;
-
-	if (!isWrappingPointer)
-	{
-		mouseX = x;
-		mouseY = y;
-
-		if (mouseX != glutGet(GLUT_WINDOW_WIDTH) / 2 || mouseY != glutGet(GLUT_WINDOW_HEIGHT) / 2)
-		{
-			isWrappingPointer = true;
-			glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
-		}
-	}
-	else
-	{
-		isWrappingPointer = false;
-		mouseLastX = glutGet(GLUT_WINDOW_WIDTH) / 2;
-		mouseLastY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
-	}
-}
-
-void Airplane::mouseMotionPassive(int x, int y)
-{
-	if (!isEnabled) return;
-
-	// NOTE: glutWarpPointer calls mouseMotionPassive to move the mouse
-	if (!isWrappingPointer)
-	{
-		mouseX = x;
-		mouseY = y;
-
-		if (mouseX != glutGet(GLUT_WINDOW_WIDTH) / 2 || mouseY != glutGet(GLUT_WINDOW_HEIGHT) / 2)
-		{
-			isWrappingPointer = true;
-			glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
-		}
-	}
-	else
-	{
-		isWrappingPointer = false;
-		mouseLastX = glutGet(GLUT_WINDOW_WIDTH) / 2;
-		mouseLastY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
-	}
 }
 
 void Airplane::keyboard(int key)
@@ -238,16 +224,6 @@ void Airplane::keyboardUp(int key)
 		break;
 	case 100: // d
 		stateYawRight = false;
-		break;
-	case 99: // c
-		isEnabled = !isEnabled;
-		if (isEnabled)
-		{
-			isWrappingPointer = true;
-			glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
-			mouseLastX = glutGet(GLUT_WINDOW_WIDTH) / 2;
-			mouseLastY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
-		}
 		break;
 	}
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <thread>
 #include "Timer.h"
 #include "Camera.h"
 #include "CameraFPS.h"
@@ -10,7 +11,7 @@
 #include "Quad.h"
 #include "ChunkManager.h"
 #include "Airplane.h"
-#include <thread>
+#include "Collision.h"
 
 class Scene
 {
@@ -28,6 +29,7 @@ private:
 	Spheres* spheres;
 	Airplane* plane;
 	ChunkManager* chunkManager;
+	Collision* collision;
 
 	const float maxframeTime = 1 / 4.0f;
 	const float dt = 1 / 60.0f;

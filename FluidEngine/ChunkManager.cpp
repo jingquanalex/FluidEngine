@@ -71,7 +71,7 @@ void ChunkManager::load(string mapname, ivec3 sectionsize, ivec3 chunksize, floa
 
 void ChunkManager::update(vec3 cameraPosition)
 {
-	// Load voxels near camera position then build mesh for the center chunk
+	// Load voxels and build mesh for those chunk around the camera
 	ivec3 localPosition = vec3(
 		cameraPosition.x / sBuffer.ChunkSize.x,
 		cameraPosition.y / sBuffer.ChunkSize.z,
@@ -79,16 +79,19 @@ void ChunkManager::update(vec3 cameraPosition)
 
 	if (localPosition != oldPos)
 	{
+		// Search all surrounding chunk neighbors of range voxelRange
 		for (int i = -voxelRange.x; i <= voxelRange.x; i++)
 		{
 			for (int j = -voxelRange.y; j <= voxelRange.y; j++)
 			{
 				for (int k = -voxelRange.z; k <= voxelRange.z; k++)
 				{
+					// Find which chunk camera is in
 					ivec3 sectionPos = localPosition + ivec3(i, j, k);
 					sectionPos = clamp(sectionPos, ivec3(0), ivec3(
 						sBuffer.SectionSize.x, sBuffer.SectionSize.z, sBuffer.SectionSize.y) - ivec3(1));
 					
+					// Populate voxel data in that chunk
 					if (chunks.find(sectionPos) == chunks.end())
 					{
 						Chunk* chunk = new Chunk(chunks);
@@ -99,13 +102,14 @@ void ChunkManager::update(vec3 cameraPosition)
 							sectionPos.y * sBuffer.ChunkSize.z * sBuffer.BlockSize,
 							sectionPos.z * sBuffer.ChunkSize.y * sBuffer.BlockSize));
 						chunks.insert(make_pair(sectionPos, chunk));
-						cout << "voxel: " << sectionPos.x << ", " << sectionPos.y << ", " 
-							<< sectionPos.z << endl;
+						cout << "voxel: " 
+							<< sectionPos.x << ", " << sectionPos.y << ", " << sectionPos.z << endl;
 					}
 				}
 			}
 		}
 
+		// Search all surrounding chunk neighbors of range meshRange
 		for (int i = -meshRange.x; i <= meshRange.x; i++)
 		{
 			for (int j = -meshRange.y; j <= meshRange.y; j++)
@@ -116,12 +120,13 @@ void ChunkManager::update(vec3 cameraPosition)
 					sectionPos = clamp(sectionPos, ivec3(0), ivec3(
 						sBuffer.SectionSize.x, sBuffer.SectionSize.z, sBuffer.SectionSize.y) - ivec3(1));
 
+					// Mesh that chunk if not done
 					auto it = chunks.find(sectionPos);
 					if (it != chunks.end() && !it->second->getIsEmpty() && !it->second->getIsMeshed())
 					{
 						it->second->mesh();
-						cout << "mesh: " << sectionPos.x << ", " << sectionPos.y << ", " 
-							<< sectionPos.z << endl;
+						cout << "mesh: " 
+							<< sectionPos.x << ", " << sectionPos.y << ", "  << sectionPos.z << endl;
 					}
 				}
 			}
@@ -151,7 +156,12 @@ void ChunkManager::draw(GLuint envMapId)
 	}
 }
 
-bool ChunkManager::isCollidingAt(glm::vec3 position)
+const std::unordered_map<glm::ivec3, Chunk*, KeyHash>* ChunkManager::getSections() const
 {
+	return &chunks;
+}
 
+const SectionBuffer* ChunkManager::getSectionBuffer() const
+{
+	return &sBuffer;
 }

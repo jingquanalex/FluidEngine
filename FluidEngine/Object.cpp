@@ -20,7 +20,7 @@ Object::Object(vec3 position)
 	matNormal = mat4();
 	matRotation = mat4();
 
-	isDrawBoundingBox = false;
+	isBoundingBoxVisible = false;
 }
 
 Object::~Object()
@@ -45,15 +45,9 @@ void Object::load(string modelname, string shadername)
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	// Generate 2 bounding boxes and line strips buffer
-	bb1 = BoundingBox(
-		model->getBoundingBox().Min + vec3(4.2, 0, 0), 
-		model->getBoundingBox().Max - vec3(4.2, 0, 0));
-	bb2 = BoundingBox(
-		model->getBoundingBox().Min + vec3(0, 0.55, 3.35),
-		model->getBoundingBox().Max - vec3(0, 0.3, 2.5));
+	listBoundingBox.push_back(model->getBoundingBox());
+	makeBoundingBoxData();
 
-	makeBoundingBoxVertices(lineVertices);
 	glGenVertexArrays(1, &lineVao);
 	glGenBuffers(1, &lineVbo);
 
@@ -70,9 +64,10 @@ void Object::update(float dt)
 {
 	if (shader != nullptr) shader->update(dt);
 
-	if (isDrawBoundingBox)
+	// Update bounding box VBO
+	if (!lineVertices.empty() && isBoundingBoxVisible)
 	{
-		makeBoundingBoxVertices(lineVertices);
+		makeBoundingBoxData();
 		glBindBuffer(GL_ARRAY_BUFFER, lineVbo);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, lineVertices.size() * sizeof(vec3), &lineVertices[0]);
 	}
@@ -96,7 +91,7 @@ void Object::draw()
 		glBindTexture(GL_TEXTURE_2D, defaultTexID);
 		if (model != nullptr) model->draw(program);
 
-		if (isDrawBoundingBox)
+		if (!lineVertices.empty() && isBoundingBoxVisible)
 		{
 			glUniformMatrix4fv(10, 1, GL_FALSE, value_ptr(mat4()));
 			glBindVertexArray(lineVao);
@@ -117,55 +112,67 @@ void Object::updateNormalMatrix()
 	matNormal = transpose(inverse(matModel));
 }
 
-// Generate vertices for the two bounding boxes as a line strip transformed by model matrix
-void Object::makeBoundingBoxVertices(std::vector<glm::vec3>& list)
+// Make line strip vertices, also store the transformed vertices and face normals
+void Object::makeBoundingBoxData()
 {
-	list.clear();
+	lineVertices.clear();
 
-	BoundingBox bb = bb1;
-	vec3 v1 = vec3(matModel * vec4(bb.Min.x, bb.Min.y, bb.Max.z, 1));
-	list.push_back(v1);
-	vec3 v2 = vec3(matModel * vec4(bb.Min.x, bb.Max.y, bb.Max.z, 1));
-	list.push_back(v2);
-	vec3 v3 = vec3(matModel * vec4(bb.Min.x, bb.Max.y, bb.Min.z, 1));
-	list.push_back(v3);
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Min.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Min.y, bb.Max.z, 1)));
-	vec3 v6 = vec3(matModel * vec4(bb.Max.x, bb.Min.y, bb.Max.z, 1));
-	list.push_back(v6);
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Max.y, bb.Max.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Max.y, bb.Max.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Max.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Max.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Min.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Min.y, bb.Max.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Max.y, bb.Max.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Max.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Min.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Min.y, bb.Min.z, 1)));
+	for (auto bb = listBoundingBox.begin(); bb != listBoundingBox.end(); bb++)
+	{
+		// Bottom verts
+		vec3 v1 = vec3(matModel * vec4(bb->Min.x, bb->Min.y, bb->Max.z, 1));
+		vec3 v2 = vec3(matModel * vec4(bb->Max.x, bb->Min.y, bb->Max.z, 1));
+		vec3 v3 = vec3(matModel * vec4(bb->Max.x, bb->Min.y, bb->Min.z, 1));
+		vec3 v4 = vec3(matModel * vec4(bb->Min.x, bb->Min.y, bb->Min.z, 1));
+		// Top verts
+		vec3 v5 = vec3(matModel * vec4(bb->Min.x, bb->Max.y, bb->Max.z, 1));
+		vec3 v6 = vec3(matModel * vec4(bb->Max.x, bb->Max.y, bb->Max.z, 1));
+		vec3 v7 = vec3(matModel * vec4(bb->Max.x, bb->Max.y, bb->Min.z, 1));
+		vec3 v8 = vec3(matModel * vec4(bb->Min.x, bb->Max.y, bb->Min.z, 1));
 
-	// Store face normals for seperating axis test
-	faceNormals.push_back(v1 - v6); // X
-	faceNormals.push_back(v2 - v1); // Y
-	faceNormals.push_back(v2 - v3); // Z
+		lineVertices.push_back(v1);
+		lineVertices.push_back(v2);
+		lineVertices.push_back(v3);
+		lineVertices.push_back(v4);
+		lineVertices.push_back(v1);
+		lineVertices.push_back(v5);
+		lineVertices.push_back(v6);
+		lineVertices.push_back(v2);
+		lineVertices.push_back(v6);
+		lineVertices.push_back(v7);
+		lineVertices.push_back(v3);
+		lineVertices.push_back(v7);
+		lineVertices.push_back(v8);
+		lineVertices.push_back(v4);
+		lineVertices.push_back(v8);
+		lineVertices.push_back(v5);
+		lineVertices.push_back(v1);
 
-	bb = bb2;
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Min.y, bb.Max.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Max.y, bb.Max.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Max.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Min.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Min.y, bb.Max.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Min.y, bb.Max.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Max.y, bb.Max.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Max.y, bb.Max.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Max.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Max.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Min.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Min.y, bb.Max.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Max.y, bb.Max.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Max.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Max.x, bb.Min.y, bb.Min.z, 1)));
-	list.push_back(vec3(matModel * vec4(bb.Min.x, bb.Min.y, bb.Min.z, 1)));
+		// Store vertices of bounding box
+		bb->Vertices.clear();
+		bb->Vertices.push_back(v1);
+		bb->Vertices.push_back(v2);
+		bb->Vertices.push_back(v3);
+		bb->Vertices.push_back(v4);
+		bb->Vertices.push_back(v5);
+		bb->Vertices.push_back(v6);
+		bb->Vertices.push_back(v7);
+		bb->Vertices.push_back(v8);
+
+		// Store face normals for seperating axis test
+		bb->SATNormals.clear();
+		bb->SATNormals.push_back(normalize(v3 - v4)); // X
+		bb->SATNormals.push_back(normalize(v8 - v4)); // Y
+		bb->SATNormals.push_back(normalize(v1 - v4)); // Z
+	}
+
+	// Remove duplicate normals
+	/*sort(boundingBoxSATNormals.begin(), boundingBoxSATNormals.end(), 
+		[](const vec3& v1, const vec3& v2){ return v1.x < v2.x; });
+	boundingBoxSATNormals.erase(
+		unique(boundingBoxSATNormals.begin(), boundingBoxSATNormals.end()), 
+		boundingBoxSATNormals.end());*/
+
 }
 
 void Object::setPosition(vec3 position)
@@ -181,16 +188,16 @@ void Object::setRotation(vec3 rotation)
 	updateNormalMatrix();
 }
 
-void Object::setScale(glm::vec3 scale)
+void Object::setScale(vec3 scale)
 {
 	this->scale = scale;
 	updateModelMatrix();
 	updateNormalMatrix();
 }
 
-void Object::setDrawBoundingBox(bool isdrawn)
+void Object::setBoundingBoxVisible(bool isVisible)
 {
-	this->isDrawBoundingBox = isdrawn;
+	this->isBoundingBoxVisible = isVisible;
 }
 
 vec3 Object::getPosition() const
@@ -218,12 +225,12 @@ Material* Object::getMaterial()
 	return &material;
 }
 
-bool Object::getIsDrawBoundingBox() const
+bool Object::getBoundingBoxVisible() const
 {
-	return isDrawBoundingBox;
+	return isBoundingBoxVisible;
 }
 
-const vector<vec3>* Object::getFaceNormals() const
+const vector<BoundingBox>* Object::getBoundingBoxList() const
 {
-	return &faceNormals;
+	return &listBoundingBox;
 }

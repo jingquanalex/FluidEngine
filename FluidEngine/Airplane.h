@@ -7,11 +7,11 @@ class Airplane : public Object
 
 private:
 
-	bool isWrappingPointer;
 	bool isAirborne, isEnabled;
 	float acceleration;
 	float speed, maxAirborneSpeed, minAirborneSpeed;
 	float yaw, pitch, roll;
+	glm::vec3 defaultRotationAcceleration;
 	glm::vec3 rotationAcceleration;
 	glm::vec3 rotationSpeed;
 	glm::vec3 rotationMaxSpeed;
@@ -29,6 +29,8 @@ private:
 	int mouseX, mouseY, mouseLastX, mouseLastY;
 	float mouseDeltaX, mouseDeltaY;
 
+	BoundingBox bb1, bb2;
+
 	void updateModelMatrix();
 
 public:
@@ -39,8 +41,6 @@ public:
 	void load(std::string modelname = "plane.obj", std::string shadername = "basic");
 	void update(float dt);
 
-	void mouseMotion(int x, int y);
-	void mouseMotionPassive(int x, int y);
 	void keyboard(int key);
 	void keyboardUp(int key);
 	void keyboardSpecial(int key);

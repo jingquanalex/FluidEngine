@@ -14,6 +14,8 @@ private:
 
 protected:
 
+	bool isWrappingPointer;
+	bool mouseTriggered;
 	bool isActive;
 
 	glm::mat4 matProjection, matView;
