@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "Model.h"
 #include "Shader.h"
+#include "Light.h"
 
 struct Material
 {
@@ -66,7 +67,8 @@ public:
 
 	virtual void load(std::string modelname, std::string shadername = "basic");
 	virtual void update(float dt);
-	virtual void draw();
+	virtual void draw(Light* light = nullptr);
+	virtual void draw(Light* light, bool depthMode);
 
 	// === Accessors ===
 
@@ -82,4 +84,5 @@ public:
 	Material* getMaterial();
 	bool getBoundingBoxVisible() const;
 	const std::vector<BoundingBox>* getBoundingBoxList() const;
+	static GLuint getDefaultTex();
 };

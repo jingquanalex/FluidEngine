@@ -7,6 +7,7 @@ extern string g_mediaDirectory;
 
 ChunkManager::ChunkManager()
 {
+	oldPos = ivec3(-999);
 	voxelRange = ivec3(2);
 	meshRange = ivec3(1);
 }
@@ -43,11 +44,11 @@ void ChunkManager::load(string mapname, ivec3 sectionsize, ivec3 chunksize, floa
 	sBuffer.BlockSize = blocksize;
 
 	// Load starting voxels from heightmap
-	/*for (int i = 0; i < sectionsize.x / 2; i++)
+	/*for (int i = 0; i <= sectionsize.x / 2; i++)
 	{
-		for (int j = 0; j < sectionsize.y / 2; j++)
+		for (int j = 0; j <= sectionsize.y / 2; j++)
 		{
-			for (int k = 0; k < sectionsize.z / 2; k++)
+			for (int k = 0; k <= sectionsize.z / 2; k++)
 			{
 				// Convert to opengl coordinates to store block positions as keys
 				Chunk* chunk = new Chunk(chunks);
@@ -96,7 +97,7 @@ void ChunkManager::update(vec3 cameraPosition)
 					{
 						Chunk* chunk = new Chunk(chunks);
 						sBuffer.SectionIndex = sectionPos;
-						chunk->load(sBuffer);
+						chunk->load(&sBuffer);
 						chunk->setPosition(vec3(
 							sectionPos.x * sBuffer.ChunkSize.x * sBuffer.BlockSize,
 							sectionPos.y * sBuffer.ChunkSize.z * sBuffer.BlockSize,
@@ -136,7 +137,7 @@ void ChunkManager::update(vec3 cameraPosition)
 	}
 }
 
-void ChunkManager::draw(GLuint envMapId)
+void ChunkManager::draw(GLuint envMapId, Light* light)
 {
 	GLuint program = shader->getProgram();
 	glUseProgram(program);
@@ -144,11 +145,30 @@ void ChunkManager::draw(GLuint envMapId)
 	glUniform1i(glGetUniformLocation(program, "cubemap1"), 1);
 	glUniform1f(glGetUniformLocation(program, "maxheight"), maxHeight);
 
+	if (light != nullptr)
+	{
+		glUniformMatrix4fv(11, 1, GL_FALSE, value_ptr(light->getMatLight()));
+		glUniform1i(glGetUniformLocation(program, "shadowmap1"), 2);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, light->getDepthMap());
+	}
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, envMapId);
 
+	for (pair<ivec3, Chunk*> e : chunks)
+	{
+		glUniformMatrix4fv(10, 1, GL_FALSE, value_ptr(e.second->getModelMatrix()));
+		e.second->draw();
+	}
+}
+
+void ChunkManager::draw(Light* light)
+{
+	glUseProgram(light->getProgram());
+	glUniformMatrix4fv(11, 1, GL_FALSE, value_ptr(light->getMatLight()));
 	for (pair<ivec3, Chunk*> e : chunks)
 	{
 		glUniformMatrix4fv(10, 1, GL_FALSE, value_ptr(e.second->getModelMatrix()));

@@ -2,10 +2,8 @@
 
 #include <thread>
 #include "Timer.h"
-#include "Camera.h"
 #include "CameraFPS.h"
 #include "CameraTarget.h"
-#include "Object.h"
 #include "Spheres.h"
 #include "Light.h"
 #include "Quad.h"
@@ -19,12 +17,13 @@ class Scene
 private:
 
 	Timer* frameTimer;
-	Camera* camera;
 	CameraTarget* cameraTarget;
+	CameraFPS* cameraLight;
 	Light* light;
 
 	Quad* skyQuad;
-	Object* testObj;
+	Quad* screenQuad;
+	Object* groundObj;
 	Object* lightBox;
 	Spheres* spheres;
 	Airplane* plane;
@@ -46,6 +45,7 @@ public:
 	// === Functions ===
 
 	void load();
+	void drawScene();
 
 	// === Callbacks ===
 

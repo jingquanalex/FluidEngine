@@ -21,32 +21,32 @@ Chunk::~Chunk()
 
 // Build the 3D array of blocks of size in all dimension
 // sBuffer(x index, y index, section width)
-void Chunk::load(SectionBuffer sBuffer)
+void Chunk::load(const SectionBuffer* sBuffer)
 {
 	this->sBuffer = sBuffer;
-	blocks.reserve(sBuffer.ChunkSize.x * sBuffer.ChunkSize.y * sBuffer.ChunkSize.z);
+	blocks.reserve(sBuffer->ChunkSize.x * sBuffer->ChunkSize.y * sBuffer->ChunkSize.z);
 
 	// Generate chunk of blocks based on a section of heightmap
 	// Image Coords
-	for (int i = 0; i < sBuffer.ChunkSize.x; i++)
+	for (int i = 0; i < sBuffer->ChunkSize.x; i++)
 	{
-		for (int j = 0; j < sBuffer.ChunkSize.y; j++)
+		for (int j = 0; j < sBuffer->ChunkSize.y; j++)
 		{
 			// Sample depth value of chunk[i, j] at section[indexX, indexY] of heightmap
-			int sectionWidth = sBuffer.MapDimension.x / sBuffer.SectionSize.x;
-			int sectionHeight = sBuffer.MapDimension.y / sBuffer.SectionSize.y;
-			int cellX = sectionWidth / sBuffer.ChunkSize.x;
-			int cellY = sectionHeight / sBuffer.ChunkSize.y;
-			int indexX = cellX / 2 + cellX * i + sBuffer.SectionIndex.x * sectionWidth;
-			int indexY = cellY / 2 + cellY * j + sBuffer.SectionIndex.z * sectionWidth;
-			unsigned char depthValue = sBuffer.HeightMap[indexX + indexY * sBuffer.MapDimension.x];
+			int sectionWidth = sBuffer->MapDimension.x / sBuffer->SectionSize.x;
+			int sectionHeight = sBuffer->MapDimension.y / sBuffer->SectionSize.y;
+			int cellX = sectionWidth / sBuffer->ChunkSize.x;
+			int cellY = sectionHeight / sBuffer->ChunkSize.y;
+			int indexX = cellX / 2 + cellX * i + sBuffer->SectionIndex.x * sectionWidth;
+			int indexY = cellY / 2 + cellY * j + sBuffer->SectionIndex.z * sectionWidth;
+			unsigned char depthValue = sBuffer->HeightMap[indexX + indexY * sBuffer->MapDimension.x];
 
 			// Generate block if posValue lower than sampled depth value
-			int sectionDepth = 256 / sBuffer.SectionSize.z;
-			int cellZ = sectionDepth / sBuffer.ChunkSize.z;
-			for (int k = 0; k < sBuffer.ChunkSize.z; k++)
+			int sectionDepth = 256 / sBuffer->SectionSize.z;
+			int cellZ = sectionDepth / sBuffer->ChunkSize.z;
+			for (int k = 0; k < sBuffer->ChunkSize.z; k++)
 			{
-				int posValue = cellZ / 2 + cellZ * k + sBuffer.SectionIndex.y * sectionDepth;
+				int posValue = cellZ / 2 + cellZ * k + sBuffer->SectionIndex.y * sectionDepth;
 				if (posValue < depthValue)
 				{
 					blocks.insert(make_pair(ivec3(i, k, j), Block()));
@@ -59,6 +59,19 @@ void Chunk::load(SectionBuffer sBuffer)
 	hasLoaded = true;
 }
 
+int Chunk::getHeightAt(int x, int y) const
+{
+	// Sample depth value of chunk[i, j] at section[indexX, indexY] of heightmap
+	int sectionWidth = sBuffer->MapDimension.x / sBuffer->SectionSize.x;
+	int sectionHeight = sBuffer->MapDimension.y / sBuffer->SectionSize.y;
+	int cellX = sectionWidth / sBuffer->ChunkSize.x;
+	int cellY = sectionHeight / sBuffer->ChunkSize.y;
+	int indexX = cellX / 2 + cellX * x + sBuffer->SectionIndex.x * sectionWidth;
+	int indexY = cellY / 2 + cellY * y + sBuffer->SectionIndex.z * sectionWidth;
+	unsigned char depthValue = sBuffer->HeightMap[indexX + indexY * sBuffer->MapDimension.x];
+	return depthValue * 256;
+}
+
 void Chunk::mesh()
 {
 	if (isEmpty) return;
@@ -66,7 +79,7 @@ void Chunk::mesh()
 	// Create mesh for each chunk
 	vec4 occlusionFactor;
 	float topLeftFactor, bottomLeftFactor, bottomRightFactor, topRightFactor;
-	float blockHalfSize = sBuffer.BlockSize / 2;
+	float blockHalfSize = sBuffer->BlockSize / 2;
 	for (pair<ivec3, Block> e : blocks)
 	{
 		// If no neighbor block present, make a face there
@@ -276,35 +289,35 @@ bool Chunk::findNeighborInChunk(ivec3 index)
 	
 	// Search in chunkIndex for block at newIndex
 	// NOTE: ChunkSize is in image coord
-	if (index.x == sBuffer.ChunkSize.x) // Right
+	if (index.x == sBuffer->ChunkSize.x) // Right
 	{
-		chunkIndex = sBuffer.SectionIndex + ivec3(1, 0, 0);
+		chunkIndex = sBuffer->SectionIndex + ivec3(1, 0, 0);
 		newIndex.x = 0;
 	}
 	else if (index.x == -1) // Left
 	{
-		chunkIndex = sBuffer.SectionIndex + ivec3(-1, 0, 0);
-		newIndex.x = sBuffer.ChunkSize.x - 1;
+		chunkIndex = sBuffer->SectionIndex + ivec3(-1, 0, 0);
+		newIndex.x = sBuffer->ChunkSize.x - 1;
 	}
-	else if (index.y == sBuffer.ChunkSize.z) // Top
+	else if (index.y == sBuffer->ChunkSize.z) // Top
 	{
-		chunkIndex = sBuffer.SectionIndex + ivec3(0, 1, 0);
+		chunkIndex = sBuffer->SectionIndex + ivec3(0, 1, 0);
 		newIndex.y = 0;
 	}
 	else if (index.y == -1) // Bottom
 	{
-		chunkIndex = sBuffer.SectionIndex + ivec3(0, -1, 0);
-		newIndex.y = sBuffer.ChunkSize.z - 1;
+		chunkIndex = sBuffer->SectionIndex + ivec3(0, -1, 0);
+		newIndex.y = sBuffer->ChunkSize.z - 1;
 	}
-	else if (index.z == sBuffer.ChunkSize.y) // Front
+	else if (index.z == sBuffer->ChunkSize.y) // Front
 	{
-		chunkIndex = sBuffer.SectionIndex + ivec3(0, 0, 1);
+		chunkIndex = sBuffer->SectionIndex + ivec3(0, 0, 1);
 		newIndex.z = 0;
 	}
 	else if (index.z == -1) // Back
 	{
-		chunkIndex = sBuffer.SectionIndex + ivec3(0, 0, -1);
-		newIndex.z = sBuffer.ChunkSize.y - 1;
+		chunkIndex = sBuffer->SectionIndex + ivec3(0, 0, -1);
+		newIndex.z = sBuffer->ChunkSize.y - 1;
 	}
 	else
 	{

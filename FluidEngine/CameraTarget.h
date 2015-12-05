@@ -9,10 +9,14 @@ class CameraTarget : public Camera
 
 private:
 
+	enum class Views { Cockpit, Chase, Left, Right, Ground, Sky };
+
 	Object* targetObject;
+	Object* groundObject;
 	float defaultYaw, defaultPitch;
 	float yaw, pitch, distance;
 
+	Views view;
 	bool stateLookAround = false;
 
 	void updateViewMatrix();
@@ -28,8 +32,10 @@ public:
 	void mouseMotion(int x, int y);
 	void mouseMotionPassive(int x, int y);
 	void mouseWheel(int dir);
+	void keyboard(unsigned char key);
+	void keyboardUp(unsigned char key);
 
-	void setTargetObject(Object* target);
+	void setTargetObject(Object* target, Object* target2 = nullptr);
 	void setDistance(float distance);
 	void setOrientation(float yaw, float pitch);
 	Object* getTargetObject() const;

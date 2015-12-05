@@ -4,6 +4,7 @@
 #include "Chunk.h"
 #include "Shader.h"
 #include "Object.h"
+#include "Light.h"
 
 class ChunkManager
 {
@@ -27,7 +28,8 @@ public:
 
 	void load(std::string mapname, glm::ivec3 sectionsize, glm::ivec3 chunksize, float blocksize);
 	void update(glm::vec3 cameraPosition);
-	void draw(GLuint envMapId);
+	void draw(GLuint envMapId, Light* light = nullptr);
+	void draw(Light* light);
 
 	const std::unordered_map<glm::ivec3, Chunk*, KeyHash>* getSections() const;
 	const SectionBuffer* getSectionBuffer() const;

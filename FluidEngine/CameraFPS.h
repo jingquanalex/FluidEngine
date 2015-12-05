@@ -27,4 +27,6 @@ public:
 	void keyboard(int key);
 	void keyboardUp(int key);
 
+	void setTargetPoint(glm::vec3 position);
+
 };

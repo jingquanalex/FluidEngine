@@ -60,6 +60,7 @@ void Spheres::update(float dt)
 void Spheres::draw()
 {
 	glUseProgram(shader->getProgram());
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texid);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_POINTS, 0, 10);

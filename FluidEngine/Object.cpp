@@ -65,7 +65,7 @@ void Object::update(float dt)
 	if (shader != nullptr) shader->update(dt);
 
 	// Update bounding box VBO
-	if (!lineVertices.empty() && isBoundingBoxVisible)
+	if (!lineVertices.empty())
 	{
 		makeBoundingBoxData();
 		glBindBuffer(GL_ARRAY_BUFFER, lineVbo);
@@ -73,7 +73,7 @@ void Object::update(float dt)
 	}
 }
 
-void Object::draw()
+void Object::draw(Light* light)
 {
 	if (shader != nullptr)
 	{
@@ -89,6 +89,15 @@ void Object::draw()
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, defaultTexID);
+
+		if (light != nullptr)
+		{
+			glUniformMatrix4fv(12, 1, GL_FALSE, value_ptr(light->getMatLight()));
+			glUniform1i(glGetUniformLocation(program, "shadowmap1"), 4);
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, light->getDepthMap());
+		}
+
 		if (model != nullptr) model->draw(program);
 
 		if (!lineVertices.empty() && isBoundingBoxVisible)
@@ -99,6 +108,15 @@ void Object::draw()
 			glBindVertexArray(0);
 		}
 	}
+}
+
+void Object::draw(Light* light, bool depthMode)
+{
+	GLuint program = light->getProgram();
+	glUseProgram(program);
+	glUniformMatrix4fv(10, 1, GL_FALSE, value_ptr(matModel));
+	glUniformMatrix4fv(11, 1, GL_FALSE, value_ptr(light->getMatLight()));
+	if (model != nullptr) model->draw(program);
 }
 
 void Object::updateModelMatrix()
@@ -147,6 +165,10 @@ void Object::makeBoundingBoxData()
 		lineVertices.push_back(v8);
 		lineVertices.push_back(v5);
 		lineVertices.push_back(v1);
+
+		bb->AxisX = vec3(matModel * vec4(bb->AxisX, 0));
+		bb->AxisY = vec3(matModel * vec4(bb->AxisY, 0));
+		bb->AxisZ = vec3(matModel * vec4(bb->AxisZ, 0));
 
 		// Store vertices of bounding box
 		bb->Vertices.clear();
@@ -233,4 +255,9 @@ bool Object::getBoundingBoxVisible() const
 const vector<BoundingBox>* Object::getBoundingBoxList() const
 {
 	return &listBoundingBox;
+}
+
+GLuint Object::getDefaultTex()
+{
+	return defaultTexID;
 }

@@ -8,7 +8,7 @@ extern int window_height;
 
 CameraFPS::CameraFPS() : Camera()
 {
-	yaw = -90.0f;
+	yaw = 0.0f;
 	pitch = 0.0f;
 	moveSpeed = 10.0f;
 }
@@ -20,6 +20,8 @@ CameraFPS::~CameraFPS()
 
 void CameraFPS::update(float dt)
 {
+	if (!isActive) return;
+
 	Camera::update(dt);
 
 	if (stateForward)
@@ -43,6 +45,8 @@ void CameraFPS::update(float dt)
 
 void CameraFPS::mouse(int button, int state)
 {
+	if (!isActive) return;
+
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
 	{
 		stateLookAround = true;
@@ -56,6 +60,8 @@ void CameraFPS::mouse(int button, int state)
 // Track the delta for the mouse movements
 void CameraFPS::mouseMotion(int x, int y)
 {
+	if (!isActive) return;
+
 	if (stateLookAround)
 	{
 		Camera::mouseMotion(x, y);
@@ -79,18 +85,29 @@ void CameraFPS::mouseMotion(int x, int y)
 // Keys callback
 void CameraFPS::keyboard(int key)
 {
+	if (!isActive) return;
+
+	if (glutGetModifiers() & GLUT_ACTIVE_SHIFT)
+	{
+		moveSpeed *= 2;
+	}
+	else
+	{
+		moveSpeed = 10.0f;
+	}
+
 	switch (key)
 	{
-	case 119: // w
+	case 'w':
 		stateForward = true;
 		break;
-	case 97: // a
+	case 'a':
 		stateLeft = true;
 		break;
-	case 115: // s
+	case 's':
 		stateBackward = true;
 		break;
-	case 100: // d
+	case 'd':
 		stateRight = true;
 		break;
 	}
@@ -99,19 +116,31 @@ void CameraFPS::keyboard(int key)
 // Keys up callback
 void CameraFPS::keyboardUp(int key)
 {
+	if (!isActive) return;
+
 	switch (key)
 	{
-	case 119: // w
+	case 'w':
 		stateForward = false;
 		break;
-	case 97: // a
+	case 'a':
 		stateLeft = false;
 		break;
-	case 115: // s
+	case 's':
 		stateBackward = false;
 		break;
-	case 100: // d
+	case 'd':
 		stateRight = false;
 		break;
 	}
+}
+
+void CameraFPS::setTargetPoint(vec3 position)
+{
+	this->targetPoint = position;
+	direction = normalize(this->targetPoint - this->position);
+	// TODO: wrong angles
+	yaw = degrees(atan2(direction.x, direction.y));
+	pitch = degrees(asin(direction.z));
+	updateViewMatrix();
 }

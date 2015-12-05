@@ -5,17 +5,20 @@ using namespace std;
 
 Airplane::Airplane(vec3 position) : Object(position)
 {
-	isEnabled = true;
+	hasCollided = false;
+	hasCrashed = false;
 	isAirborne = false;
+
 	mouseLastX = 0;
 	mouseLastY = 0;
 	yaw = 0.0f;
 	pitch = 0.0f;
 	roll = 0.0f;
-	acceleration = 10.0f;
+	acceleration = 5.0f;
 	speed = 0.0f;
-	maxAirborneSpeed = 20.0f;
-	minAirborneSpeed = 10.0f;
+	maxAirborneSpeed = 30.0f;
+	minAirborneSpeed = 15.0f;
+	defaultPosition = position;
 	defaultRotationAcceleration = vec3(110, 110, 190);
 	rotationAcceleration = defaultRotationAcceleration;
 	rotationSpeed = vec3(0);
@@ -28,6 +31,23 @@ Airplane::Airplane(vec3 position) : Object(position)
 Airplane::~Airplane()
 {
 
+}
+
+void Airplane::setupDefaults()
+{
+	hasCollided = false;
+	hasCrashed = false;
+	isAirborne = false;
+	yaw = 0.0f;
+	pitch = 0.0f;
+	roll = 0.0f;
+	acceleration = 5.0f;
+	speed = 0.0f;
+	position = defaultPosition;
+	rotationAcceleration = defaultRotationAcceleration;
+	rotationSpeed = vec3(0);
+	forward = vec3(0, 0, 1);
+	matRotation = mat4();
 }
 
 void Airplane::load(string modelname, string shadername)
@@ -55,6 +75,8 @@ void Airplane::load(string modelname, string shadername)
 
 void Airplane::update(float dt)
 {
+	if (hasCrashed) return;
+
 	mouseDeltaX = (float)(mouseX - mouseLastX);
 	mouseDeltaY = (float)(mouseY - mouseLastY);
 	mouseLastX = mouseX;
@@ -63,8 +85,14 @@ void Airplane::update(float dt)
 	yaw = pitch = roll = 0.0f;
 
 	// Slower rotation acceleration if speed is slow
-	rotationAcceleration = defaultRotationAcceleration * glm::max(speed / maxAirborneSpeed, 0.4f);
-	cout << speed << endl;
+	if (isAirborne)
+	{
+		rotationAcceleration = defaultRotationAcceleration * glm::max(speed / maxAirborneSpeed, 0.4f);
+	}
+	else
+	{
+		rotationAcceleration = defaultRotationAcceleration * glm::max(speed / maxAirborneSpeed, 0.0f);
+	}
 
 	if (stateYawLeft)
 	{
@@ -132,20 +160,26 @@ void Airplane::update(float dt)
 		}
 	}
 
+	if (speed == 0.0f) rotationSpeed = vec3(0);
+
 	yaw = rotationSpeed.y * dt;
 	pitch = rotationSpeed.x * dt;
 	roll = rotationSpeed.z * dt;
 
-	quat qy = angleAxis(radians(yaw), vec3(matRotation[1][0], matRotation[1][1], matRotation[1][2]));
 	quat qx = angleAxis(radians(pitch), vec3(matRotation[0][0], matRotation[0][1], matRotation[0][2]));
+	quat qy = angleAxis(radians(yaw), vec3(matRotation[1][0], matRotation[1][1], matRotation[1][2]));
 	quat qz = angleAxis(radians(roll), vec3(matRotation[2][0], matRotation[2][1], matRotation[2][2]));
 	quat qrot = qz * qx * qy;
 
-	// Plane face down when speed too slow
-	/*if (speed <= maxAirborneSpeed * 0.75)
+	// If plane is on ground, orient it horizontally if not
+	if (!isAirborne && speed <= minAirborneSpeed)
 	{
-		qrot += (maxAirborneSpeed * 0.75 - speed) * 50 * dt;
-	}*/
+		vec3 fwd = cross(vec3(0.0f, 1.0f, 0.0f), vec3(matRotation[0][0], matRotation[0][1], matRotation[0][2]));
+		quat qhorizontal = rotationBetweenVectors(forward, -fwd);
+		qhorizontal *= rotationBetweenVectors(vec3(matRotation[1][0], matRotation[1][1], matRotation[1][2]), vec3(0.0f, 1.0f, 0.0f));
+		quat qmix = mix(qrot, qhorizontal, 2.14f * dt);
+		qrot *= qmix;
+	}
 
 	matRotation = mat4_cast(qrot) * matRotation;
 	forward = vec3(mat4_cast(qrot) * vec4(forward.x, forward.y, forward.z, 1));
@@ -159,25 +193,47 @@ void Airplane::update(float dt)
 	if (stateAccelerate)
 	{
 		speed += acceleration * dt;
-		speed = speed > maxAirborneSpeed ? maxAirborneSpeed : speed;
+		speed = glm::min(speed, maxAirborneSpeed);
 	}
+
 	if (stateDecelerate)
 	{
-		speed -= acceleration / 3 * dt;
+		speed -= acceleration * dt;
+
+		// Maintain minimum speed when in flight
 		if (isAirborne)
 		{
-			speed = speed < minAirborneSpeed ? minAirborneSpeed : speed;
+			speed = glm::max(speed, minAirborneSpeed);
 		}
 		else
 		{
-			speed = speed < 0.0f ? 0.0f : speed;
+			speed = glm::max(speed, 0.0f);
 		}
 	}
 
+	// Decelerate automatically during landing (not in flight)
+	if (stateAccelerate == stateDecelerate)
+	{
+		if (!isAirborne)
+		{
+			speed -= acceleration * dt;
+			speed = glm::max(speed, 0.0f);
+		}
+	}
+
+	lastPosition = position;
 	position += forward * speed * dt;
 
-	// Make plane fall if too slow
-	position.y -= (maxAirborneSpeed - speed) * dt;
+	if (isAirborne)
+	{
+		// Make plane fall if too slow
+		position.y -= (maxAirborneSpeed + 5 - speed) * 0.2f * dt;
+	}
+
+	if (hasCollided)
+	{
+		hasCrashed = true;
+	}
 
 	updateModelMatrix();
 	updateNormalMatrix();
@@ -190,21 +246,42 @@ void Airplane::updateModelMatrix()
 	matModel = translate(position) * matRotation;
 }
 
+quat Airplane::rotationBetweenVectors(vec3 start, vec3 dest)
+{
+	start = normalize(start);
+	dest = normalize(dest);
+
+	float cosTheta = dot(start, dest);
+	vec3 rotationAxis = cross(start, dest);
+
+	float s = sqrt((1 + cosTheta) * 2);
+	float invs = 1 / s;
+
+	return quat(
+		s * 0.5f,
+		rotationAxis.x * invs,
+		rotationAxis.y * invs,
+		rotationAxis.z * invs);
+}
+
 void Airplane::keyboard(int key)
 {
 	switch (key)
 	{
-	case 119: // w
+	case 'w':
 		stateAccelerate = true;
 		break;
-	case 97: // a
+	case 'a':
 		stateYawLeft = true;
 		break;
-	case 115: // s
+	case 's':
 		stateDecelerate = true;
 		break;
-	case 100: // d
+	case 'd':
 		stateYawRight = true;
+		break;
+	case ' ':
+		setupDefaults();
 		break;
 	}
 }
@@ -213,16 +290,16 @@ void Airplane::keyboardUp(int key)
 {
 	switch (key)
 	{
-	case 119: // w
+	case 'w':
 		stateAccelerate = false;
 		break;
-	case 97: // a
+	case 'a':
 		stateYawLeft = false;
 		break;
-	case 115: // s
+	case 's':
 		stateDecelerate = false;
 		break;
-	case 100: // d
+	case 'd':
 		stateYawRight = false;
 		break;
 	}
@@ -264,4 +341,19 @@ void Airplane::keyboardSpecialUp(int key)
 		stateRollRight = false;
 		break;
 	}
+}
+
+void Airplane::setHasCollided(bool hasCollided)
+{
+	this->hasCollided = hasCollided;
+}
+
+void Airplane::setIsAirborne(bool isAirborne)
+{
+	this->isAirborne = isAirborne;
+}
+
+bool Airplane::getIsAirborne() const
+{
+	return isAirborne;
 }

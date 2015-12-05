@@ -3,6 +3,7 @@
 in vec3 Normal;
 in vec2 Texcoord;
 in vec3 FragPos;
+in vec4 FragPosLight;
 
 out vec4 outColor;
 
@@ -18,6 +19,7 @@ layout (std140, binding = 1) uniform Lighting
 uniform sampler2D diffuse1;
 uniform sampler2D normal1;
 uniform sampler2D specular1;
+uniform sampler2DShadow shadowmap1;
 
 struct Material
 {
@@ -29,6 +31,20 @@ struct Material
 };
 
 uniform Material material;
+
+float PCFShadow(vec4 fragPosLight, float NdL)
+{
+	vec3 projCoords = fragPosLight.xyz / fragPosLight.w;
+	projCoords = projCoords * 0.5 + 0.5;
+	
+	float bias = 0.00007 * tan(acos(NdL));
+	//float bias = max(0.00047 * (1.0 - NdL), 0.00007);
+	projCoords.z += clamp(bias, 0.00007, 0.00014);
+	//projCoords.z *= 1.0 - bias;
+	float shadow = texture(shadowmap1, projCoords);
+	
+	return shadow;
+}
 
 void main()
 {
@@ -47,5 +63,8 @@ void main()
 	float specularMag = pow(max(dot(N, halfDir), 0.0), material.shininess);
 	vec3 specular = specularMag * specularColor * material.specular;
 	
-	outColor = vec4(material.emissive + ambient + diffuse + specular, 1.0);
+	float shadow = PCFShadow(FragPosLight, dot(N, lightDir));
+	shadow = clamp(shadow, 0.5, 1.0);
+	outColor = vec4(material.emissive + ambient + shadow * (diffuse + specular), 1.0);
+	//outColor = vec4(vec3(shadow), 1.0);
 }

@@ -7,10 +7,14 @@ class Airplane : public Object
 
 private:
 
-	bool isAirborne, isEnabled;
+	bool hasCollided;
+	bool hasCrashed;
+	bool isAirborne;
 	float acceleration;
 	float speed, maxAirborneSpeed, minAirborneSpeed;
 	float yaw, pitch, roll;
+	glm::vec3 lastPosition;
+	glm::vec3 defaultPosition;
 	glm::vec3 defaultRotationAcceleration;
 	glm::vec3 rotationAcceleration;
 	glm::vec3 rotationSpeed;
@@ -32,6 +36,9 @@ private:
 	BoundingBox bb1, bb2;
 
 	void updateModelMatrix();
+	void setupDefaults();
+	//http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-17-quaternions/
+	glm::quat rotationBetweenVectors(glm::vec3 start, glm::vec3 dest);
 
 public:
 
@@ -45,5 +52,9 @@ public:
 	void keyboardUp(int key);
 	void keyboardSpecial(int key);
 	void keyboardSpecialUp(int key);
+
+	void setHasCollided(bool hasCollided);
+	void setIsAirborne(bool isAirborne);
+	bool getIsAirborne() const;
 
 };

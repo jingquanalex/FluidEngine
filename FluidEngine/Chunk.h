@@ -59,7 +59,7 @@ private:
 	glm::mat4 matModel;
 	bool hasLoaded, isEmpty, isMeshed;
 	glm::ivec3 sectionIndex;
-	SectionBuffer sBuffer;
+	const SectionBuffer* sBuffer;
 
 	void addFace(glm::vec3 pos, float size, CubeFace face, glm::vec4 occ);
 	float findAOFactor(bool side1, bool side2, bool corner);
@@ -71,7 +71,7 @@ public:
 	Chunk(const std::unordered_map<glm::ivec3, Chunk*, KeyHash>& chunks);
 	~Chunk();
 
-	void load(SectionBuffer sBuffer);
+	void load(const SectionBuffer* sBuffer);
 	void mesh();
 	void uploadVbo();
 	void draw();
@@ -81,4 +81,5 @@ public:
 	bool getIsMeshed() const;
 	bool getIsEmpty() const;
 	bool hasBlock(glm::ivec3 index) const;
+	int getHeightAt(int x, int y) const;
 };

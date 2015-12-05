@@ -16,11 +16,47 @@ Light::Light()
 	glBufferSubData(GL_UNIFORM_BUFFER, 3 * sizeof(vec4), sizeof(vec4), value_ptr(diffuseColor));
 	glBufferSubData(GL_UNIFORM_BUFFER, 4 * sizeof(vec4), sizeof(vec4), value_ptr(specularColor));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	depthMapSize = ivec2(4096, 4096);
 }
 
 Light::~Light()
 {
 
+}
+
+void Light::load()
+{
+	shader = new Shader("depth");
+
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, depthMapSize.x, depthMapSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, depthMapSize.x, depthMapSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+
+	/*glGenRenderbuffers(1, &depthRbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthRbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, depthMapSize.x, depthMapSize.y);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);*/
+
+	glGenFramebuffers(1, &depthFbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, depthMap, 0);
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH24_STENCIL8, GL_RENDERBUFFER, depthRbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Light::update(Camera* camera)
+{
+	this->matLight = camera->getMatViewProjection();
 }
 
 glm::vec3 Light::getPosition() const
@@ -73,4 +109,29 @@ void Light::setSpecularColor(glm::vec3 color)
 	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboLighting);
 	glBufferSubData(GL_UNIFORM_BUFFER, 4 * sizeof(vec4), sizeof(vec4), value_ptr(specularColor));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+GLuint Light::getDepthFbo() const
+{
+	return depthFbo;
+}
+
+GLuint Light::getDepthMap() const
+{
+	return depthMap;
+}
+
+ivec2 Light::getDepthMapSize() const
+{
+	return depthMapSize;
+}
+
+GLuint Light::getProgram() const
+{
+	return shader->getProgram();
+}
+
+glm::mat4 Light::getMatLight() const
+{
+	return matLight;
 }

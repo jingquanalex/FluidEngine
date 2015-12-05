@@ -8,15 +8,14 @@
 class Camera
 {
 
-private:
-
-	
-
 protected:
 
 	bool isWrappingPointer;
 	bool mouseTriggered;
 	bool isActive;
+	bool isOrtho;
+
+	glm::vec3 targetPoint;
 
 	glm::mat4 matProjection, matView;
 	glm::vec3 position, direction, up;
@@ -57,7 +56,9 @@ public:
 	void setSmoothness(float smoothness);
 	void setMouseSensitivity(float sensitivity);
 	void setActive(bool isActive);
-
+	void setFov(float angle);
+	void setOrtho(bool isOrtho);
+	
 	glm::mat4 getMatViewProjection() const;
 	glm::mat4 getMatView() const;
 	glm::mat4 getMatProjection() const;
@@ -68,5 +69,7 @@ public:
 	float getSmoothness() const;
 	float getMouseSensitivity() const;
 	bool getActive() const;
+	float getNearPlane() const;
+	float getFarPlane() const;
 
 };

@@ -8,6 +8,7 @@ layout (location = 3) in float occlusion;
 out vec3 Normal;
 out vec2 Texcoord;
 out vec3 FragPos;
+out vec4 FragPosLight;
 out float OccFactor;
 
 layout (std140, binding = 0) uniform Matrices
@@ -17,6 +18,7 @@ layout (std140, binding = 0) uniform Matrices
 };
 
 layout (location = 10) uniform mat4 matModel;
+layout (location = 11) uniform mat4 matLight;
 
 void main()
 {
@@ -24,6 +26,7 @@ void main()
 	Texcoord = texcoord;
 	FragPos = (matModel * vec4(position, 1.0)).xyz;
 	OccFactor = occlusion;
+	FragPosLight = matLight * matModel * vec4(position, 1.0);
 	
 	gl_Position = projection * view * matModel * vec4(position, 1.0);
 }

@@ -9,9 +9,11 @@ extern int window_height;
 // Input: width and height of the window as int.
 Camera::Camera()
 {
+	targetPoint = vec3(0);
 	isWrappingPointer = false;
 	mouseTriggered = false;
 	isActive = false;
+	isOrtho = false;
 	mouseLastX = 0;
 	mouseLastY = 0;
 	position = vec3(0.0f, 3.0f, 5.0f);
@@ -37,7 +39,7 @@ Camera::~Camera()
 // Call in main update loop.
 void Camera::update(float dt)
 {
-	//if (!isActive) return;
+	if (!isActive) return;
 
 	updateViewMatrix();
 
@@ -50,10 +52,19 @@ void Camera::update(float dt)
 // Create projection matrix, maintain viewport aspect ratio.
 void Camera::updateProjectionMatrix()
 {
-	matProjection = perspective(radians(fov), aspectRatio, zNear, zFar);
+	if (isOrtho)
+	{
+		float width = 90.0f;
+		float height = 80.0f;
+		matProjection = ortho(-width, width, -height, height, zNear, zFar);
+	}
+	else
+	{
+		matProjection = perspective(radians(fov), aspectRatio, zNear, zFar);
+	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboMatrices);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(mat4), value_ptr(getMatProjection()));
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(mat4), value_ptr(matProjection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -61,9 +72,9 @@ void Camera::updateProjectionMatrix()
 void Camera::updateViewMatrix()
 {
 	matView = lookAt(position, position + direction, up);
-
+	
 	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboMatrices);
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(mat4), sizeof(mat4), value_ptr(getMatView()));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(mat4), sizeof(mat4), value_ptr(matView));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboLighting);
@@ -167,6 +178,7 @@ void Camera::keyboardSpecialUp(int key)
 void Camera::setPosition(glm::vec3 position)
 {
 	this->position = vec3(position.x, position.y, position.z);
+	updateViewMatrix();
 }
 
 // Input: width and height of the window as int.
@@ -208,6 +220,16 @@ void Camera::setActive(bool isActive)
 		updateProjectionMatrix();
 		updateViewMatrix();
 	}
+}
+
+void Camera::setFov(float angle)
+{
+	fov = angle;
+}
+
+void Camera::setOrtho(bool isOrtho)
+{
+	this->isOrtho = isOrtho;
 }
 
 mat4 Camera::getMatViewProjection() const
@@ -258,4 +280,14 @@ float Camera::getMouseSensitivity() const
 bool Camera::getActive() const
 {
 	return isActive;
+}
+
+float Camera::getNearPlane() const
+{
+	return zNear;
+}
+
+float Camera::getFarPlane() const
+{
+	return zFar;
 }

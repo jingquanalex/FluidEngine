@@ -2,13 +2,14 @@
 
 #include "Includes.h"
 #include "Object.h"
+#include "Light.h"
 
 class Quad : public Object
 {
 
 private:
 
-	GLuint texid;
+	GLuint texCubeId;
 	GLuint vbo;
 	GLuint vao;
 
@@ -17,9 +18,11 @@ public:
 	Quad(glm::vec3 position = glm::vec3());
 	~Quad();
 
-	void load(std::string mapname, std::string shadername = "quad");
+	void load(std::string mapname, std::string shadername);
+	void load(std::string shadername = "quad");
 	void draw();
+	void draw(Light* light, Camera* camera = nullptr);
 
-	GLuint getCubeMapID() const;
+	GLuint getCubeMap() const;
 
 };
