@@ -147,12 +147,13 @@ void Scene::display()
 void Scene::drawScene()
 {
 	//screenQuad->draw(light, cameraLight);
-	skyQuad->draw();
+	
 	chunkManager->draw(skyQuad->getCubeMap(), light);
 	plane->draw(light);
 	//spheres->draw();
 	groundObj->draw();
 	lightBox->draw();
+	skyQuad->draw();
 }
 
 void Scene::reshape(int width, int height)

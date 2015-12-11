@@ -11,9 +11,6 @@ Airplane::Airplane(vec3 position) : Object(position)
 
 	mouseLastX = 0;
 	mouseLastY = 0;
-	yaw = 0.0f;
-	pitch = 0.0f;
-	roll = 0.0f;
 	acceleration = 5.0f;
 	speed = 0.0f;
 	maxAirborneSpeed = 30.0f;
@@ -38,9 +35,6 @@ void Airplane::setupDefaults()
 	hasCollided = false;
 	hasCrashed = false;
 	isAirborne = false;
-	yaw = 0.0f;
-	pitch = 0.0f;
-	roll = 0.0f;
 	acceleration = 5.0f;
 	speed = 0.0f;
 	position = defaultPosition;
@@ -174,11 +168,10 @@ void Airplane::update(float dt)
 	// If plane is on ground, orient it horizontally if not
 	if (!isAirborne && speed <= minAirborneSpeed)
 	{
-		vec3 fwd = cross(vec3(0.0f, 1.0f, 0.0f), vec3(matRotation[0][0], matRotation[0][1], matRotation[0][2]));
-		quat qhorizontal = rotationBetweenVectors(forward, -fwd);
+		vec3 newForward = cross(vec3(0.0f, 1.0f, 0.0f), vec3(matRotation[0][0], matRotation[0][1], matRotation[0][2]));
+		quat qhorizontal = rotationBetweenVectors(forward, -newForward);
 		qhorizontal *= rotationBetweenVectors(vec3(matRotation[1][0], matRotation[1][1], matRotation[1][2]), vec3(0.0f, 1.0f, 0.0f));
-		quat qmix = mix(qrot, qhorizontal, 2.14f * dt);
-		qrot *= qmix;
+		qrot *= mix(qrot, qhorizontal, 2.14f * dt);
 	}
 
 	matRotation = mat4_cast(qrot) * matRotation;
