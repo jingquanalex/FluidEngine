@@ -21,6 +21,8 @@ Object::Object(vec3 position)
 	matRotation = mat4();
 
 	isBoundingBoxVisible = false;
+	isVisible = true;
+	isWireframeMode = false;
 }
 
 Object::~Object()
@@ -98,7 +100,19 @@ void Object::draw(Light* light)
 			glBindTexture(GL_TEXTURE_2D, light->getDepthMap());
 		}
 
-		if (model != nullptr) model->draw(program);
+		if (model != nullptr && isVisible)
+		{
+			if (isWireframeMode)
+			{
+				glDisable(GL_CULL_FACE);
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			}
+
+			model->draw(program);
+
+			glEnable(GL_CULL_FACE);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
 
 		if (!lineVertices.empty() && isBoundingBoxVisible)
 		{
@@ -222,6 +236,16 @@ void Object::setBoundingBoxVisible(bool isVisible)
 	this->isBoundingBoxVisible = isVisible;
 }
 
+void Object::setVisible(bool isVisible)
+{
+	this->isVisible = isVisible;
+}
+
+void Object::setWireframeMode(bool isWireframe)
+{
+	this->isWireframeMode = isWireframe;
+}
+
 vec3 Object::getPosition() const
 {
 	return position;
@@ -250,6 +274,16 @@ Material* Object::getMaterial()
 bool Object::getBoundingBoxVisible() const
 {
 	return isBoundingBoxVisible;
+}
+
+bool Object::getVisible() const
+{
+	return isVisible;
+}
+
+bool Object::getWireframeMode() const
+{
+	return isWireframeMode;
 }
 
 const vector<BoundingBox>* Object::getBoundingBoxList() const

@@ -25,6 +25,8 @@ protected:
 	std::vector<glm::vec3> lineVertices;
 	std::vector<BoundingBox> listBoundingBox;
 	bool isBoundingBoxVisible;
+	bool isVisible;
+	bool isWireframeMode;
 
 	virtual void updateModelMatrix();
 	virtual void updateNormalMatrix();
@@ -47,6 +49,8 @@ public:
 	void setRotation(glm::vec3 rotation);
 	void setScale(glm::vec3 scale);
 	void setBoundingBoxVisible(bool isVisible);
+	void setVisible(bool isVisible);
+	void setWireframeMode(bool isWireframe);
 
 	glm::vec3 getPosition() const;
 	glm::vec3 getRotation() const;
@@ -54,6 +58,8 @@ public:
 	glm::mat4 getRotationMatrix() const;
 	Material* getMaterial();
 	bool getBoundingBoxVisible() const;
+	bool getVisible() const;
+	bool getWireframeMode() const;
 	const std::vector<BoundingBox>* getBoundingBoxList() const;
 	static GLuint getDefaultTex();
 };

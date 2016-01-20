@@ -20,36 +20,13 @@ Scene::Scene()
 	frameTimer = new Timer(1.0f);
 	frameTimer->start();
 
-	cameraTarget = new CameraTarget();
-	cameraTarget->setActive(true);
-	
-	light = new Light();
-	light->setPosition(vec3(128, 120, 140));
-	
-	cameraLight = new CameraFPS();
-	cameraLight->setOrtho(true);
-	cameraLight->setFov(55.0f);
-	cameraLight->setPosition(light->getPosition());
-	cameraLight->setTargetPoint(vec3(64, 0, 64));
+	camera = new CameraFPS();
+	camera->setActive(true);
 
 	skyQuad = new Quad();
-	screenQuad = new Quad();
-	spheres = new Spheres();
-	groundObj = new Object(vec3(0, 20, 0));
-	groundObj->getMaterial()->setEmissiveColor(vec3(1.0));
-	lightBox = new Object(light->getPosition());
-	lightBox->getMaterial()->setEmissiveColor(vec3(0.8, 0, 0));
-	
-	plane = new Airplane(vec3(64, 5.3, 6));
-	plane->setBoundingBoxVisible(true);
-	cameraTarget->setDistance(8.0f);
-	cameraTarget->setTargetObject(plane);
-	cameraTarget->setOrientation(180.0f, -15.0f);
 
-	chunkManager = new ChunkManager();
-	//chunk->getMaterial()->setEmissiveColor(vec3(1.0));
+	particles = new Particles();
 	
-	collision = new Collision();
 }
 
 Scene::~Scene()
@@ -61,19 +38,8 @@ void Scene::load()
 {
 	int loadStart = glutGet(GLUT_ELAPSED_TIME);
 
-	light->load();
 	skyQuad->load("lake", "skyquad");
-	screenQuad->load();
-	// gen buffers gives wrong id??
-	//thread tChunkMgr(&ChunkManager::load, chunkManager, "hm.jpg", vec3(4, 4, 1), vec3(16, 16, 32), 1.0f);
-	//tChunkMgr.join();
-	//chunkManager->load("hm.jpg", vec3(4, 4, 4), vec3(8, 8, 8), 1.0f);
-	//chunkManager->load("hm.jpg", vec3(1, 1, 1), vec3(32, 32, 32), 1.0f);
-	chunkManager->load("hm.jpg", vec3(1, 1, 1), vec3(128, 128, 32), 1.0f);
-	spheres->load();
-	groundObj->load("cube.obj");
-	lightBox->load("cube.obj");
-	plane->load();
+	particles->load();
 	
 	float loadtime = (glutGet(GLUT_ELAPSED_TIME) - loadStart) / 1000.0f;
 	cout << "Load time: " << loadtime << "s" << endl;
@@ -91,15 +57,8 @@ void Scene::idle()
 	accumulator += frameTime;
 	while (accumulator >= dt)
 	{
-		plane->update(dt);
-		chunkManager->update(plane->getPosition());
-		
-		collision->resolveTerrainPlane(chunkManager, plane);
-
-		cameraLight->update(dt);
-		cameraTarget->update(dt);
-
-		light->update(cameraLight);
+		camera->update(dt);
+		particles->update(dt);
 
 		accumulator -= dt;
 	}
@@ -122,17 +81,6 @@ void Scene::idle()
 
 void Scene::display()
 {
-	// Render to shadowmap buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, light->getDepthFbo());
-	glViewport(0, 0, light->getDepthMapSize().x, light->getDepthMapSize().y);
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	glCullFace(GL_FRONT);
-	chunkManager->draw(light);
-	plane->draw(light, 1);
-	glCullFace(GL_BACK);
-	
-
 	// Render scene
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, window_width, window_height);
@@ -146,21 +94,14 @@ void Scene::display()
 
 void Scene::drawScene()
 {
-	//screenQuad->draw(light, cameraLight);
-	
-	chunkManager->draw(skyQuad->getCubeMap(), light);
-	plane->draw(light);
-	//spheres->draw();
-	groundObj->draw();
-	lightBox->draw();
 	skyQuad->draw();
+	particles->draw();
 }
 
 void Scene::reshape(int width, int height)
 {
 	glViewport(0, 0, width, height);
-	cameraLight->setResolution(width, height);
-	cameraTarget->setResolution(width, height);
+	camera->setResolution(width, height);
 	window_width = width;
 	window_height = height;
 }
@@ -168,95 +109,49 @@ void Scene::reshape(int width, int height)
 // Mouse buttons
 void Scene::mouse(int button, int state)
 {
-	cameraLight->mouse(button, state);
-	cameraTarget->mouse(button, state);
+	camera->mouse(button, state);
 }
 
 // Mouse moved with button press
 void Scene::mouseMove(int x, int y)
 {
-	cameraLight->mouseMotion(x, y);
-	cameraTarget->mouseMotion(x, y);
+	camera->mouseMotion(x, y);
 }
 
 // Mouse moved without button press
 void Scene::mouseMovePassive(int x, int y)
 {
-	cameraLight->mouseMotionPassive(x, y);
-	cameraTarget->mouseMotionPassive(x, y);
+	camera->mouseMotionPassive(x, y);
 }
 
 // Mouse wheel
 void Scene::mouseWheel(int button, int dir, int x, int y)
 {
-	cameraLight->mouseWheel(dir);
-	cameraTarget->mouseWheel(dir);
+	camera->mouseWheel(dir);
 }
 
 // Common ascii keys
 void Scene::keyboard(unsigned char key)
 {
-	// For cameraTarget views
-	switch (key)
-	{
-	case '5':
-		cameraTarget->setTargetObject(plane, groundObj);
-		break;
-	case '6':
-		cameraTarget->setTargetObject(plane, lightBox);
-		break;
-	case 'c':
-		plane->setBoundingBoxVisible(!plane->getBoundingBoxVisible());
-		break;
-	case 'v':
-		if (cameraLight->getActive())
-		{
-			cameraLight->setActive(false);
-			cameraTarget->setActive(true);
-		}
-		else
-		{
-			cameraLight->setActive(true);
-			cameraTarget->setActive(false);
-		}
-		break;
-	}
-
 	if (key == 27) exit(0);
-	cameraLight->keyboard(key);
-	cameraTarget->keyboard(key);
-	if (!cameraLight->getActive())
-	{
-		plane->keyboard(key);
-	}
+
+	camera->keyboard(key);
 }
 
 // Common keys up event
 void Scene::keyboardUp(unsigned char key)
 {
-	cameraLight->keyboardUp(key);
-	if (!cameraLight->getActive())
-	{
-		plane->keyboardUp(key);
-	}
+	camera->keyboardUp(key);
 }
 
 // Function, arrow and other special keys
 void Scene::keyboardSpecial(int key)
 {
-	cameraLight->keyboardSpecial(key);
-	if (!cameraLight->getActive())
-	{
-		plane->keyboardSpecial(key);
-	}
+	camera->keyboardSpecial(key);
 }
 
 // Special key up event
 void Scene::keyboardSpecialUp(int key)
 {
-	cameraLight->keyboardSpecialUp(key);
-	if (!cameraLight->getActive())
-	{
-		plane->keyboardSpecialUp(key);
-	}
+	camera->keyboardSpecialUp(key);
 }

@@ -48,8 +48,12 @@ Shader::Shader(string shadername)
 
 	if (it == programList.end())
 	{
+		cout << "Loading Shader: " << shadername << endl;
 		program = makeProgram(shadername);
-		if (program) programList.push_back(make_pair(program, shadername));
+		if (program)
+		{
+			programList.push_back(make_pair(program, shadername));
+		}
 	}
 	else
 	{

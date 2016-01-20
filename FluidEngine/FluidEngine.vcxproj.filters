@@ -19,6 +19,12 @@
     <Filter Include="Source Files\Voxel">
       <UniqueIdentifier>{9aa99dcd-3f62-4a5e-83c9-13d169366775}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\SPH">
+      <UniqueIdentifier>{080dfede-a7b9-47fb-b70d-90f5e554c6ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SPH">
+      <UniqueIdentifier>{34cd41f2-d620-43f3-876c-22789d2bd98e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -51,9 +57,6 @@
     <ClInclude Include="Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Spheres.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -80,6 +83,15 @@
     </ClInclude>
     <ClInclude Include="Collision.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PCISPH.h">
+      <Filter>Header Files\SPH</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles.h">
+      <Filter>Header Files\SPH</Filter>
+    </ClInclude>
+    <ClInclude Include="Particle.h">
+      <Filter>Header Files\SPH</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -113,9 +125,6 @@
     <ClCompile Include="Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Spheres.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Font.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -139,6 +148,15 @@
     </ClCompile>
     <ClCompile Include="Collision.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PCISPH.cpp">
+      <Filter>Source Files\SPH</Filter>
+    </ClCompile>
+    <ClCompile Include="Particles.cpp">
+      <Filter>Source Files\SPH</Filter>
+    </ClCompile>
+    <ClCompile Include="Particle.cpp">
+      <Filter>Source Files\SPH</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

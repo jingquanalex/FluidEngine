@@ -4,12 +4,10 @@
 #include "Timer.h"
 #include "CameraFPS.h"
 #include "CameraTarget.h"
-#include "Spheres.h"
+#include "Particles.h"
 #include "Light.h"
 #include "Quad.h"
 #include "ChunkManager.h"
-#include "Airplane.h"
-#include "Collision.h"
 
 class Scene
 {
@@ -17,18 +15,10 @@ class Scene
 private:
 
 	Timer* frameTimer;
-	CameraTarget* cameraTarget;
-	CameraFPS* cameraLight;
-	Light* light;
+	CameraFPS* camera;
 
 	Quad* skyQuad;
-	Quad* screenQuad;
-	Object* groundObj;
-	Object* lightBox;
-	Spheres* spheres;
-	Airplane* plane;
-	ChunkManager* chunkManager;
-	Collision* collision;
+	Particles* particles;
 
 	const float maxframeTime = 1 / 4.0f;
 	const float dt = 1 / 60.0f;
