@@ -6,10 +6,10 @@ in vec4 color;
 out vec4 outColor;
 
 uniform sampler2D tex;
+uniform float radius;
 
 void main()
 {
-	float radius = 0.5;
 	float dist = length(texcoord.xy - vec2(0.5, 0.5));
 	float alpha = 1 - step(radius, dist);
 	

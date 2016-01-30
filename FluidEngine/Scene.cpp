@@ -87,15 +87,10 @@ void Scene::display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-	drawScene();
-	
-	glutSwapBuffers();
-}
-
-void Scene::drawScene()
-{
 	skyQuad->draw();
 	particles->draw();
+	
+	glutSwapBuffers();
 }
 
 void Scene::reshape(int width, int height)
@@ -136,6 +131,7 @@ void Scene::keyboard(unsigned char key)
 	if (key == 27) exit(0);
 
 	camera->keyboard(key);
+	particles->keyboard(key);
 }
 
 // Common keys up event

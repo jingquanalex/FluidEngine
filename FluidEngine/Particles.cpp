@@ -30,7 +30,7 @@ void Particles::load(int maxParticleCount)
 	box->load("cube.obj");
 
 	// Add some particles temp
-	addParticles(20);
+	addParticles(100);
 
 	// Initialize vertex buffer memory and vao
 	glGenVertexArrays(1, &vao);
@@ -38,36 +38,54 @@ void Particles::load(int maxParticleCount)
 
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, maxCount * sizeof(Particle), NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, maxCount * sizeof(sParticle), NULL, GL_DYNAMIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Particle),
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(sParticle),
 		(GLvoid*)0);
 
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Particle),
-		(GLvoid*)offsetof(Particle, Particle::Color));
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(sParticle),
+		(GLvoid*)offsetof(sParticle, sParticle::Color));
 
 	glBindVertexArray(0);
 
-	/*texid = SOIL_load_OGL_texture((g_mediaDirectory + "cat.png").c_str(), SOIL_LOAD_AUTO,
-		SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-
-	glBindTexture(GL_TEXTURE_2D, texid);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);*/
+	glUseProgram(shader->getProgram());
+	glUniform1f(glGetUniformLocation(shader->getProgram(), "radius"), 0.1f);
+	glUseProgram(0);
 }
 
 // Update particle positions and send to vbo
 void Particles::update(float dt)
 {
 	solver->compute(dt);
+	
+	// Remove stray particles
+	auto it = particles.begin();
+	while(it != particles.end())
+	{
+		if (length(it->Position) > 10)
+		{
+			it = particles.erase(remove(particles.begin(), particles.end(), *it), particles.end());
+		}
+		else
+		{
+			it++;
+		}
+	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(Particle), &particles[0]);
+	// Create particle data list to send to gpu
+	sParticles.clear();
+	for (Particle &p : particles)
+	{
+		sParticle sp;
+		sp.Position = p.Position;
+		sp.Color = p.Color;
+		sParticles.push_back(sp);
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo); 
+	glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(sParticle), sParticles.data());
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -75,8 +93,6 @@ void Particles::update(float dt)
 void Particles::draw()
 {
 	glUseProgram(shader->getProgram());
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, texid);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_POINTS, 0, count);
 	glBindVertexArray(0);
@@ -85,15 +101,20 @@ void Particles::draw()
 	box->draw();
 }
 
+float Particles::fRandom(float low, float high)
+{
+	return low + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (high - low)));
+}
+
 // Add a specified number of Particles with a random position
 void Particles::addParticles(int value)
 {
 	for (int i = 0; i < value; i++)
 	{
 		Particle particle;
-		particle.Position.x = static_cast<float>(rand() % 20 - 10) / 5;
-		particle.Position.y = static_cast<float>(rand() % 20 - 10) / 5;
-		particle.Position.z = static_cast<float>(rand() % 20 - 10) / 5;
+		particle.Position.x = fRandom(-2.5f, 2.5f);
+		particle.Position.y = fRandom(-2.5f, 2.5f);
+		particle.Position.z = fRandom(-2.5f, 2.5f);
 		particle.Color = vec4(1.0);
 		particles.push_back(particle);
 	}
@@ -112,5 +133,18 @@ void Particles::removeParticles(int value)
 	{
 		particles.clear();
 		count = 0;
+	}
+}
+
+void Particles::keyboard(unsigned char key)
+{
+	switch (key)
+	{
+	case ' ':
+		addParticles(100);
+		break;
+	case 'c':
+		removeParticles(count);
+		break;
 	}
 }

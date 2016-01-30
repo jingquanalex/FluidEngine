@@ -12,7 +12,15 @@ class Particles : public Object
 
 private:
 
+	// Particle data to upload to GPU
+	struct sParticle
+	{
+		glm::vec3 Position;
+		glm::vec4 Color;
+	};
+
 	std::vector<Particle> particles;
+	std::vector<sParticle> sParticles;
 	int count, maxCount;
 	PCISPH* solver;
 
@@ -30,7 +38,10 @@ public:
 	void update(float dt);
 	void draw();
 
+	float fRandom(float low, float high);
 	void addParticles(int value);
 	void removeParticles(int value);
+
+	void keyboard(unsigned char key);
 
 };
