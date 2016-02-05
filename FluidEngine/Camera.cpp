@@ -42,11 +42,6 @@ void Camera::update(float dt)
 	if (!isActive) return;
 
 	updateViewMatrix();
-
-	mouseDeltaX = (float)(mouseX - mouseLastX);
-	mouseDeltaY = (float)(mouseY - mouseLastY);
-	mouseLastX = mouseX;
-	mouseLastY = mouseY;
 }
 
 // Create projection matrix, maintain viewport aspect ratio.
@@ -115,6 +110,11 @@ void Camera::mouseMotion(int x, int y)
 			mouseLastY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
 		}
 	}
+
+	mouseDeltaX = (float)(mouseX - mouseLastX);
+	mouseDeltaY = (float)(mouseY - mouseLastY);
+	mouseLastX = mouseX;
+	mouseLastY = mouseY;
 }
 
 void Camera::mouseMotionPassive(int x, int y)
@@ -146,6 +146,11 @@ void Camera::mouseMotionPassive(int x, int y)
 			mouseLastY = glutGet(GLUT_WINDOW_HEIGHT) / 2;
 		}
 	}
+
+	mouseDeltaX = (float)(mouseX - mouseLastX);
+	mouseDeltaY = (float)(mouseY - mouseLastY);
+	mouseLastX = mouseX;
+	mouseLastY = mouseY;
 }
 
 void Camera::mouseWheel(int dir)

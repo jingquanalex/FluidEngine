@@ -3,12 +3,14 @@
 using namespace glm;
 using namespace std;
 
-extern string g_mediaDirectory;
+extern int window_width;
+extern int window_height;
 
 Particles::Particles()
 {
 	count = 0;
 	maxCount = 0;
+	particleRadius = 0.1f;
 }
 
 Particles::~Particles()
@@ -16,12 +18,16 @@ Particles::~Particles()
 
 }
 
-void Particles::load(int maxParticleCount)
+void Particles::load(Camera* camera)
 {
 	// Set max particles count and load particle shaders
-	maxCount = maxParticleCount;
+	// Get camera matrices for ray4 picking
+	maxCount = 1000;
+	this->camera = camera;
+	invProjection = inverse(camera->getMatProjection());
+	invView = inverse(camera->getMatView());
 	shader = new Shader("particle");
-	solver = new PCISPH(&particles);
+	solver = new WCSPH(&particles);
 
 	// Load a box model to contain the particles
 	box = new Object();
@@ -51,15 +57,13 @@ void Particles::load(int maxParticleCount)
 	glBindVertexArray(0);
 
 	glUseProgram(shader->getProgram());
-	glUniform1f(glGetUniformLocation(shader->getProgram(), "radius"), 0.1f);
+	glUniform1f(glGetUniformLocation(shader->getProgram(), "radius"), particleRadius);
 	glUseProgram(0);
 }
 
 // Update particle positions and send to vbo
 void Particles::update(float dt)
 {
-	solver->compute(dt);
-	
 	// Remove stray particles
 	auto it = particles.begin();
 	while(it != particles.end())
@@ -67,12 +71,16 @@ void Particles::update(float dt)
 		if (length(it->Position) > 10)
 		{
 			it = particles.erase(remove(particles.begin(), particles.end(), *it), particles.end());
+			count--;
 		}
 		else
 		{
 			it++;
 		}
 	}
+
+	// Solve SPH
+	solver->compute(dt);
 
 	// Create particle data list to send to gpu
 	sParticles.clear();
@@ -136,6 +144,67 @@ void Particles::removeParticles(int value)
 	}
 }
 
+// Pick a particle for more control (raytrace)
+void Particles::mouse(int button, int state)
+{
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		solver->setDebugParticle(nullptr);
+
+		// Unproject screen to world space
+		float depthZ;
+		glReadPixels(mouseX, mouseY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depthZ);
+		vec3 ray = unProject(vec3(mouseX, window_height - mouseY, depthZ), 
+			camera->getMatView(), camera->getMatProjection(),
+			vec4(0, 0, window_width, window_height));
+		ray = normalize(ray);
+
+		// === Sphere vs ray test ===
+
+		// Sort particles according to distance from camera
+		for (Particle &p : particles)
+		{
+			p.distance = distance2(p.Position, camera->getPosition());
+		}
+		sort(particles.begin(), particles.end(), [](Particle p1, Particle p2){
+			return p1.distance < p2.distance;
+		});
+
+		cout << ray.x << " "<<ray.y << " "<<ray.z << endl;
+		// Perform interection test
+		for (Particle &p : particles)
+		{
+			vec3 vP = p.Position - camera->getPosition();
+			if (dot(vP, ray) < 0.0f) continue; // Skip particles behind camera
+			float hypo = dot(vP, ray);
+			float t2 = dot(vP, vP) - hypo * hypo;
+			if (t2 > 0 && t2 < pow(particleRadius, 2))
+			{
+				solver->setDebugParticle(&p);
+				break;
+			}
+		}
+
+		statePicked = true;
+	}
+	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+	{
+		statePicked = false;
+	}
+}
+
+// Apply force at the area of particle
+void Particles::mouseMove(int x, int y)
+{
+
+}
+
+void Particles::mouseMovePassive(int x, int y)
+{
+	mouseX = x;
+	mouseY = y;
+}
+
 void Particles::keyboard(unsigned char key)
 {
 	switch (key)
@@ -145,6 +214,7 @@ void Particles::keyboard(unsigned char key)
 		break;
 	case 'c':
 		removeParticles(count);
+		Particle::ID = 0;
 		break;
 	}
 }

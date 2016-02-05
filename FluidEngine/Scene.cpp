@@ -39,7 +39,7 @@ void Scene::load()
 	int loadStart = glutGet(GLUT_ELAPSED_TIME);
 
 	skyQuad->load("lake", "skyquad");
-	particles->load();
+	particles->load(camera);
 	
 	float loadtime = (glutGet(GLUT_ELAPSED_TIME) - loadStart) / 1000.0f;
 	cout << "Load time: " << loadtime << "s" << endl;
@@ -55,13 +55,16 @@ void Scene::idle()
 
 	// Update logic at a constant dt, seperate from frame time
 	accumulator += frameTime;
+	dt = 1 / 60.0f;
 	while (accumulator >= dt)
 	{
-		camera->update(dt);
 		particles->update(dt);
 
 		accumulator -= dt;
 	}
+
+	// Temp
+	camera->update(frameTime);
 
 	// Calculate frames per second
 	fps++;
@@ -105,18 +108,21 @@ void Scene::reshape(int width, int height)
 void Scene::mouse(int button, int state)
 {
 	camera->mouse(button, state);
+	particles->mouse(button, state);
 }
 
 // Mouse moved with button press
 void Scene::mouseMove(int x, int y)
 {
 	camera->mouseMotion(x, y);
+	particles->mouseMove(x, y);
 }
 
 // Mouse moved without button press
 void Scene::mouseMovePassive(int x, int y)
 {
 	camera->mouseMotionPassive(x, y);
+	particles->mouseMovePassive(x, y);
 }
 
 // Mouse wheel

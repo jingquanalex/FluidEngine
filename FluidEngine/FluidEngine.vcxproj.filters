@@ -84,13 +84,13 @@
     <ClInclude Include="Collision.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PCISPH.h">
-      <Filter>Header Files\SPH</Filter>
-    </ClInclude>
     <ClInclude Include="Particles.h">
       <Filter>Header Files\SPH</Filter>
     </ClInclude>
     <ClInclude Include="Particle.h">
+      <Filter>Header Files\SPH</Filter>
+    </ClInclude>
+    <ClInclude Include="WCSPH.h">
       <Filter>Header Files\SPH</Filter>
     </ClInclude>
   </ItemGroup>
@@ -149,13 +149,13 @@
     <ClCompile Include="Collision.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PCISPH.cpp">
-      <Filter>Source Files\SPH</Filter>
-    </ClCompile>
     <ClCompile Include="Particles.cpp">
       <Filter>Source Files\SPH</Filter>
     </ClCompile>
     <ClCompile Include="Particle.cpp">
+      <Filter>Source Files\SPH</Filter>
+    </ClCompile>
+    <ClCompile Include="WCSPH.cpp">
       <Filter>Source Files\SPH</Filter>
     </ClCompile>
   </ItemGroup>
