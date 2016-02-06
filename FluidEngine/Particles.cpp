@@ -20,14 +20,11 @@ Particles::~Particles()
 
 void Particles::load(Camera* camera)
 {
-	// Set max particles count and load particle shaders
-	// Get camera matrices for ray4 picking
-	maxCount = 1000;
+	// Set max particles count for vbo and load particle shaders
+	maxCount = 10000;
 	this->camera = camera;
-	invProjection = inverse(camera->getMatProjection());
-	invView = inverse(camera->getMatView());
 	shader = new Shader("particle");
-	solver = new WCSPH(&particles);
+	solver = new WCSPH(&particles, camera);
 
 	// Load a box model to contain the particles
 	box = new Object();
@@ -79,8 +76,21 @@ void Particles::update(float dt)
 		}
 	}
 
+	// Click and drag particle force
+	if (statePicked)
+	{
+		//cout << mouseDelta.x << " " << mouseDelta.y << endl;
+		mouseDelta = ivec2(mouseX - mouseLastX, mouseY - mouseLastY);
+	}
+	else
+	{
+		mouseDelta = ivec2(0);
+	}
+	mouseLastX = mouseX;
+	mouseLastY = mouseY;
+
 	// Solve SPH
-	solver->compute(dt);
+	solver->compute(dt, mouseDelta);
 
 	// Create particle data list to send to gpu
 	sParticles.clear();
@@ -144,46 +154,34 @@ void Particles::removeParticles(int value)
 	}
 }
 
-// Pick a particle for more control (raytrace)
+// Pick a particle for more control
 void Particles::mouse(int button, int state)
 {
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 	{
-		solver->setDebugParticle(nullptr);
-
-		// Unproject screen to world space
-		float depthZ;
-		glReadPixels(mouseX, mouseY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depthZ);
-		vec3 ray = unProject(vec3(mouseX, window_height - mouseY, depthZ), 
+		// Make a ray from 2 points on the near and far planes
+		vec3 p0 = unProject(vec3(mouseX, window_height - mouseY, -1), // near
+			camera->getMatView(), camera->getMatProjection(), 
+			vec4(0, 0, window_width, window_height));
+		vec3 p1 = unProject(vec3(mouseX, window_height - mouseY, 1), // far
 			camera->getMatView(), camera->getMatProjection(),
 			vec4(0, 0, window_width, window_height));
-		ray = normalize(ray);
+		vec3 ray = normalize(p1 - p0);
+
+		cout << ray.x << " " << ray.y << " " << ray.z << endl;
 
 		// === Sphere vs ray test ===
 
-		// Sort particles according to distance from camera
-		for (Particle &p : particles)
+		// Sort particles according to distance from camera TODO
+		/*for (Particle &p : particles)
 		{
 			p.distance = distance2(p.Position, camera->getPosition());
 		}
 		sort(particles.begin(), particles.end(), [](Particle p1, Particle p2){
 			return p1.distance < p2.distance;
-		});
+		});*/
 
-		cout << ray.x << " "<<ray.y << " "<<ray.z << endl;
-		// Perform interection test
-		for (Particle &p : particles)
-		{
-			vec3 vP = p.Position - camera->getPosition();
-			if (dot(vP, ray) < 0.0f) continue; // Skip particles behind camera
-			float hypo = dot(vP, ray);
-			float t2 = dot(vP, vP) - hypo * hypo;
-			if (t2 > 0 && t2 < pow(particleRadius, 2))
-			{
-				solver->setDebugParticle(&p);
-				break;
-			}
-		}
+		solver->setDebugParticle(solver->getParticleAtRay(ray));
 
 		statePicked = true;
 	}
@@ -196,7 +194,8 @@ void Particles::mouse(int button, int state)
 // Apply force at the area of particle
 void Particles::mouseMove(int x, int y)
 {
-
+	mouseX = x;
+	mouseY = y;
 }
 
 void Particles::mouseMovePassive(int x, int y)

@@ -64,6 +64,7 @@ public:
 	glm::mat4 getMatProjection() const;
 	glm::vec2 getResolution() const;
 	glm::vec3 getPosition() const;
+	glm::vec3 getDirectionVec() const;
 	float getMaxSpeed() const;
 	float getAcceleration() const;
 	float getSmoothness() const;

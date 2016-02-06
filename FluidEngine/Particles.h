@@ -32,7 +32,8 @@ private:
 
 	bool statePicked;
 	int mouseX, mouseY;
-	glm::mat4 invProjection, invView;
+	int mouseLastX = 0, mouseLastY = 0;
+	glm::ivec2 mouseDelta;
 	Camera* camera;
 
 public:

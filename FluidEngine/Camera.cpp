@@ -262,6 +262,11 @@ vec3 Camera::getPosition() const
 	return position;
 }
 
+glm::vec3 Camera::getDirectionVec() const
+{
+	return direction;
+}
+
 float Camera::getMaxSpeed() const
 {
 	return maxSpeed;

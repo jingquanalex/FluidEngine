@@ -2,23 +2,26 @@
 
 #include "Includes.h"
 #include "Particle.h"
+#include "Camera.h"
 #include <unordered_map>
+
+struct KeyHashS
+{
+	size_t operator()(const glm::ivec3& key) const
+	{
+		return ((key.x * 73856093) ^ (key.y * 19349663) ^ (key.z * 83492791));
+	}
+};
+
+typedef std::unordered_multimap<glm::ivec3, Particle*, KeyHashS> Grid;
 
 class WCSPH
 {
 
 private:
 
-	struct KeyHash
-	{
-		size_t operator()(const glm::ivec3& key) const
-		{
-			return ((key.x * 73856093) ^ (key.y * 19349663) ^ (key.z * 83492791));
-		}
-	};
-
 	float cellSize;
-	std::unordered_multimap<glm::ivec3, Particle*, KeyHash> pGrid;
+	Grid pGrid;
 
 	glm::ivec3 discretize(glm::vec3 position);
 
@@ -38,16 +41,19 @@ private:
 	inline glm::vec3 SpikyGradient(Particle* p1, Particle* p2, float h);
 	inline float ViscosityLaplacian(Particle* p1, Particle* p2, float h);
 
-	Particle* pD = nullptr;
+	int pDebugId = -1;
+	Camera* camera;
 
 public:
 
-	WCSPH(std::vector<Particle>* particles);
+	WCSPH(std::vector<Particle>* particles, Camera* camera);
 
-	void compute(float dt);
+	void compute(float dt, glm::ivec2 mouseDelta);
 
 	void clear();
-	void setDebugParticle(Particle* p);
+	void setDebugParticle(int id);
 	float getSmoothingLength() const;
+	int getParticleAtRay(glm::vec3 ray) const;
+	bool isIntersectingRaySphere(glm::vec3 ray, glm::vec3 spherePos, float radius) const;
 	
 };
