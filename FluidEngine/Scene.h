@@ -21,7 +21,7 @@ private:
 	Particles* particles;
 
 	const float maxframeTime = 1 / 4.0f;
-	float dt = 1 / 120.0f;
+	float dt = 1 / 60.0f;
 
 	float accumulator = 0.0f;
 	int fps = 0;

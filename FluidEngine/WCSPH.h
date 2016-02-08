@@ -18,7 +18,7 @@ typedef std::unordered_multimap<glm::ivec3, Particle*, KeyHashS> Grid;
 class WCSPH
 {
 
-private:
+protected:
 
 	float cellSize;
 	Grid pGrid;
@@ -35,11 +35,11 @@ private:
 	glm::vec3 gravity;
 
 	const float PI = 3.14159265359f;
-	inline float Poly6(Particle* p1, Particle* p2, float h);
-	inline glm::vec3 Poly6Gradient(Particle* p1, Particle* p2, float h);
-	inline float Poly6Laplacian(Particle* p1, Particle* p2, float h);
-	inline glm::vec3 SpikyGradient(Particle* p1, Particle* p2, float h);
-	inline float ViscosityLaplacian(Particle* p1, Particle* p2, float h);
+	inline float Poly6(glm::vec3 pos1, glm::vec3 pos2, float h);
+	inline glm::vec3 Poly6Gradient(glm::vec3 pos1, glm::vec3 pos2, float h);
+	inline float Poly6Laplacian(glm::vec3 pos1, glm::vec3 pos2, float h);
+	inline glm::vec3 SpikyGradient(glm::vec3 pos1, glm::vec3 pos2, float h);
+	inline float ViscosityLaplacian(glm::vec3 pos1, glm::vec3 pos2, float h);
 
 	int pDebugId = -1;
 	Camera* camera;

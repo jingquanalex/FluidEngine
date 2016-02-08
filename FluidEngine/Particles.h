@@ -2,7 +2,8 @@
 
 #include "Includes.h"
 #include "Object.h"
-#include "WCSPH.h"
+//#include "WCSPH.h"
+#include "PCISPH.h"
 
 // Particle Manager: Generate, solve and render particles
 // Particles are rendered on 2D quads created with geometry shader
@@ -23,7 +24,7 @@ private:
 	std::vector<sParticle> sParticles;
 	int count, maxCount;
 	float particleRadius;
-	WCSPH* solver;
+	PCISPH* solver;
 
 	GLuint vao, vbo;
 	GLuint texid;
