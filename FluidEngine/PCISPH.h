@@ -1,6 +1,8 @@
 #pragma once
 
 #include "WCSPH.h"
+#include <iostream>
+#include <fstream>
 
 class PCISPH : public WCSPH
 {
@@ -13,12 +15,15 @@ private:
 	glm::vec3 fPressure;
 
 	float densityVariationThreshold;
-	float scalingFactor;
+	float scalingFactorDelta;
+
+	float elasped = 0.0f, duration = 2.0f;
+	FILE * dFile;
 
 public:
 
-	PCISPH(std::vector<Particle>* particles, Camera* camera);
+	PCISPH(float dt, std::vector<Particle>* particles, Camera* camera);
 
-	void compute(float dt, glm::ivec2 mouseDelta);
-
+	void initialize();
+	void compute(glm::ivec2 mouseDelta);
 };

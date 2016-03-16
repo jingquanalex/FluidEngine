@@ -10,7 +10,6 @@ Particles::Particles()
 {
 	count = 0;
 	maxCount = 0;
-	particleRadius = 0.1f;
 }
 
 Particles::~Particles()
@@ -18,13 +17,14 @@ Particles::~Particles()
 
 }
 
-void Particles::load(Camera* camera)
+void Particles::load(float dt, Camera* camera)
 {
 	// Set max particles count for vbo and load particle shaders
 	maxCount = 10000;
 	this->camera = camera;
 	shader = new Shader("particle");
-	solver = new PCISPH(&particles, camera);
+	//solver = new WCSPH(dt, &particles, camera);
+	solver = new PCISPH(dt, &particles, camera);
 
 	// Load a box model to contain the particles
 	box = new Object();
@@ -33,7 +33,7 @@ void Particles::load(Camera* camera)
 	box->load("cube.obj");
 
 	// Add some particles temp
-	addParticles(100);
+	//addParticles(10, 0.5);
 
 	// Initialize vertex buffer memory and vao
 	glGenVertexArrays(1, &vao);
@@ -54,12 +54,12 @@ void Particles::load(Camera* camera)
 	glBindVertexArray(0);
 
 	glUseProgram(shader->getProgram());
-	glUniform1f(glGetUniformLocation(shader->getProgram(), "radius"), particleRadius);
+	glUniform1f(glGetUniformLocation(shader->getProgram(), "radius"), solver->getRadius());
 	glUseProgram(0);
 }
 
 // Update particle positions and send to vbo
-void Particles::update(float dt)
+void Particles::update()
 {
 	// Remove stray particles
 	auto it = particles.begin();
@@ -90,7 +90,7 @@ void Particles::update(float dt)
 	mouseLastY = mouseY;
 
 	// Solve SPH
-	solver->compute(dt, mouseDelta);
+	solver->compute(mouseDelta);
 
 	// Create particle data list to send to gpu
 	sParticles.clear();
@@ -125,18 +125,52 @@ float Particles::fRandom(float low, float high)
 }
 
 // Add a specified number of Particles with a random position
-void Particles::addParticles(int value)
+void Particles::addParticles(int value, float range)
 {
 	for (int i = 0; i < value; i++)
 	{
 		Particle particle;
-		particle.Position.x = fRandom(-2.5f, 2.5f);
-		particle.Position.y = fRandom(-2.5f, 2.5f);
-		particle.Position.z = fRandom(-2.5f, 2.5f);
+		particle.Position.x = fRandom(-range, range);
+		particle.Position.y = fRandom(-range, range);
+		particle.Position.z = fRandom(-range, range);
 		particle.Color = vec4(1.0);
 		particles.push_back(particle);
 	}
 	count += value;
+}
+
+void Particles::addParticles(int numPerSide)
+{
+	for (float i = 0; i <= numPerSide; i++)
+	{
+		for (float j = 0; j <= numPerSide; j++)
+		{
+			for (float k = 0; k <= numPerSide; k++)
+			{
+				Particle particle;
+				particle.Position = vec3(i, j, k) * solver->getRadius() - 
+					vec3(numPerSide * solver->getRadius());
+				particle.Color = vec4(1.0);
+				particles.push_back(particle);
+
+				count++;
+			}
+		}
+	}
+}
+
+void Particles::addParticles()
+{
+	Particle particle;
+	particle.Position = vec3(0, -5, 0);
+	particle.Color = vec4(1.0);
+	particles.push_back(particle);
+	Particle particle2;
+	particle2.Position = vec3(0, -4.5, 0);
+	particle2.Color = vec4(1.0);
+	particles.push_back(particle2);
+
+	count += 2;
 }
 
 // Remove a specified number of Particles
@@ -208,8 +242,15 @@ void Particles::keyboard(unsigned char key)
 {
 	switch (key)
 	{
+	case 'b':
+		addParticles();
+		break;
 	case ' ':
-		addParticles(100);
+		//addParticles(2, 0.2f);
+		addParticles(1);
+		break;
+	case '1':
+		addParticles(100, 2.5f);
 		break;
 	case 'c':
 		removeParticles(count);

@@ -23,7 +23,7 @@ private:
 	std::vector<Particle> particles;
 	std::vector<sParticle> sParticles;
 	int count, maxCount;
-	float particleRadius;
+	//WCSPH* solver;
 	PCISPH* solver;
 
 	GLuint vao, vbo;
@@ -42,12 +42,14 @@ public:
 	Particles();
 	~Particles();
 
-	void load(Camera* camera);
-	void update(float dt);
+	void load(float dt, Camera* camera);
+	void update();
 	void draw();
 
 	float fRandom(float low, float high);
-	void addParticles(int value);
+	void addParticles(int value, float range);
+	void addParticles(int numPerSide);
+	void addParticles();
 	void removeParticles(int value);
 
 	void mouse(int button, int state);

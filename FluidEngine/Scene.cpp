@@ -39,7 +39,7 @@ void Scene::load()
 	int loadStart = glutGet(GLUT_ELAPSED_TIME);
 
 	skyQuad->load("lake", "skyquad");
-	particles->load(camera);
+	particles->load(dt, camera);
 	
 	float loadtime = (glutGet(GLUT_ELAPSED_TIME) - loadStart) / 1000.0f;
 	cout << "Load time: " << loadtime << "s" << endl;
@@ -55,15 +55,14 @@ void Scene::idle()
 
 	// Update logic at a constant dt, seperate from frame time
 	accumulator += frameTime;
-	dt = 1 / 60.0f;
 	while (accumulator >= dt)
 	{
-		particles->update(dt);
+		particles->update();
 
 		accumulator -= dt;
 	}
 
-	// Temp
+	// Update following based on dt
 	camera->update(frameTime);
 
 	// Calculate frames per second
