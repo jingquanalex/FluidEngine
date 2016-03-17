@@ -23,8 +23,8 @@ void Particles::load(float dt, Camera* camera)
 	maxCount = 10000;
 	this->camera = camera;
 	shader = new Shader("particle");
-	//solver = new WCSPH(dt, &particles, camera);
-	solver = new PCISPH(dt, &particles, camera);
+	solver = new WCSPH(dt, &particles, camera);
+	//solver = new PCISPH(dt, &particles, camera);
 
 	// Load a box model to contain the particles
 	box = new Object();

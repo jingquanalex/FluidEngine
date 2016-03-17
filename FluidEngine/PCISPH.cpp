@@ -20,7 +20,7 @@ PCISPH::PCISPH(float dt, vector<Particle>* particles, Camera* camera) : WCSPH(dt
 	viscosity = 0.13f;
 	mass = restDensity / pow(1.0f / (2.0f * radius), 3);*/
 	radius = 0.1f;
-	restDensity = 25.0f;
+	restDensity = 34.0f;
 	viscosity = 0.13f;
 	mass = 1.00f;
 	smoothingLength = radius * 4;
@@ -83,7 +83,7 @@ void PCISPH::compute(ivec2 mouseDelta)
 	for (Particle &p : *particles)
 	{
 		// Insert particles into cells based on its positional key
-		pGrid.insert(make_pair(discretize(p.Position), &p));
+		pGrid.insert(make_pair(getHashKey(getCellPos(p.Position)), &p));
 
 		if (p.Id == pDebugId)
 		{
@@ -104,7 +104,7 @@ void PCISPH::compute(ivec2 mouseDelta)
 				{
 					// Sample particles in current cell
 					vec3 samplePos = p.Position + vec3(i, j, k) * h;
-					auto itb = pGrid.equal_range(discretize(samplePos));
+					auto itb = pGrid.equal_range(getHashKey(getCellPos(samplePos)));
 					for (auto it = itb.first; it != itb.second; it++)
 					{
 						Particle* pN = it->second;

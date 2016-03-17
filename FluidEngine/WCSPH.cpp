@@ -14,21 +14,27 @@ WCSPH::WCSPH(float dt, vector<Particle>* particles, Camera* camera)
 	this->particles = particles;
 	this->camera = camera;
 	oldAcceleration = vec3(0);
-	pGrid.reserve(particles->size() * 2);
-
+	
 	// === Variables ===
 
 	// Particles
+	maxParticles = 5000;
 	mass = 1.00f;
 	radius = 0.1f;
-	smoothingLength = 0.5f;
+	smoothingLength = radius * 4;
 	gasConstant = 0.11f;
-	restDensity = 24.00f;
+	restDensity = 34.00f;
 	viscosity = 0.13f;
 	gravity = vec3(0, -9.8, 0);
 
 	// Gird
+	// Cell count need to be in multiple of 64 for keys to be locally unique
 	cellSize = smoothingLength;
+	cellCount = maxParticles * 2;
+	/*cellCount = maxParticles / 2;
+	cellCount -= cellCount % 64;
+	cellCount = glm::max(64, cellCount);*/
+	pGrid.reserve(cellCount);
 
 	initialize();
 }
@@ -43,6 +49,20 @@ void WCSPH::initialize()
 	u = viscosity;
 }
 
+// === Hash ===
+glm::ivec3 WCSPH::getCellPos(glm::vec3 position) const
+{
+	return ivec3(
+		(int)floor(position.x / cellSize),
+		(int)floor(position.y / cellSize),
+		(int)floor(position.z / cellSize));
+}
+
+int WCSPH::getHashKey(ivec3 cellPos) const
+{
+	return ((cellPos.x * 73856093) ^ (cellPos.y * 19349663) ^ (cellPos.z * 83492791));// % cellCount;
+}
+
 void WCSPH::compute(ivec2 mouseDelta)
 {
 	Particle* pD = nullptr;
@@ -53,7 +73,7 @@ void WCSPH::compute(ivec2 mouseDelta)
 	for (Particle &p : *particles)
 	{
 		// Insert particles into cells based on its positional key
-		pGrid.insert(make_pair(discretize(p.Position), &p));
+		pGrid.insert(make_pair(getHashKey(getCellPos(p.Position)), &p));
 
 		if (p.Id == pDebugId)
 		{
@@ -75,7 +95,7 @@ void WCSPH::compute(ivec2 mouseDelta)
 				{
 					// Sample particles in current cell
 					vec3 samplePos = p.Position + vec3(i, j, k) * h;
-					auto itb = pGrid.equal_range(discretize(samplePos));
+					auto itb = pGrid.equal_range(getHashKey(getCellPos(samplePos)));
 					for (auto it = itb.first; it != itb.second; it++)
 					{
 						Particle* pN = it->second;
@@ -155,7 +175,15 @@ void WCSPH::compute(ivec2 mouseDelta)
 		p.OldAcceleration = acceleration;
 
 		// Color particles
-		if (p.Id != pDebugId)
+		/* // Color Neighbors
+		bool hasDebugParticle = false;
+		for (auto it = p.Neighbors.begin(); it != p.Neighbors.end(); it++)
+		{
+			hasDebugParticle = (*it)->Id == pDebugId;
+			if (hasDebugParticle) break;
+		}*/
+
+		if (p.Id != pDebugId)// && !hasDebugParticle)
 		{
 			p.Color = vec4(1);
 		}
@@ -203,14 +231,6 @@ void WCSPH::resolveCollision(glm::vec3& position, glm::vec3& velocity)
 		position.z = 5;
 		velocity.z = -velocity.z / 2;
 	}
-}
-
-ivec3 WCSPH::discretize(vec3 position)
-{
-	return ivec3(
-		(int)floor(position.x / cellSize),
-		(int)floor(position.y / cellSize),
-		(int)floor(position.z / cellSize));
 }
 
 // === Smoothing Kernels ===
@@ -274,28 +294,30 @@ float WCSPH::getSmoothingLength() const
 // Get the particle that intersects with ray
 int WCSPH::getParticleAtRay(vec3 ray) const
 {
-	// Iterate all cells within range, 5 atm within box
-	int cells = (int)(5 / cellSize);
+	// Iterate all cells within range, +-5 units box size
+	int cells = (int)(5.5 / cellSize);
 	for (int i = -cells; i <= cells; i++)
 	{
 		for (int j = -cells; j <= cells; j++)
 		{
 			for (int k = -cells; k <= cells; k++)
 			{
-				ivec3 key = ivec3(i, j, k);
-				vec3 keyPos = (vec3(key) + vec3(cellSize)) * cellSize;
+				ivec3 cellIndex = ivec3(i, j, k);
+				vec3 cellPos = vec3(cellIndex) * cellSize;
 
 				// Test if cell is intersecting with ray
-				if (isIntersectingRaySphere(ray, keyPos, cellSize))
+				if (isIntersectingRaySphere(ray, cellPos, cellSize))
 				{
+					cout << cellIndex.x << " " << cellIndex.y << " " << cellIndex.z << endl;
 					// Get particles in cell and test intersection with ray
+					int key = getHashKey(cellIndex);
 					auto itb = pGrid.equal_range(key);
 					for (auto it = itb.first; it != itb.second; it++)
 					{
 						Particle* p = it->second;
 						//p->Color = vec4(1, 0, 0, 1);
 
-						if (isIntersectingRaySphere(ray, p->Position, 0.1f))
+						if (isIntersectingRaySphere(ray, p->Position, radius))
 						{
 							return p->Id;
 						}

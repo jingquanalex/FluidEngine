@@ -5,15 +5,7 @@
 #include "Camera.h"
 #include <unordered_map>
 
-struct KeyHashS
-{
-	size_t operator()(const glm::ivec3& key) const
-	{
-		return ((key.x * 73856093) ^ (key.y * 19349663) ^ (key.z * 83492791));
-	}
-};
-
-typedef std::unordered_multimap<glm::ivec3, Particle*, KeyHashS> Grid;
+typedef std::unordered_multimap<int, Particle*> Grid;
 
 class WCSPH
 {
@@ -22,10 +14,13 @@ protected:
 
 	const float PI = 3.14159265359f;
 
-	float cellSize;
-	Grid pGrid;
+	int maxParticles;
 
-	glm::ivec3 discretize(glm::vec3 position);
+	float cellSize;
+	int cellCount;
+	Grid pGrid;
+	glm::ivec3 getCellPos(glm::vec3 position) const;
+	int getHashKey(glm::ivec3 cellPos) const;
 
 	std::vector<Particle>* particles;
 	float dt;
