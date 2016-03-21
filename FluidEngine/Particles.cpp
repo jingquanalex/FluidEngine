@@ -23,8 +23,8 @@ void Particles::load(float dt, Camera* camera)
 	maxCount = 10000;
 	this->camera = camera;
 	shader = new Shader("particle");
-	solver = new WCSPH(dt, &particles, camera);
-	//solver = new PCISPH(dt, &particles, camera);
+	//solver = new WCSPH(dt, &particles, camera);
+	solver = new PCISPH(dt, &particles, camera);
 
 	// Load a box model to contain the particles
 	box = new Object();
@@ -162,15 +162,11 @@ void Particles::addParticles(int numPerSide)
 void Particles::addParticles()
 {
 	Particle particle;
-	particle.Position = vec3(0, -5, 0);
+	particle.Position = vec3(0, -4.0, 0);
 	particle.Color = vec4(1.0);
 	particles.push_back(particle);
-	Particle particle2;
-	particle2.Position = vec3(0, -4.5, 0);
-	particle2.Color = vec4(1.0);
-	particles.push_back(particle2);
 
-	count += 2;
+	count += 1;
 }
 
 // Remove a specified number of Particles

@@ -17,7 +17,7 @@ private:
 	float densityVariationThreshold;
 	float scalingFactorDelta;
 
-	float elasped = 0.0f, duration = 2.0f;
+	float elasped = 0.0f;
 	FILE * dFile;
 
 public:

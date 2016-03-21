@@ -12,6 +12,7 @@ public:
 	glm::vec3 Velocity = glm::vec3(0);
 	glm::vec3 PositionPredicted = glm::vec3(0);
 	glm::vec3 VelocityPredicted = glm::vec3(0);
+	glm::vec3 NonPressureForce = glm::vec3(0);
 	glm::vec3 Force = glm::vec3(0);
 	glm::vec3 OldAcceleration = glm::vec3(0);
 	glm::vec3 OldAccelerationPredicted = glm::vec3(0);

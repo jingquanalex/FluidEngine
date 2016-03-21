@@ -23,8 +23,8 @@ private:
 	std::vector<Particle> particles;
 	std::vector<sParticle> sParticles;
 	int count, maxCount;
-	WCSPH* solver;
-	//PCISPH* solver;
+	//WCSPH* solver;
+	PCISPH* solver;
 
 	GLuint vao, vbo;
 	GLuint texid;

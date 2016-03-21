@@ -22,18 +22,14 @@ WCSPH::WCSPH(float dt, vector<Particle>* particles, Camera* camera)
 	mass = 1.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
-	gasConstant = 0.11f;
 	restDensity = 34.00f;
 	viscosity = 0.13f;
-	gravity = vec3(0, -9.8, 0);
+	gasConstant = 0.11f;
+	gravity = vec3(0, -9.8f, 0);
 
 	// Gird
-	// Cell count need to be in multiple of 64 for keys to be locally unique
 	cellSize = smoothingLength;
 	cellCount = maxParticles * 2;
-	/*cellCount = maxParticles / 2;
-	cellCount -= cellCount % 64;
-	cellCount = glm::max(64, cellCount);*/
 	pGrid.reserve(cellCount);
 
 	initialize();
@@ -127,7 +123,6 @@ void WCSPH::compute(ivec2 mouseDelta)
 
 		// Tait equation (Becker & Teschner 2007)
 		p.Pressure = k * (pow(p.Density / restDensity, 7) - 1);
-		p.Pressure = p.Pressure;
 	}
 
 	// === Compute Forces ===
@@ -141,14 +136,13 @@ void WCSPH::compute(ivec2 mouseDelta)
 
 		for (Particle* pN : p.Neighbors)
 		{
-			fPressure += m * (p.Pressure + pN->Pressure) / (2.0 * pN->Density) *
+			fPressure += -m * (p.Pressure + pN->Pressure) / (2.0 * pN->Density) *
 				SpikyGradient(p.Position, pN->Position, h);
 
 			fViscosity += m * (pN->Velocity - p.Velocity) / pN->Density *
 				ViscosityLaplacian(p.Position, pN->Position, h);
 		}
 
-		fPressure = -fPressure;
 		fViscosity *= u;
 
 		// Click and drag force at debug particle
@@ -207,7 +201,44 @@ void WCSPH::resolveCollision(glm::vec3& position, glm::vec3& velocity)
 	if (position.y < -5)
 	{
 		position.y = -5;
+		velocity.y = 0;
+	}
+	else if (position.y > 5)
+	{
+		position.y = 5;
+		velocity.y = 0;
+	}
+
+	if (position.x < -5)
+	{
+		position.x = -5;
+		velocity.x = 0;
+	}
+	else if (position.x > 5)
+	{
+		position.x = 5;
+		velocity.x = 0;
+	}
+
+	if (position.z < -5)
+	{
+		position.z = -5;
+		velocity.z = 0;
+	}
+	else if (position.z > 5)
+	{
+		position.z = 5;
+		velocity.z = 0;
+	}
+	/*if (position.y < -5)
+	{
+		position.y = -5;
 		velocity.y = -velocity.y / 2;
+	}
+	else if (position.y > 5)
+	{
+		position.y = 5;
+		velocity.y = velocity.y / 2;
 	}
 
 	if (position.x < -5)
@@ -230,7 +261,7 @@ void WCSPH::resolveCollision(glm::vec3& position, glm::vec3& velocity)
 	{
 		position.z = 5;
 		velocity.z = -velocity.z / 2;
-	}
+	}*/
 }
 
 // === Smoothing Kernels ===
@@ -295,6 +326,7 @@ float WCSPH::getSmoothingLength() const
 int WCSPH::getParticleAtRay(vec3 ray) const
 {
 	// Iterate all cells within range, +-5 units box size
+	// Note, use 5.5, cause of rounding error when getting hashkey
 	int cells = (int)(5.5 / cellSize);
 	for (int i = -cells; i <= cells; i++)
 	{
@@ -308,7 +340,7 @@ int WCSPH::getParticleAtRay(vec3 ray) const
 				// Test if cell is intersecting with ray
 				if (isIntersectingRaySphere(ray, cellPos, cellSize))
 				{
-					cout << cellIndex.x << " " << cellIndex.y << " " << cellIndex.z << endl;
+					//cout << cellIndex.x << " " << cellIndex.y << " " << cellIndex.z << endl;
 					// Get particles in cell and test intersection with ray
 					int key = getHashKey(cellIndex);
 					auto itb = pGrid.equal_range(key);

@@ -19,16 +19,24 @@ PCISPH::PCISPH(float dt, vector<Particle>* particles, Camera* camera) : WCSPH(dt
 	restDensity = 999.927f;
 	viscosity = 0.13f;
 	mass = restDensity / pow(1.0f / (2.0f * radius), 3);*/
-	radius = 0.1f;
-	restDensity = 34.0f;
-	viscosity = 0.13f;
+	maxParticles = 5000;
 	mass = 1.00f;
+	radius = 0.1f;
 	smoothingLength = radius * 4;
-	gravity = vec3(0, -9.8, 0);
-	densityVariationThreshold = restDensity * 3 / 100;
+	restDensity = 36.0f;
+	viscosity = 0.13f;
+	gravity = vec3(0, -9.8f, 0);
+	//gravity = vec3(0);
+	densityVariationThreshold = restDensity * 0.03f;
 
 	// Gird
+	// Cell count need to be in multiple of 64 for keys to be locally unique
 	cellSize = smoothingLength;
+	cellCount = maxParticles * 2;
+	/*cellCount = maxParticles / 2;
+	cellCount -= cellCount % 64;
+	cellCount = glm::max(64, cellCount);*/
+	pGrid.reserve(cellCount);
 
 	// === Precompute Constants ===
 
@@ -69,12 +77,6 @@ void PCISPH::initialize()
 
 void PCISPH::compute(ivec2 mouseDelta)
 {
-	// Shorten variables
-	int n = particles->size();
-	float m = mass;
-	float h = smoothingLength;
-	float k = gasConstant;
-	float u = viscosity;
 	Particle* pD = nullptr;
 
 	// === Neighbor Search ===
@@ -122,33 +124,36 @@ void PCISPH::compute(ivec2 mouseDelta)
 		}
 	}
 
+	// Compute Density for Non-Pressure forces
+	for (Particle &p : *particles)
+	{
+		p.Density = 0.0f;
+
+		for (Particle* pN : p.Neighbors)
+		{
+			p.Density += m * Poly6(p.PositionPredicted, pN->PositionPredicted, h);
+		}
+
+		// Reset color
+		p.Color = vec4(1);
+	}
+
 	// === Compute Non-Pressure Forces ===
 
 	for (Particle &p : *particles)
 	{
-		fViscosity = vec3(0);
-		fGravity = gravity; // m * gravity
+		fGravity = m * gravity;
 		fExternal = vec3(0);
+		fViscosity = vec3(0);
 		p.Pressure = 0.0f;
 		p.PressureForce = vec3(0);
 		p.VelocityPredicted = p.Velocity;
 		p.PositionPredicted = p.Position;
 
-		// Density (include p)
-		for (Particle &p : *particles)
-		{
-			p.Density = 0.0f;
-
-			for (Particle* pN : p.Neighbors)
-			{
-				p.Density += m * Poly6(p.PositionPredicted, pN->PositionPredicted, h);
-			}
-		}
-		
 		// Viscosity force
 		for (Particle* pN : p.Neighbors)
 		{
-			if (pN->Density > 0.00001f)
+			if (p.Id != pN->Id && pN->Density > 0.0f)
 			{
 				fViscosity += m * (pN->Velocity - p.Velocity) / pN->Density *
 					ViscosityLaplacian(p.Position, pN->Position, h);
@@ -165,15 +170,15 @@ void PCISPH::compute(ivec2 mouseDelta)
 			fExternal = (mouseDelta.x * right + -mouseDelta.y * up) * 5;
 		}
 
-		p.Force = fViscosity + fGravity + fExternal;
+		p.NonPressureForce = fGravity + fExternal;// + fViscosity;
 	}
 
-	// === Prediction Correction Scheme ===
+	// === Prediction Correction Loop ===
 
 	float maxDensityVariation = 0.0f;
 	int iter = 0;
-	bool isrun = true;
- 	while (isrun && (maxDensityVariation > densityVariationThreshold || iter < 3))
+
+	while (iter++ < 3)
 	{
 		maxDensityVariation = 0.0f;
 
@@ -181,14 +186,14 @@ void PCISPH::compute(ivec2 mouseDelta)
 
 		for (Particle &p : *particles)
 		{
-			p.Force += p.PressureForce;
+			p.Force = p.PressureForce + p.NonPressureForce;
+			vec3 acceleration = p.Force / m;
 
 			// Semi-implicit Euler
-			//p.VelocityPredicted += p.Force / m * dt;
-			//p.PositionPredicted += p.VelocityPredicted * dt;
+			/*p.VelocityPredicted += acceleration * dt;
+			p.PositionPredicted += p.VelocityPredicted * dt;*/
 
 			// Leap frog
-			vec3 acceleration = p.Force / m;
 			p.VelocityPredicted += 0.5f * (p.OldAccelerationPredicted + acceleration) * dt;
 			p.PositionPredicted += p.VelocityPredicted * dt + 0.5f * acceleration * dt * dt;
 			p.OldAccelerationPredicted = acceleration;
@@ -202,22 +207,22 @@ void PCISPH::compute(ivec2 mouseDelta)
 		{
 			p.DensityPredicted = 0.0f;
 
+			// Predict density
 			for (Particle* pN : p.Neighbors)
 			{
-				// Predict density
-				if (&p != pN && distance2(p.Position, pN->Position) < 2.0f)
-				{
-					p.Position = p.Position;
-				}
 				p.DensityPredicted += m * Poly6(p.PositionPredicted, pN->PositionPredicted, h);
 			}
 
 			// Density variation
-			p.DensityVariation = p.DensityPredicted - restDensity;
+			//p.DensityVariation = p.DensityPredicted - restDensity;
+			p.DensityVariation = glm::max(0.0f, p.DensityPredicted - restDensity);
+
 			if (maxDensityVariation < p.DensityVariation)
 			{
 				maxDensityVariation = p.DensityVariation;
 			}
+
+			//if (maxDensityVariation / restDensity < 0.03f) goto endPredictionLoop;
 
 			//DEBUG
 			/*if (iter > 100)
@@ -227,7 +232,7 @@ void PCISPH::compute(ivec2 mouseDelta)
 			}*/
 
 			// Update pressure
-			p.Pressure += scalingFactorDelta * p.DensityVariation;
+			p.Pressure += scalingFactorDelta * p.DensityVariation*10;
 		}
 
 		// === Compute Pressure Force ===
@@ -239,48 +244,54 @@ void PCISPH::compute(ivec2 mouseDelta)
 				if (p.Id != pN->Id)
 				{
 					p.PressureForce = -m * m * 
-						(p.Pressure / pow(p.Density, 2) + pN->Pressure / pow(pN->Density, 2)) *
+						(p.Pressure / pow(p.DensityPredicted, 2) + pN->Pressure / pow(pN->DensityPredicted, 2)) *
 						SpikyGradient(p.PositionPredicted, pN->PositionPredicted, h);
 				}
 			}
 		}
 
-		iter++;
-		//break;
+		cout << maxDensityVariation / restDensity << endl;
 	}
+
+	endPredictionLoop:
 
 	// === Integrate New Velocity and Position ===
 
 	for (Particle &p : *particles)
 	{
 		// Leapfrog integration
+		p.Force = p.PressureForce + p.NonPressureForce;
 		vec3 acceleration = p.Force / m;
 		p.Velocity += 0.5f * (p.OldAcceleration + acceleration) * dt;
 		p.Position += p.Velocity * dt + 0.5f * acceleration * dt * dt;
 		p.OldAcceleration = acceleration;
 
 		// Color particles
-		if (p.Id != pDebugId)
+		if (p.Id == pDebugId)
 		{
-			p.Color = vec4(1);
-		}
-		else
-		{
-			p.Color = vec4(1, 0, 0, 1);
+			//p.Color = vec4(1, 0, 0, 1);
+			for (Particle* pN : p.Neighbors)
+			{
+				pN->Color = vec4(1, 0, 0, 1);
+			}
 		}
 
 		resolveCollision(&p);
 	}
 
 	// printout debug
-	/*if (particles->size() > 0)
+	float duration = 5.0f;
+	if (particles->size() > 0)
 	{
 		if (elasped < duration)
 		{
-			Particle p = particles->at(1);
-			fprintf(dFile, "id=%i, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f \n",
-				p.Id, elasped, p.Position.x, p.Position.y, p.Position.z, 
-				p.Density, p.Pressure, p.PressureForce);
+			if (particles->size() > 1)
+			{
+				Particle p = particles->at(1);
+				fprintf(dFile, "id=%i, dt=%.4f, x=%.4f, y=%.4f, z=%.4f, d=%.4f, p=%.4f, pFx=%.4f, pFy = %.4f, pFz=%.4f \n",
+					p.Id, elasped, p.Position.x, p.Position.y, p.Position.z,
+					p.Density, p.Pressure, p.PressureForce.x, p.PressureForce.y, p.PressureForce.z);
+			}
 		}
 		else if (elasped > duration)
 		{
@@ -288,5 +299,5 @@ void PCISPH::compute(ivec2 mouseDelta)
 		}
 
 		elasped += dt;
-	}*/
+	}
 }
