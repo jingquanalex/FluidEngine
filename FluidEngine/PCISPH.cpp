@@ -170,7 +170,7 @@ void PCISPH::compute(ivec2 mouseDelta)
 			fExternal = (mouseDelta.x * right + -mouseDelta.y * up) * 5;
 		}
 
-		p.NonPressureForce = fGravity + fExternal;// + fViscosity;
+		p.NonPressureForce = fGravity + fExternal + fViscosity;
 	}
 
 	// === Prediction Correction Loop ===
@@ -222,8 +222,6 @@ void PCISPH::compute(ivec2 mouseDelta)
 				maxDensityVariation = p.DensityVariation;
 			}
 
-			//if (maxDensityVariation / restDensity < 0.03f) goto endPredictionLoop;
-
 			//DEBUG
 			/*if (iter > 100)
 			{
@@ -232,8 +230,11 @@ void PCISPH::compute(ivec2 mouseDelta)
 			}*/
 
 			// Update pressure
-			p.Pressure += scalingFactorDelta * p.DensityVariation*10;
+			p.Pressure += scalingFactorDelta * p.DensityVariation;
 		}
+
+		if (maxDensityVariation / restDensity < 0.03f) goto endPredictionLoop;
+		cout << maxDensityVariation / restDensity << endl;
 
 		// === Compute Pressure Force ===
 
@@ -243,14 +244,12 @@ void PCISPH::compute(ivec2 mouseDelta)
 			{
 				if (p.Id != pN->Id)
 				{
-					p.PressureForce = -m * m * 
+					p.PressureForce += -m * m * 
 						(p.Pressure / pow(p.DensityPredicted, 2) + pN->Pressure / pow(pN->DensityPredicted, 2)) *
 						SpikyGradient(p.PositionPredicted, pN->PositionPredicted, h);
 				}
 			}
 		}
-
-		cout << maxDensityVariation / restDensity << endl;
 	}
 
 	endPredictionLoop:

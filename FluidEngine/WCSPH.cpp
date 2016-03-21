@@ -201,38 +201,6 @@ void WCSPH::resolveCollision(glm::vec3& position, glm::vec3& velocity)
 	if (position.y < -5)
 	{
 		position.y = -5;
-		velocity.y = 0;
-	}
-	else if (position.y > 5)
-	{
-		position.y = 5;
-		velocity.y = 0;
-	}
-
-	if (position.x < -5)
-	{
-		position.x = -5;
-		velocity.x = 0;
-	}
-	else if (position.x > 5)
-	{
-		position.x = 5;
-		velocity.x = 0;
-	}
-
-	if (position.z < -5)
-	{
-		position.z = -5;
-		velocity.z = 0;
-	}
-	else if (position.z > 5)
-	{
-		position.z = 5;
-		velocity.z = 0;
-	}
-	/*if (position.y < -5)
-	{
-		position.y = -5;
 		velocity.y = -velocity.y / 2;
 	}
 	else if (position.y > 5)
@@ -261,7 +229,7 @@ void WCSPH::resolveCollision(glm::vec3& position, glm::vec3& velocity)
 	{
 		position.z = 5;
 		velocity.z = -velocity.z / 2;
-	}*/
+	}
 }
 
 // === Smoothing Kernels ===
