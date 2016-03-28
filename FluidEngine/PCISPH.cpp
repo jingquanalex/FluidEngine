@@ -15,16 +15,12 @@ PCISPH::PCISPH(float dt, vector<Particle>* particles, Camera* camera) : WCSPH(dt
 	// === User Constants ===
 
 	// Particles
-	/*radius = 0.019444f;
-	restDensity = 999.927f;
-	viscosity = 0.13f;
-	mass = restDensity / pow(1.0f / (2.0f * radius), 3);*/
 	maxParticles = 5000;
-	mass = 1.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
-	restDensity = 36.0f;
-	viscosity = 0.13f;
+	restDensity = 34.0f;
+	mass = 1.0f;
+	viscosity = 0.013f;
 	gravity = vec3(0, -9.8f, 0);
 	//gravity = vec3(0);
 	densityVariationThreshold = restDensity * 0.03f;
@@ -167,10 +163,11 @@ void PCISPH::compute(ivec2 mouseDelta)
 			mat4 mView = camera->getMatView();
 			vec3 up = vec3(mView[0].y, mView[1].y, mView[2].y);
 			vec3 right = cross(camera->getDirectionVec(), up);
-			fExternal = (mouseDelta.x * right + -mouseDelta.y * up) * 5;
+			fExternal = (mouseDelta.x * right + -mouseDelta.y * up) * m * 5;
 		}
 
-		p.NonPressureForce = fGravity + fExternal + fViscosity;
+		p.NonPressureForce = fExternal + fViscosity;
+		if (gravityEnabled) p.NonPressureForce += fGravity;
 	}
 
 	// === Prediction Correction Loop ===
@@ -222,19 +219,12 @@ void PCISPH::compute(ivec2 mouseDelta)
 				maxDensityVariation = p.DensityVariation;
 			}
 
-			//DEBUG
-			/*if (iter > 100)
-			{
-				p.Position = p.Position;
-				//isrun = false;
-			}*/
-
 			// Update pressure
 			p.Pressure += scalingFactorDelta * p.DensityVariation;
 		}
 
 		if (maxDensityVariation / restDensity < 0.03f) goto endPredictionLoop;
-		cout << maxDensityVariation / restDensity << endl;
+		//cout << maxDensityVariation / restDensity << endl;
 
 		// === Compute Pressure Force ===
 
@@ -279,7 +269,7 @@ void PCISPH::compute(ivec2 mouseDelta)
 	}
 
 	// printout debug
-	float duration = 5.0f;
+	/*float duration = 5.0f;
 	if (particles->size() > 0)
 	{
 		if (elasped < duration)
@@ -298,5 +288,5 @@ void PCISPH::compute(ivec2 mouseDelta)
 		}
 
 		elasped += dt;
-	}
+	}*/
 }

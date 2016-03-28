@@ -30,6 +30,7 @@ protected:
 	float gasConstant;
 	float restDensity;
 	float viscosity;
+	float surfaceTensionCoef;
 	glm::vec3 oldAcceleration;
 	glm::vec3 gravity;
 
@@ -48,12 +49,15 @@ protected:
 	glm::vec3 Poly6Gradient(glm::vec3 pos1, glm::vec3 pos2, float h);
 	glm::vec3 SpikyGradient(glm::vec3 pos1, glm::vec3 pos2, float h);
 	float ViscosityLaplacian(glm::vec3 pos1, glm::vec3 pos2, float h);
+	float SurfaceTensionC(glm::vec3 pos1, glm::vec3 pos2, float h);
 
 	int pDebugId = -1;
 	Camera* camera;
 
 	void resolveCollision(Particle* p);
 	void resolveCollision(glm::vec3& position, glm::vec3& velocity);
+
+	bool gravityEnabled = true;
 
 public:
 
@@ -68,5 +72,6 @@ public:
 	float getSmoothingLength() const;
 	int getParticleAtRay(glm::vec3 ray) const;
 	bool isIntersectingRaySphere(glm::vec3 ray, glm::vec3 spherePos, float radius) const;
+	void toggleGravity();
 	
 };

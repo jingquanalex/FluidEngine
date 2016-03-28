@@ -21,6 +21,7 @@ public:
 	float DensityVariation = 0.0f;
 	float Pressure = 0.0f;
 	glm::vec3 PressureForce = glm::vec3(0);
+	glm::vec3 Normal = glm::vec3(0);
 	glm::vec4 Color = glm::vec4(1);
 	std::vector<Particle*> Neighbors;
 

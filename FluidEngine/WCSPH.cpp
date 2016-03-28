@@ -22,9 +22,10 @@ WCSPH::WCSPH(float dt, vector<Particle>* particles, Camera* camera)
 	mass = 1.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
-	restDensity = 34.00f;
-	viscosity = 0.13f;
-	gasConstant = 0.11f;
+	restDensity = 24.0f;
+	viscosity = 0.008f;
+	surfaceTensionCoef = 1.0f;
+	gasConstant = 0.01f;
 	gravity = vec3(0, -9.8f, 0);
 
 	// Gird
@@ -46,6 +47,7 @@ void WCSPH::initialize()
 }
 
 // === Hash ===
+
 glm::ivec3 WCSPH::getCellPos(glm::vec3 position) const
 {
 	return ivec3(
@@ -56,7 +58,7 @@ glm::ivec3 WCSPH::getCellPos(glm::vec3 position) const
 
 int WCSPH::getHashKey(ivec3 cellPos) const
 {
-	return ((cellPos.x * 73856093) ^ (cellPos.y * 19349663) ^ (cellPos.z * 83492791));// % cellCount;
+	return ((cellPos.x * 73856093) ^ (cellPos.y * 19349663) ^ (cellPos.z * 83492791)) % cellCount;
 }
 
 void WCSPH::compute(ivec2 mouseDelta)
@@ -75,13 +77,17 @@ void WCSPH::compute(ivec2 mouseDelta)
 		{
 			pD = &p;
 		}
+
+		p.Color = vec4(0.6, 0.9, 1.0, 1.0);
 	}
+
+	// === +Compute Density ===
 
 	for (Particle &p : *particles)
 	{
 		p.Neighbors.clear();
 		p.Density = 0.0f;
-
+		
 		// Search adjacent cells of the cell at position p
 		for (int i = -1; i <= 1; i++)
 		{
@@ -96,27 +102,39 @@ void WCSPH::compute(ivec2 mouseDelta)
 					{
 						Particle* pN = it->second;
 
-						// Push into p's neighbor list if within smoothing length
-						float r2 = distance2(p.Position, pN->Position);
-						if (!isinf(r2) && !isnan(r2) && r2 <= h * h)
+						// For neighbor particles within smoothing length
+						if (distance2(p.Position, pN->Position) <= h * h)
 						{
 							// === Compute Density ===
 
-							// Sum over ALL particles within h (that means p too)
 							p.Density += m * Poly6(p.Position, pN->Position, h);
 
-							// Don't include itself in neighbor list
-							if (p.Id != pN->Id)
-							{
-								p.Neighbors.push_back(pN);
-							}
+							// Push into p's neighbor list
+							p.Neighbors.push_back(pN);
 						}
 					}
 				}
 			}
 		}
+	}
 
-		// === Compute Pressure ===
+	// === Compute Normal And Pressure ===
+
+	for (Particle &p : *particles)
+	{
+		// === Normal (for curvature force) ===
+
+		p.Normal = vec3(0);
+
+		for (Particle* pN : p.Neighbors)
+		{
+			if (pN->Density > 0.0f)
+			{
+				p.Normal += h * m / pN->Density * Poly6Gradient(p.Position, pN->Position, h);
+			}
+		}
+
+		// === Pressure ===
 
 		// Ideal gas law (Muller et al 2003)
 		//p.Pressure = k * (p.Density - restDensity);
@@ -133,17 +151,37 @@ void WCSPH::compute(ivec2 mouseDelta)
 		vec3 fViscosity = vec3(0);
 		vec3 fGravity = m * gravity;
 		vec3 fExternal = vec3(0);
+		vec3 fCohesion = vec3(0);
+		vec3 fCurvature = vec3(0);
+		vec3 fSurfaceTension = vec3(0);
 
 		for (Particle* pN : p.Neighbors)
 		{
-			fPressure += -m * (p.Pressure + pN->Pressure) / (2.0 * pN->Density) *
+			/*fPressure += -m * (p.Pressure + pN->Pressure) / (2.0 * pN->Density) *
+				SpikyGradient(p.Position, pN->Position, h);*/
+
+			fPressure += -m * m *
+				(p.Pressure / pow(p.Density, 2) + pN->Pressure / pow(pN->Density, 2)) *
 				SpikyGradient(p.Position, pN->Position, h);
 
-			fViscosity += m * (pN->Velocity - p.Velocity) / pN->Density *
+			fViscosity += u * m * (pN->Velocity - p.Velocity) / pN->Density *
 				ViscosityLaplacian(p.Position, pN->Position, h);
+
+			if (distance2(p.Position, pN->Position) > 0.0f)
+			{
+				float correctionFactor = 2 * restDensity / (p.Density + pN->Density);
+				float cohesionKernel = SurfaceTensionC(p.Position, pN->Position, h);
+
+				fCohesion += -surfaceTensionCoef * m * m * cohesionKernel *
+					normalize(p.Position - pN->Position) *
+					correctionFactor;
+
+				fCurvature += -surfaceTensionCoef * m * (p.Normal - pN->Normal) *
+					correctionFactor;
+			}
 		}
 
-		fViscosity *= u;
+		fSurfaceTension = fCohesion + fCurvature;
 
 		// Click and drag force at debug particle
 		//if (p.Id == pDebugId)
@@ -152,10 +190,12 @@ void WCSPH::compute(ivec2 mouseDelta)
 			mat4 mView = camera->getMatView();
 			vec3 up = vec3(mView[0].y, mView[1].y, mView[2].y);
 			vec3 right = cross(camera->getDirectionVec(), up);
-			fExternal = (mouseDelta.x * right + -mouseDelta.y * up) * 5;
+			fExternal = (mouseDelta.x * right + -mouseDelta.y * up) * m * 5;
 		}
 
-		p.Force = fPressure + fViscosity + fGravity + fExternal;
+		//p.Force = fPressure + fViscosity + fExternal + fSurfaceTension;
+		p.Force = fPressure + fViscosity + fExternal;
+		if (gravityEnabled) p.Force += fGravity;
 	}
 
 	// === Integrate New Velocity and Position ===
@@ -169,21 +209,13 @@ void WCSPH::compute(ivec2 mouseDelta)
 		p.OldAcceleration = acceleration;
 
 		// Color particles
-		/* // Color Neighbors
-		bool hasDebugParticle = false;
-		for (auto it = p.Neighbors.begin(); it != p.Neighbors.end(); it++)
+		if (p.Id == pDebugId)
 		{
-			hasDebugParticle = (*it)->Id == pDebugId;
-			if (hasDebugParticle) break;
-		}*/
-
-		if (p.Id != pDebugId)// && !hasDebugParticle)
-		{
-			p.Color = vec4(1);
-		}
-		else
-		{
-			p.Color = vec4(1, 0, 0, 1);
+			//p.Color = vec4(1, 0, 0, 1);
+			for (Particle* pN : p.Neighbors)
+			{
+				pN->Color = vec4(1, 0, 0, 1);
+			}
 		}
 
 		resolveCollision(&p);
@@ -198,36 +230,38 @@ void WCSPH::resolveCollision(Particle* p)
 
 void WCSPH::resolveCollision(glm::vec3& position, glm::vec3& velocity)
 {
-	if (position.y < -5)
+	float boxhalfwidth = 2.5f;
+
+	if (position.y < -boxhalfwidth)
 	{
-		position.y = -5;
+		position.y = -boxhalfwidth;
 		velocity.y = -velocity.y / 2;
 	}
-	else if (position.y > 5)
+	else if (position.y > boxhalfwidth)
 	{
-		position.y = 5;
-		velocity.y = velocity.y / 2;
+		position.y = boxhalfwidth;
+		velocity.y = -velocity.y / 2;
 	}
 
-	if (position.x < -5)
+	if (position.x < -boxhalfwidth)
 	{
-		position.x = -5;
+		position.x = -boxhalfwidth;
 		velocity.x = -velocity.x / 2;
 	}
-	else if (position.x > 5)
+	else if (position.x > boxhalfwidth)
 	{
-		position.x = 5;
+		position.x = boxhalfwidth;
 		velocity.x = -velocity.x / 2;
 	}
 
-	if (position.z < -5)
+	if (position.z < -boxhalfwidth)
 	{
-		position.z = -5;
+		position.z = -boxhalfwidth;
 		velocity.z = -velocity.z / 2;
 	}
-	else if (position.z > 5)
+	else if (position.z > boxhalfwidth)
 	{
-		position.z = 5;
+		position.z = boxhalfwidth;
 		velocity.z = -velocity.z / 2;
 	}
 }
@@ -268,6 +302,25 @@ float WCSPH::ViscosityLaplacian(vec3 pos1, vec3 pos2, float h)
 	float rDist = glm::distance(pos1, pos2);
 	if (rDist > h) return 0.0f;
 	return coef * (h - rDist);
+}
+
+float WCSPH::SurfaceTensionC(glm::vec3 pos1, glm::vec3 pos2, float h)
+{
+	float coef = 32.0f / (PI * pow(h, 9));
+	vec3 r = pos1 - pos2;
+	float rDist = length(r);
+	if (2 * rDist > h != rDist <= h)
+	{
+		return coef * pow(h - rDist, 3) * pow(rDist, 3);
+	}
+	else if (rDist > 0.0f != 2 * rDist <= h)
+	{
+		return coef * 2 * pow(h - rDist, 3) * pow(rDist, 3) - pow(h, 6) / 64;
+	}
+	else
+	{
+		return 0.0f;
+	}
 }
 
 void WCSPH::clear()
@@ -338,4 +391,9 @@ bool WCSPH::isIntersectingRaySphere(vec3 ray, vec3 spherePos, float radius) cons
 	float t2 = dot(vP, vP) - hypo * hypo; // Find tangent^2
 	if (t2 > 0 && t2 < pow(radius, 2)) return true;
 	return false;
+}
+
+void WCSPH::toggleGravity()
+{
+	gravityEnabled = !gravityEnabled;
 }

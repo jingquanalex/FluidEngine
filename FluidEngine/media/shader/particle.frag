@@ -11,12 +11,11 @@ uniform float radius;
 void main()
 {
 	float dist = length(texcoord.xy - vec2(0.5, 0.5));
-	float alpha = 1 - step(radius, dist);
-	
+	float alpha = 1.0 - step(radius, dist);
 	if (alpha == 0.0) discard;
 	
-	dist = 1 - dist;
+	dist = pow(1.0 - dist, 2);
 
 	//texture(tex, Texcoord).rgb
-	outColor = color * vec4(dist, dist/2, dist/4, 1.0);
+	outColor = color * vec4(dist, dist, dist, 1.0);
 }
