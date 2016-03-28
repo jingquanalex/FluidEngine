@@ -17,20 +17,38 @@ WCSPH::WCSPH(float dt, vector<Particle>* particles, Camera* camera)
 	
 	// === Variables ===
 
+	/*
+	* surface tension is dependent of mass > 10
+	* determine mass first
+	* then find balance with gasconstant and restdensity
+	* higher the gasconstant the easier particle swirl
+	* viscosity > 0.8 for stable simulation at current mass
+	*/
+
 	// Particles
 	maxParticles = 5000;
-	mass = 1.00f;
+	mass = 28.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
-	restDensity = 24.0f;
-	viscosity = 0.008f;
+	restDensity = 99.0f;
+	viscosity = 10.8f;
 	surfaceTensionCoef = 1.0f;
-	gasConstant = 0.01f;
+	gasConstant = 0.000001f;
 	gravity = vec3(0, -9.8f, 0);
+
+	/*maxParticles = 5000;
+	mass = 100.00f;
+	radius = 0.1f;
+	smoothingLength = radius * 4;
+	restDensity = 999.0f;
+	viscosity = 2.8f;
+	surfaceTensionCoef = 0.2f;
+	gasConstant = 0.01f;
+	gravity = vec3(0, -9.8f, 0);*/
 
 	// Gird
 	cellSize = smoothingLength;
-	cellCount = maxParticles * 2;
+	cellCount = 10007;
 	pGrid.reserve(cellCount);
 
 	initialize();
@@ -193,8 +211,8 @@ void WCSPH::compute(ivec2 mouseDelta)
 			fExternal = (mouseDelta.x * right + -mouseDelta.y * up) * m * 5;
 		}
 
-		//p.Force = fPressure + fViscosity + fExternal + fSurfaceTension;
-		p.Force = fPressure + fViscosity + fExternal;
+		p.Force = fPressure + fViscosity + fExternal + fSurfaceTension;
+		//p.Force = fPressure + fViscosity + fExternal;
 		if (gravityEnabled) p.Force += fGravity;
 	}
 
@@ -230,7 +248,7 @@ void WCSPH::resolveCollision(Particle* p)
 
 void WCSPH::resolveCollision(glm::vec3& position, glm::vec3& velocity)
 {
-	float boxhalfwidth = 2.5f;
+	float boxhalfwidth = 5.0f;
 
 	if (position.y < -boxhalfwidth)
 	{
