@@ -4,6 +4,7 @@
 #include "Object.h"
 //#include "WCSPH.h"
 #include "PCISPH.h"
+#include "Quad.h"
 
 // Particle Manager: Generate, solve and render particles
 // Particles are rendered on 2D quads created with geometry shader
@@ -37,6 +38,12 @@ private:
 	glm::ivec2 mouseDelta;
 	Camera* camera;
 
+	Shader* shaderDepth;
+	GLuint depthFbo;
+	GLuint depthMap;
+	glm::ivec2 depthMapSize;
+	Quad* screenQuad;
+
 public:
 
 	Particles();
@@ -44,6 +51,7 @@ public:
 
 	void load(float dt, Camera* camera);
 	void update();
+	void drawDepth();
 	void draw();
 
 	float fRandom(float low, float high);
@@ -56,5 +64,8 @@ public:
 	void mouseMove(int x, int y);
 	void mouseMovePassive(int x, int y);
 	void keyboard(unsigned char key);
+
+	glm::ivec2 getDepthMapSize() const;
+	GLuint getDepthFbo() const;
 
 };

@@ -10,28 +10,37 @@ layout (std140, binding = 0) uniform Matrices
 };
 
 in vec4 gsColor[];
+in vec3 gsEyePos[];
 
 out vec2 texcoord;
 out vec4 color;
+out vec3 eyepos;
+out float radius;
+
+uniform float fRadius;
 
 void main()
 {
-	color = gsColor[0];
 	vec4 position = gl_in[0].gl_Position;
+	color = gsColor[0];
+	eyepos = gsEyePos[0];
 
-	gl_Position = projection * (position + vec4(-0.5, -0.5, 0.0, 0.0));
+	radius = fRadius;
+	float width = radius;
+
+	gl_Position = projection * (position + vec4(-width, -width, 0.0, 0.0));
 	texcoord = vec2(0.0, 0.0);
     EmitVertex();
 
-	gl_Position = projection * (position + vec4(0.5, -0.5, 0.0, 0.0));
+	gl_Position = projection * (position + vec4(width, -width, 0.0, 0.0));
 	texcoord = vec2(1.0, 0.0);
     EmitVertex();
 	
-	gl_Position = projection * (position + vec4(-0.5, 0.5, 0.0, 0.0));
+	gl_Position = projection * (position + vec4(-width, width, 0.0, 0.0));
 	texcoord = vec2(0.0, 1.0);
     EmitVertex();
 	
-	gl_Position = projection * (position + vec4(0.5, 0.5, 0.0, 0.0));
+	gl_Position = projection * (position + vec4(width, width, 0.0, 0.0));
 	texcoord = vec2(1.0, 1.0);
     EmitVertex();
     

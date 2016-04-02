@@ -54,8 +54,29 @@ void Particles::load(float dt, Camera* camera)
 	glBindVertexArray(0);
 
 	glUseProgram(shader->getProgram());
-	glUniform1f(glGetUniformLocation(shader->getProgram(), "radius"), solver->getRadius());
+	glUniform1f(glGetUniformLocation(shader->getProgram(), "fRadius"), solver->getRadius());
 	glUseProgram(0);
+
+	// Setup buffers to render point spheres depth
+	depthMapSize = ivec2(2048, 2048);
+	shaderDepth = new Shader("particleDepth");
+	screenQuad = new Quad();
+	screenQuad->load("particleQuad");
+
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, depthMapSize.x, depthMapSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glGenFramebuffers(1, &depthFbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 // Update particle positions and send to vbo
@@ -108,15 +129,26 @@ void Particles::update()
 }
 
 // Render particles
-void Particles::draw()
+void Particles::drawDepth()
 {
 	glUseProgram(shader->getProgram());
 	glBindVertexArray(vao);
 	glDrawArrays(GL_POINTS, 0, count);
 	glBindVertexArray(0);
 	glUseProgram(0);
+}
+
+void Particles::draw()
+{
+	/*glUseProgram(shader->getProgram());
+	glBindVertexArray(vao);
+	glDrawArrays(GL_POINTS, 0, count);
+	glBindVertexArray(0);
+	glUseProgram(0);*/
 
 	box->draw();
+
+	screenQuad->draw(depthMap);
 }
 
 float Particles::fRandom(float low, float high)
@@ -256,4 +288,14 @@ void Particles::keyboard(unsigned char key)
 		solver->toggleGravity();
 		break;
 	}
+}
+
+ivec2 Particles::getDepthMapSize() const
+{
+	return depthMapSize;
+}
+
+GLuint Particles::getDepthFbo() const
+{
+	return depthFbo;
 }

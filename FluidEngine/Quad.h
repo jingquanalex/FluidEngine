@@ -21,7 +21,7 @@ public:
 	void load(std::string mapname, std::string shadername);
 	void load(std::string shadername = "quad");
 	void draw();
-	void draw(Light* light, Camera* camera = nullptr);
+	void draw(GLuint depthMapId, Camera* camera = nullptr);
 
 	GLuint getCubeMap() const;
 

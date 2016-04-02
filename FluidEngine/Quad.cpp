@@ -88,7 +88,8 @@ void Quad::draw()
 	glBindVertexArray(0);
 }
 
-void Quad::draw(Light* light, Camera* camera)
+// Changed: Light* to GLuint, maybe bug
+void Quad::draw(GLuint depthMapId, Camera* camera)
 {
 	glUseProgram(shader->getProgram());
 	if (camera != nullptr)
@@ -97,7 +98,7 @@ void Quad::draw(Light* light, Camera* camera)
 		glUniform1f(glGetUniformLocation(shader->getProgram(), "farPlane"), camera->getFarPlane());
 	}
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, light->getDepthMap());
+	glBindTexture(GL_TEXTURE_2D, depthMapId);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);

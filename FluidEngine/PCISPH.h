@@ -14,6 +14,7 @@ private:
 	glm::vec3 fExternal;
 	glm::vec3 fPressure;
 
+	float maxDensityVariation;
 	float densityVariationThreshold;
 	float scalingFactorDelta;
 

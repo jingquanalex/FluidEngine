@@ -4,6 +4,8 @@
 #include "Particle.h"
 #include "Camera.h"
 #include <unordered_map>
+#include <ppl.h>
+#include <concurrent_vector.h>
 
 typedef std::unordered_multimap<int, Particle*> Grid;
 
@@ -23,6 +25,8 @@ protected:
 	int getHashKey(glm::ivec3 cellPos) const;
 
 	std::vector<Particle>* particles;
+	//Concurrency::concurrent_vector<Particle>* particles;
+
 	float dt;
 	float mass;
 	float radius;

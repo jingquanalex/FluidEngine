@@ -26,7 +26,7 @@ Scene::Scene()
 	skyQuad = new Quad();
 
 	particles = new Particles();
-	
+	screenQuad = new Quad();
 }
 
 Scene::~Scene()
@@ -40,6 +40,7 @@ void Scene::load()
 
 	skyQuad->load("lake", "skyquad");
 	particles->load(dt, camera);
+	screenQuad->load("particleQuad");
 	
 	float loadtime = (glutGet(GLUT_ELAPSED_TIME) - loadStart) / 1000.0f;
 	cout << "Load time: " << loadtime << "s" << endl;
@@ -83,6 +84,13 @@ void Scene::idle()
 
 void Scene::display()
 {
+	// Render particles depth to render buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, particles->getDepthFbo());
+	glViewport(0, 0, particles->getDepthMapSize().x, particles->getDepthMapSize().y);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	particles->drawDepth();
+
 	// Render scene
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, window_width, window_height);

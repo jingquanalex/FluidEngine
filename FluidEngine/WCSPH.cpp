@@ -2,6 +2,7 @@
 
 using namespace glm;
 using namespace std;
+using namespace concurrency;
 
 extern string g_mediaDirectory;
 
@@ -30,10 +31,10 @@ WCSPH::WCSPH(float dt, vector<Particle>* particles, Camera* camera)
 	mass = 28.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
-	restDensity = 99.0f;
-	viscosity = 10.8f;
+	restDensity = 59.0f;
+	viscosity = 3.8f;
 	surfaceTensionCoef = 1.0f;
-	gasConstant = 0.000001f;
+	gasConstant = 0.0000001f;
 	gravity = vec3(0, -9.8f, 0);
 
 	/*maxParticles = 5000;
@@ -76,7 +77,7 @@ glm::ivec3 WCSPH::getCellPos(glm::vec3 position) const
 
 int WCSPH::getHashKey(ivec3 cellPos) const
 {
-	return ((cellPos.x * 73856093) ^ (cellPos.y * 19349663) ^ (cellPos.z * 83492791)) % cellCount;
+	return ((cellPos.x * 73856093) ^ (cellPos.y * 19349663) ^ (cellPos.z * 83492791));// % cellCount;
 }
 
 void WCSPH::compute(ivec2 mouseDelta)
@@ -86,6 +87,7 @@ void WCSPH::compute(ivec2 mouseDelta)
 	// === Neighbor Search ===
 
 	pGrid.clear();
+
 	for (Particle &p : *particles)
 	{
 		// Insert particles into cells based on its positional key
@@ -96,12 +98,14 @@ void WCSPH::compute(ivec2 mouseDelta)
 			pD = &p;
 		}
 
+		// Default color
 		p.Color = vec4(0.6, 0.9, 1.0, 1.0);
 	}
 
 	// === +Compute Density ===
 
 	for (Particle &p : *particles)
+	//for_each(particles->begin(), particles->end(), [&](Particle& p)
 	{
 		p.Neighbors.clear();
 		p.Density = 0.0f;
@@ -175,6 +179,8 @@ void WCSPH::compute(ivec2 mouseDelta)
 
 		for (Particle* pN : p.Neighbors)
 		{
+			if (p.Density == 0.0f || pN->Density == 0.0f) continue;
+
 			/*fPressure += -m * (p.Pressure + pN->Pressure) / (2.0 * pN->Density) *
 				SpikyGradient(p.Position, pN->Position, h);*/
 
@@ -227,6 +233,10 @@ void WCSPH::compute(ivec2 mouseDelta)
 		p.OldAcceleration = acceleration;
 
 		// Color particles
+		p.Color -= vec4(0.02f) * p.Density / restDensity;
+		p.Color += vec4(0.1f) * length(p.Velocity) / 2;
+
+		// Color debug particles
 		if (p.Id == pDebugId)
 		{
 			//p.Color = vec4(1, 0, 0, 1);
