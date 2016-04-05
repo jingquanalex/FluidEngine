@@ -233,8 +233,8 @@ void WCSPH::compute(ivec2 mouseDelta)
 		p.OldAcceleration = acceleration;
 
 		// Color particles
-		p.Color -= vec4(0.02f) * p.Density / restDensity;
-		p.Color += vec4(0.1f) * length(p.Velocity) / 2;
+		//p.Color -= vec4(0.02f) * p.Density / restDensity;
+		//p.Color += vec4(0.1f) * length(p.Velocity) / 2;
 
 		// Color debug particles
 		if (p.Id == pDebugId)

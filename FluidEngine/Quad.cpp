@@ -96,6 +96,8 @@ void Quad::draw(GLuint depthMapId, Camera* camera)
 	{
 		glUniform1f(glGetUniformLocation(shader->getProgram(), "nearPlane"), camera->getNearPlane());
 		glUniform1f(glGetUniformLocation(shader->getProgram(), "farPlane"), camera->getFarPlane());
+		glUniformMatrix4fv(glGetUniformLocation(shader->getProgram(), "invProj"),
+			1, GL_FALSE, value_ptr(camera->getMatInvProjection()));
 	}
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, depthMapId);
@@ -107,4 +109,9 @@ void Quad::draw(GLuint depthMapId, Camera* camera)
 GLuint Quad::getCubeMap() const
 {
 	return texCubeId;
+}
+
+GLuint Quad::getVao() const
+{
+	return vao;
 }

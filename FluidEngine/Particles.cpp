@@ -54,18 +54,21 @@ void Particles::load(float dt, Camera* camera)
 	glBindVertexArray(0);
 
 	glUseProgram(shader->getProgram());
-	glUniform1f(glGetUniformLocation(shader->getProgram(), "fRadius"), solver->getRadius());
+	// Temp enlarge particle radius
+	glUniform1f(glGetUniformLocation(shader->getProgram(), "fRadius"), solver->getRadius() * 2.5f);
 	glUseProgram(0);
 
 	// Setup buffers to render point spheres depth
-	depthMapSize = ivec2(2048, 2048);
-	shaderDepth = new Shader("particleDepth");
+	//mapSize = ivec2(1024);
+	mapSize = ivec2(window_width, window_height);
 	screenQuad = new Quad();
-	screenQuad->load("particleQuad");
+	screenQuad->load();
+	shaderBlur = new Shader("particleBlur");
+	shaderNormal = new Shader("particleNormal");
 
 	glGenTextures(1, &depthMap);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, depthMapSize.x, depthMapSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mapSize.x, mapSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -74,8 +77,42 @@ void Particles::load(float dt, Camera* camera)
 	glGenFramebuffers(1, &depthFbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
+
+	glGenTextures(1, &colorMap);
+	glBindTexture(GL_TEXTURE_2D, colorMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mapSize.x, mapSize.y, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorMap, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glGenTextures(1, &blurMapV);
+	glBindTexture(GL_TEXTURE_2D, blurMapV);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mapSize.x, mapSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glGenFramebuffers(1, &blurFboV);
+	glBindFramebuffer(GL_FRAMEBUFFER, blurFboV);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, blurMapV, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glGenTextures(1, &blurMapH);
+	glBindTexture(GL_TEXTURE_2D, blurMapH);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mapSize.x, mapSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glGenFramebuffers(1, &blurFboH);
+	glBindFramebuffer(GL_FRAMEBUFFER, blurFboH);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, blurMapH, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -131,11 +168,43 @@ void Particles::update()
 // Render particles
 void Particles::drawDepth()
 {
+	// Render particles' depth to fbo
+	glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
+	glViewport(0, 0, mapSize.x, mapSize.y);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	glUseProgram(shader->getProgram());
+	glUniform1f(glGetUniformLocation(shader->getProgram(), "near"), camera->getNearPlane());
+	glUniform1f(glGetUniformLocation(shader->getProgram(), "far"), camera->getFarPlane());
 	glBindVertexArray(vao);
 	glDrawArrays(GL_POINTS, 0, count);
 	glBindVertexArray(0);
 	glUseProgram(0);
+
+	// Blur depth map, render to fbo
+	glBindFramebuffer(GL_FRAMEBUFFER, blurFboV);
+	glViewport(0, 0, mapSize.x, mapSize.y);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	glUseProgram(shaderBlur->getProgram());
+	glUniform2fv(glGetUniformLocation(shaderBlur->getProgram(), "blurDir"), 1, value_ptr(vec2(0, 1.0f / mapSize.x)));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glBindVertexArray(screenQuad->getVao());
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, blurFboH);
+	glViewport(0, 0, mapSize.x, mapSize.y);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	glUseProgram(shaderBlur->getProgram());
+	glUniform2fv(glGetUniformLocation(shaderBlur->getProgram(), "blurDir"), 1, value_ptr(vec2(1.0f / mapSize.x, 0)));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, blurMapV);
+	glBindVertexArray(screenQuad->getVao());
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
 }
 
 void Particles::draw()
@@ -147,8 +216,22 @@ void Particles::draw()
 	glUseProgram(0);*/
 
 	box->draw();
+	//screenQuad->draw(depthMap, camera);
 
-	screenQuad->draw(depthMap);
+	// Render to normal FBO
+	glUseProgram(shaderNormal->getProgram());
+	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "colorMap"), 0);
+	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "depthMap"), 1);
+	glUniform2fv(glGetUniformLocation(shaderNormal->getProgram(), "texSize"), 1, value_ptr(vec2(mapSize)));
+	glUniformMatrix4fv(glGetUniformLocation(shaderNormal->getProgram(), "invProj"),
+		1, GL_FALSE, value_ptr(camera->getMatInvProjection()));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, colorMap);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, blurMapH);
+	glBindVertexArray(screenQuad->getVao());
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
 }
 
 float Particles::fRandom(float low, float high)
@@ -288,14 +371,4 @@ void Particles::keyboard(unsigned char key)
 		solver->toggleGravity();
 		break;
 	}
-}
-
-ivec2 Particles::getDepthMapSize() const
-{
-	return depthMapSize;
-}
-
-GLuint Particles::getDepthFbo() const
-{
-	return depthFbo;
 }

@@ -42,6 +42,8 @@ void Shader::setupUniformBuffers()
 
 Shader::Shader(string shadername)
 {
+	if (shadername == "") return;
+
 	// Check program list for the shader, if unavailable, compile it.
 	vector<pair<GLuint, string>>::iterator it = find_if(programList.begin(), programList.end(),
 		[shadername](const pair<GLuint, string>& element){ return element.second == shadername; });

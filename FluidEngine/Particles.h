@@ -38,11 +38,17 @@ private:
 	glm::ivec2 mouseDelta;
 	Camera* camera;
 
-	Shader* shaderDepth;
+	Quad* screenQuad;
+	GLuint colorMap;
+	glm::ivec2 mapSize;
 	GLuint depthFbo;
 	GLuint depthMap;
-	glm::ivec2 depthMapSize;
-	Quad* screenQuad;
+	Shader* shaderBlur;
+	GLuint blurFboV;
+	GLuint blurMapV;
+	GLuint blurFboH;
+	GLuint blurMapH;
+	Shader* shaderNormal;
 
 public:
 
@@ -64,8 +70,5 @@ public:
 	void mouseMove(int x, int y);
 	void mouseMovePassive(int x, int y);
 	void keyboard(unsigned char key);
-
-	glm::ivec2 getDepthMapSize() const;
-	GLuint getDepthFbo() const;
 
 };

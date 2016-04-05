@@ -10,11 +10,9 @@ layout (std140, binding = 0) uniform Matrices
 };
 
 out vec4 gsColor;
-out vec3 gsEyePos;
 
 void main()
 {
 	gl_Position = view * vec4(position, 1.0);
-	gsEyePos = gl_Position.xyz;
 	gsColor = color;
 }

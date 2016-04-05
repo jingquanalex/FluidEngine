@@ -24,5 +24,6 @@ public:
 	void draw(GLuint depthMapId, Camera* camera = nullptr);
 
 	GLuint getCubeMap() const;
+	GLuint getVao() const;
 
 };

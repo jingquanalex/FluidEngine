@@ -57,6 +57,7 @@ public:
 	glm::vec3 getScale() const;
 	glm::mat4 getRotationMatrix() const;
 	Material* getMaterial();
+	Shader* getShader() const;
 	bool getBoundingBoxVisible() const;
 	bool getVisible() const;
 	bool getWireframeMode() const;

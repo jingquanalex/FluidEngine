@@ -271,6 +271,11 @@ Material* Object::getMaterial()
 	return &material;
 }
 
+Shader* Object::getShader() const
+{
+	return shader;
+}
+
 bool Object::getBoundingBoxVisible() const
 {
 	return isBoundingBoxVisible;

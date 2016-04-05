@@ -20,8 +20,8 @@ Camera::Camera()
 	direction = vec3(0.0f, 0.0f, -1.0f);
 	up = vec3(0.0f, 1.0f, 0.0f);
 	fov = 75.0f;
-	zNear = 0.1f;
-	zFar = 1000.0f;
+	zNear = 1.0f;
+	zFar = 20.0f;
 
 	mouseSensitivity = 0.25f;
 	smoothness = 50.0f;
@@ -57,6 +57,8 @@ void Camera::updateProjectionMatrix()
 	{
 		matProjection = perspective(radians(fov), aspectRatio, zNear, zFar);
 	}
+
+	matInvProjection = inverse(matProjection);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, Shader::uboMatrices);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(mat4), value_ptr(matProjection));
@@ -250,6 +252,11 @@ mat4 Camera::getMatView() const
 mat4 Camera::getMatProjection() const
 {
 	return matProjection;
+}
+
+mat4 Camera::getMatInvProjection() const
+{
+	return matInvProjection;
 }
 
 vec2 Camera::getResolution() const
