@@ -189,7 +189,7 @@ void Particles::update()
 	mouseLastY = mouseY;
 
 	// Solve SPH
-	solver->compute(mouseDelta);
+	solver->compute(mouseDelta, renderMode);
 
 	// Create particle data list to send to gpu
 	sParticles.clear();
@@ -209,6 +209,8 @@ void Particles::update()
 // Render particles
 void Particles::drawDepth()
 {
+	if (renderMode == 0) return;
+
 	// Render background scene
 	glBindFramebuffer(GL_FRAMEBUFFER, sceneFbo);
 	glViewport(0, 0, mapSize.x, mapSize.y);
@@ -224,6 +226,7 @@ void Particles::drawDepth()
 
 	glUseProgram(shader->getProgram());
 	glUniform1f(glGetUniformLocation(shader->getProgram(), "colorThickness"), 0.0f);
+	glUniform1i(glGetUniformLocation(shader->getProgram(), "renderMode"), renderMode);
 	glUniform1f(glGetUniformLocation(shader->getProgram(), "near"), camera->getNearPlane());
 	glUniform1f(glGetUniformLocation(shader->getProgram(), "far"), camera->getFarPlane());
 	glBindVertexArray(vao);
@@ -309,9 +312,27 @@ void Particles::drawDepth()
 
 void Particles::draw()
 {
+	if (renderMode == 0)
+	{
+		skyQuad->draw();
+		box->draw();
+
+		glUseProgram(shader->getProgram());
+		glUniform1f(glGetUniformLocation(shader->getProgram(), "colorThickness"), 0.0f);
+		glUniform1i(glGetUniformLocation(shader->getProgram(), "renderMode"), renderMode);
+		glUniform1f(glGetUniformLocation(shader->getProgram(), "near"), camera->getNearPlane());
+		glUniform1f(glGetUniformLocation(shader->getProgram(), "far"), camera->getFarPlane());
+		glBindVertexArray(vao);
+		glDrawArrays(GL_POINTS, 0, count);
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+		return;
+	}
+
 	// Render to normal FBO
 	glUseProgram(shaderNormal->getProgram());
-	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "outputMode"), renderMode);
+	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "renderMode"), renderMode);
 	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "sceneMap"), 0);
 	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "colorMap"), 1);
 	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "depthMap"), 2);

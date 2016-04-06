@@ -14,6 +14,7 @@ in float radius;
 out vec4 outColor;
 
 uniform float colorThickness = 0.0;
+uniform int renderMode;
 uniform float near;
 uniform float far;
 

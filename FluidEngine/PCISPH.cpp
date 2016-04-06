@@ -65,7 +65,7 @@ void PCISPH::initialize()
 	scalingFactorDelta = -1.0f / (beta * (-dot(sumW, sumW) - sumWdotW));
 }
 
-void PCISPH::compute(ivec2 mouseDelta)
+void PCISPH::compute(ivec2 mouseDelta, int renderMode)
 {
 	Particle* pD = nullptr;
 
@@ -276,6 +276,12 @@ void PCISPH::compute(ivec2 mouseDelta)
 		p.OldAcceleration = acceleration;
 
 		// Color particles
+		if (renderMode == 0)
+		{
+			p.Color -= vec4(0.02f) * p.Density / restDensity;
+			p.Color += vec4(0.1f) * length(p.Velocity) / 2;
+		}
+
 		if (p.Id == pDebugId)
 		{
 			//p.Color = vec4(1, 0, 0, 1);

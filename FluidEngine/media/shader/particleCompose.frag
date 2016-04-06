@@ -20,7 +20,7 @@ layout (std140, binding = 1) uniform Lighting
 	vec3 specularColor;
 };
 
-uniform int outputMode = 1;
+uniform int renderMode = 1;
 uniform sampler2D sceneMap;
 uniform sampler2D colorMap;
 uniform sampler2D depthMap;
@@ -98,22 +98,36 @@ void main()
 	
 	vec4 finalColor = colorAbsorption * envRefract;
 	
-	if (outputMode == 1)
-		outColor = diffuse * finalColor + specular + fresnel * envReflect;
-	else if (outputMode == 2)
-		outColor = vec4(depth);
-	else if (outputMode == 3)
-		outColor = vec4(N, 1.0);
-	else if (outputMode == 4)
-		outColor = vec4(diffuse);
-	else if (outputMode == 5)
-		outColor = colorAbsorption;
-	else if (outputMode == 6)
-		outColor = envRefract;
-	else if (outputMode == 7)
-		outColor = finalColor;
-	else if (outputMode == 8)
-		outColor = diffuse * finalColor + specular;
-	else if (outputMode == 9)
-		outColor = fresnel * envReflect;
+	switch(renderMode)
+	{
+		case 1:
+			outColor = diffuse * finalColor + specular + fresnel * envReflect;
+			break;
+		case 2:
+			outColor = vec4(depth);
+			break;
+		case 3:
+			outColor = vec4(N, 1.0);
+			break;
+		case 4:
+			outColor = vec4(diffuse);
+			break;
+		case 5:
+			outColor = colorAbsorption;
+			break;
+		case 6:
+			outColor = envRefract;
+			break;
+		case 7:
+			outColor = finalColor;
+			break;
+		case 8:
+			outColor = diffuse * finalColor + specular;
+			break;
+		case 9:
+			outColor = fresnel * envReflect;
+			break;
+		case 0:
+			break;
+	}
 }

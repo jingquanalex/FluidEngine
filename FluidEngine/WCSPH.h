@@ -68,7 +68,7 @@ public:
 	WCSPH(float dt, std::vector<Particle>* particles, Camera* camera);
 
 	virtual void initialize();
-	virtual void compute(glm::ivec2 mouseDelta);
+	virtual void compute(glm::ivec2 mouseDelta, int renderMode);
 
 	void clear();
 	void setDebugParticle(int id);

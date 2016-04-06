@@ -80,7 +80,7 @@ int WCSPH::getHashKey(ivec3 cellPos) const
 	return ((cellPos.x * 73856093) ^ (cellPos.y * 19349663) ^ (cellPos.z * 83492791));// % cellCount;
 }
 
-void WCSPH::compute(ivec2 mouseDelta)
+void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 {
 	Particle* pD = nullptr;
 
@@ -233,8 +233,11 @@ void WCSPH::compute(ivec2 mouseDelta)
 		p.OldAcceleration = acceleration;
 
 		// Color particles
-		//p.Color -= vec4(0.02f) * p.Density / restDensity;
-		//p.Color += vec4(0.1f) * length(p.Velocity) / 2;
+		if (renderMode == 0)
+		{
+			p.Color -= vec4(0.02f) * p.Density / restDensity;
+			p.Color += vec4(0.1f) * length(p.Velocity) / 2;
+		}
 
 		// Color debug particles
 		if (p.Id == pDebugId)

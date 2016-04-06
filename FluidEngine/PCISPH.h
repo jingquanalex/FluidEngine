@@ -26,5 +26,5 @@ public:
 	PCISPH(float dt, std::vector<Particle>* particles, Camera* camera);
 
 	void initialize();
-	void compute(glm::ivec2 mouseDelta);
+	void compute(glm::ivec2 mouseDelta, int renderMode);
 };

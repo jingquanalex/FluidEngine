@@ -18,13 +18,15 @@ out float radius;
 
 uniform float fRadius;
 uniform float colorThickness = 0.0;
+uniform int renderMode;
 
 void main()
 {
 	vec4 position = gl_in[0].gl_Position;
 	eyepos = position.xyz;
 	color = gsColor[0];
-	radius = fRadius * 2.5; // Increase radius for ss fluid
+	radius = fRadius;
+	if (renderMode != 0) radius *= 2.5; // Increase radius for ss fluid
 	if (colorThickness != 0.0) radius *= 2.0;
 
 	gl_Position = projection * (position + vec4(-radius, -radius, 0.0, 0.0));
