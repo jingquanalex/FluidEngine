@@ -10,11 +10,11 @@ uniform vec2 blurDir;
 void main()
 {
 	float depth = texture(depthmap, Texcoord).r;
-	if (depth > 0.99999) discard;
+	//if (depth > 0.99999) discard;
 	
 	float filterRadius = 10.0;
 	float blurScale = 0.1;
-	float blurFalloff = 150.0;
+	float blurFalloff = 100.0;
 	
 	float sum = 0.0;
 	float wsum = 0.0;

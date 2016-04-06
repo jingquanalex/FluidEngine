@@ -12,8 +12,6 @@ Scene::Scene()
 	srand(static_cast<unsigned> (time(0)));
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	Shader::setupUniformBuffers();
 
@@ -22,8 +20,6 @@ Scene::Scene()
 
 	camera = new CameraFPS();
 	camera->setActive(true);
-
-	skyQuad = new Quad();
 
 	particles = new Particles();
 }
@@ -37,7 +33,6 @@ void Scene::load()
 {
 	int loadStart = glutGet(GLUT_ELAPSED_TIME);
 
-	skyQuad->load("lake", "skyquad");
 	particles->load(dt, camera);
 	
 	float loadtime = (glutGet(GLUT_ELAPSED_TIME) - loadStart) / 1000.0f;
@@ -89,9 +84,8 @@ void Scene::display()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, window_width, window_height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	skyQuad->draw();
 	particles->draw();
 	
 	glutSwapBuffers();

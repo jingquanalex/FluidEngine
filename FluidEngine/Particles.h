@@ -38,17 +38,28 @@ private:
 	glm::ivec2 mouseDelta;
 	Camera* camera;
 
+	Quad* skyQuad;
 	Quad* screenQuad;
-	GLuint colorMap;
 	glm::ivec2 mapSize;
+
+	Shader* shaderBFilter;
+	Shader* shaderNormal;
+	Shader* shaderGaussian;
+
+	GLuint sceneFbo;
+	GLuint sceneMap;
 	GLuint depthFbo;
 	GLuint depthMap;
-	Shader* shaderBlur;
+	GLuint colorMap;
 	GLuint blurFboV;
 	GLuint blurMapV;
 	GLuint blurFboH;
 	GLuint blurMapH;
-	Shader* shaderNormal;
+	GLuint thickFbo;
+	GLuint thickMap;
+	GLuint gaussFbo;
+	GLuint gaussMapV;
+	GLuint gaussMapH;
 
 public:
 

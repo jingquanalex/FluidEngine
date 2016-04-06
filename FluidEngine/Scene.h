@@ -17,9 +17,7 @@ private:
 	Timer* frameTimer;
 	CameraFPS* camera;
 
-	Quad* skyQuad;
 	Particles* particles;
-	Quad* screenQuad;
 
 	const float maxframeTime = 1 / 4.0f;
 	float dt = 1 / 120.0f;

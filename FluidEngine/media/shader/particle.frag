@@ -13,6 +13,7 @@ in float radius;
 
 out vec4 outColor;
 
+uniform float colorThickness = 0.0;
 uniform float near;
 uniform float far;
 
@@ -48,12 +49,20 @@ void main()
 	float r2 = dot(N.xy, N.xy);
 	if (r2 > 1.0) discard;
 	
+	if (colorThickness != 0.0)
+	{
+		float dist = 1.0 - sqrt(r2);
+		outColor = vec4(dist * colorThickness);
+		return;
+	}
+	
 	N.z = sqrt(1.0 - r2);
 	
 	// Calculate depth
 	vec4 fragPos = vec4(eyepos + N * radius, 1.0);
 	vec4 clipPos = projection * fragPos;
-	gl_FragDepth = LinearizeDepth(clipPos.z / clipPos.w);
+	float depth = clipPos.z / clipPos.w;
+	gl_FragDepth = LinearizeDepth(depth);
 	
 	outColor = color;
 }

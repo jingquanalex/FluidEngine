@@ -19,8 +19,11 @@ layout (std140, binding = 1) uniform Lighting
 	vec3 specularColor;
 };
 
+uniform sampler2D sceneMap;
 uniform sampler2D colorMap;
 uniform sampler2D depthMap;
+uniform samplerCube envMap;
+uniform sampler2D thickMap;
 uniform vec2 texSize;
 uniform mat4 invProj;
 
@@ -35,15 +38,21 @@ vec3 uvToEye(vec2 texCoord, float z)
 
 void main()
 {
-	vec2 texelSize = vec2(1.0 / texSize.x, 1.0 / texSize.y); // depthmap size
-
+	vec4 scene = texture(sceneMap, Texcoord);
 	float depth = texture(depthMap, Texcoord).r;
-	if (depth > 0.99999) discard;
+	
+	if (depth > 0.99999)
+	{
+		outColor = scene;
+		return;
+	}
 	
 	// Calculate eye-space position from depth
 	vec3 eyePos = uvToEye(Texcoord, depth);
 	
 	// Calculate normal
+	vec2 texelSize = vec2(1.0 / texSize.x, 1.0 / texSize.y);
+	
 	vec3 ddx = uvToEye(Texcoord + vec2(texelSize.x, 0.0), texture(depthMap, Texcoord + vec2(texelSize.x, 0.0)).x) - eyePos;
 	vec3 ddx2 = eyePos - uvToEye(Texcoord - vec2(texelSize.x, 0.0), texture(depthMap, Texcoord - vec2(texelSize.x, 0.0)).x);
 	
@@ -77,10 +86,15 @@ void main()
 	
 	float fresnel = fresBias + fresScale * pow(1.0f - max(dot(N, viewDir), 0.0), fresPower);
 	
+	vec4 envReflect = texture(envMap, N);
+	
 	vec4 color = texture(colorMap, Texcoord);
-	//color = vec4(1,0,0,1);
 	
+	float thickness = texture(thickMap, Texcoord).r;
 	
-	outColor = (diffuse + specular + fresnel) * color;
+	vec4 finalColor = exp(-(vec4(1.0) - color) * thickness) * texture(sceneMap, Texcoord + N.xy * thickness);
+	
+	//outColor = finalColor;
+	outColor = (diffuse + specular) * finalColor + fresnel * envReflect;
 	//outColor = texture(depthMap, Texcoord);
 }
