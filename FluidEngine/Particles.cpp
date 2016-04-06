@@ -67,7 +67,7 @@ void Particles::load(float dt, Camera* camera)
 	screenQuad = new Quad();
 	screenQuad->load();
 	shaderBFilter = new Shader("particleBlur");
-	shaderNormal = new Shader("particleNormal");
+	shaderNormal = new Shader("particleCompose");
 	shaderGaussian = new Shader("gaussianBlur");
 
 	glGenTextures(1, &sceneMap);
@@ -98,7 +98,7 @@ void Particles::load(float dt, Camera* camera)
 
 	glGenTextures(1, &colorMap);
 	glBindTexture(GL_TEXTURE_2D, colorMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mapSize.x, mapSize.y, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mapSize.x, mapSize.y, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -106,6 +106,8 @@ void Particles::load(float dt, Camera* camera)
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorMap, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glGenFramebuffers(1, &blurFbo);
 
 	glGenTextures(1, &blurMapV);
 	glBindTexture(GL_TEXTURE_2D, blurMapV);
@@ -115,13 +117,6 @@ void Particles::load(float dt, Camera* camera)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glGenFramebuffers(1, &blurFboV);
-	glBindFramebuffer(GL_FRAMEBUFFER, blurFboV);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, blurMapV, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	glGenTextures(1, &blurMapH);
 	glBindTexture(GL_TEXTURE_2D, blurMapH);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mapSize.x, mapSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -129,13 +124,6 @@ void Particles::load(float dt, Camera* camera)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glGenFramebuffers(1, &blurFboH);
-	glBindFramebuffer(GL_FRAMEBUFFER, blurFboH);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, blurMapH, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glGenTextures(1, &thickMap);
 	glBindTexture(GL_TEXTURE_2D, thickMap);
@@ -244,7 +232,10 @@ void Particles::drawDepth()
 	glUseProgram(0);
 
 	// 2 pass bilateral filter depth map
-	glBindFramebuffer(GL_FRAMEBUFFER, blurFboV);
+	glBindFramebuffer(GL_FRAMEBUFFER, blurFbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, blurMapV, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 	glViewport(0, 0, mapSize.x, mapSize.y);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -256,7 +247,10 @@ void Particles::drawDepth()
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, blurFboH);
+	glBindFramebuffer(GL_FRAMEBUFFER, blurFbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, blurMapH, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 	glViewport(0, 0, mapSize.x, mapSize.y);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -317,6 +311,7 @@ void Particles::draw()
 {
 	// Render to normal FBO
 	glUseProgram(shaderNormal->getProgram());
+	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "outputMode"), renderMode);
 	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "sceneMap"), 0);
 	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "colorMap"), 1);
 	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "depthMap"), 2);
@@ -457,24 +452,27 @@ void Particles::mouseMovePassive(int x, int y)
 
 void Particles::keyboard(unsigned char key)
 {
-	switch (key)
+	if (key >= '0' && key <= '9')
 	{
-	case 'b':
-		addParticles();
-		break;
-	case ' ':
-		//addParticles(2, 0.2f);
-		addParticles(1);
-		break;
-	case '1':
-		addParticles(100, 2.5f);
-		break;
-	case 'c':
-		removeParticles(count);
-		Particle::ID = 0;
-		break;
-	case 'g':
-		solver->toggleGravity();
-		break;
+		renderMode = key - '0';
+	}
+	else
+	{
+		switch (key)
+		{
+		case 'b':
+			addParticles();
+			break;
+		case ' ':
+			addParticles(100, 2.5f);
+			break;
+		case 'c':
+			removeParticles(count);
+			Particle::ID = 0;
+			break;
+		case 'g':
+			solver->toggleGravity();
+			break;
+		}
 	}
 }

@@ -41,6 +41,7 @@ private:
 	Quad* skyQuad;
 	Quad* screenQuad;
 	glm::ivec2 mapSize;
+	int renderMode = 1;
 
 	Shader* shaderBFilter;
 	Shader* shaderNormal;
@@ -51,9 +52,8 @@ private:
 	GLuint depthFbo;
 	GLuint depthMap;
 	GLuint colorMap;
-	GLuint blurFboV;
+	GLuint blurFbo;
 	GLuint blurMapV;
-	GLuint blurFboH;
 	GLuint blurMapH;
 	GLuint thickFbo;
 	GLuint thickMap;

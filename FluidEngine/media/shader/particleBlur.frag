@@ -7,14 +7,25 @@ out vec4 outColor;
 uniform sampler2D depthmap;
 uniform vec2 blurDir;
 
+const float filterRadius = 10.0;
+const float blurScale = 0.1;
+const float blurFalloff = 100.0;
+
 void main()
 {
 	float depth = texture(depthmap, Texcoord).r;
-	//if (depth > 0.99999) discard;
 	
-	float filterRadius = 10.0;
-	float blurScale = 0.1;
-	float blurFalloff = 100.0;
+	if (depth <= 0.0)
+	{
+		gl_FragDepth = 0.0;
+		return;
+	}
+
+	if (depth >= 1.0)
+	{
+		gl_FragDepth = depth;
+		return;
+	}
 	
 	float sum = 0.0;
 	float wsum = 0.0;
@@ -22,6 +33,8 @@ void main()
 	for(float x = -filterRadius; x < filterRadius; x += 1.0)
 	{
 		float sampleDepth = texture(depthmap, Texcoord + x * blurDir).r;
+		
+		if (sampleDepth >= 1.0) continue;
 		
 		// Spatial
 		float r = x * blurScale;

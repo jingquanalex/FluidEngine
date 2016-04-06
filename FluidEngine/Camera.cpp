@@ -21,7 +21,7 @@ Camera::Camera()
 	up = vec3(0.0f, 1.0f, 0.0f);
 	fov = 75.0f;
 	zNear = 1.0f;
-	zFar = 30.0f;
+	zFar = 20.0f;
 
 	mouseSensitivity = 0.25f;
 	smoothness = 50.0f;
