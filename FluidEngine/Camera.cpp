@@ -9,7 +9,6 @@ extern int window_height;
 // Input: width and height of the window as int.
 Camera::Camera()
 {
-	targetPoint = vec3(0);
 	isWrappingPointer = false;
 	mouseTriggered = false;
 	isActive = false;
@@ -269,7 +268,7 @@ vec3 Camera::getPosition() const
 	return position;
 }
 
-glm::vec3 Camera::getDirectionVec() const
+glm::vec3 Camera::getDirection() const
 {
 	return direction;
 }

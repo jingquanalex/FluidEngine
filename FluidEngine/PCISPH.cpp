@@ -72,6 +72,7 @@ void PCISPH::compute(ivec2 mouseDelta, int renderMode)
 	// === Neighbor Search ===
 
 	pGrid.clear();
+
 	for (Particle &p : *particles)
 	{
 		// Insert particles into cells based on its positional key
@@ -82,6 +83,7 @@ void PCISPH::compute(ivec2 mouseDelta, int renderMode)
 			pD = &p;
 		}
 
+		// Default color
 		p.Color = vec4(0.6, 0.9, 1.0, 1.0);
 	}
 
@@ -142,8 +144,8 @@ void PCISPH::compute(ivec2 mouseDelta, int renderMode)
 	for (Particle &p : *particles)
 	{
 		fGravity = m * gravity;
-		fExternal = vec3(0);
-		fViscosity = vec3(0);
+		vec3 fViscosity = vec3(0);
+		vec3 fExternal = vec3(0);
 		p.Pressure = 0.0f;
 		p.PressureForce = vec3(0);
 		vec3 fCohesion = vec3(0);
@@ -154,7 +156,6 @@ void PCISPH::compute(ivec2 mouseDelta, int renderMode)
 		{
 			if (p.Density == 0.0f || pN->Density == 0.0f) continue;
 
-			// Viscosity
 			fViscosity += u * m * (pN->Velocity - p.Velocity) / pN->Density *
 				ViscosityLaplacian(p.Position, pN->Position, h);
 
@@ -180,7 +181,7 @@ void PCISPH::compute(ivec2 mouseDelta, int renderMode)
 		{
 			mat4 mView = camera->getMatView();
 			vec3 up = vec3(mView[0].y, mView[1].y, mView[2].y);
-			vec3 right = cross(camera->getDirectionVec(), up);
+			vec3 right = cross(camera->getDirection(), up);
 			fExternal = (mouseDelta.x * right + -mouseDelta.y * up) * m * 5;
 		}
 

@@ -140,12 +140,10 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 		}
 	}
 
-	// === Compute Normal And Pressure ===
+	// === Compute Normal (for curvature force) And Pressure ===
 
 	for (Particle &p : *particles)
 	{
-		// === Normal (for curvature force) ===
-
 		p.Normal = vec3(0);
 
 		for (Particle* pN : p.Neighbors)
@@ -169,9 +167,9 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 
 	for (Particle &p : *particles)
 	{
+		vec3 fGravity = m * gravity;
 		vec3 fPressure = vec3(0);
 		vec3 fViscosity = vec3(0);
-		vec3 fGravity = m * gravity;
 		vec3 fExternal = vec3(0);
 		vec3 fCohesion = vec3(0);
 		vec3 fCurvature = vec3(0);
@@ -191,6 +189,7 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 			fViscosity += u * m * (pN->Velocity - p.Velocity) / pN->Density *
 				ViscosityLaplacian(p.Position, pN->Position, h);
 
+			// Surface tension
 			if (distance2(p.Position, pN->Position) > 0.0f)
 			{
 				float correctionFactor = 2 * restDensity / (p.Density + pN->Density);
@@ -213,7 +212,7 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 		{
 			mat4 mView = camera->getMatView();
 			vec3 up = vec3(mView[0].y, mView[1].y, mView[2].y);
-			vec3 right = cross(camera->getDirectionVec(), up);
+			vec3 right = cross(camera->getDirection(), up);
 			fExternal = (mouseDelta.x * right + -mouseDelta.y * up) * m * 5;
 		}
 
@@ -362,6 +361,18 @@ void WCSPH::clear()
 void WCSPH::setDebugParticle(int id)
 {
 	pDebugId = id;
+}
+
+void WCSPH::setViscosity(float viscosity)
+{
+	this->viscosity = viscosity;
+	initialize();
+}
+
+void WCSPH::setSurfaceTension(float tension)
+{
+	this->surfaceTensionCoef = tension;
+	initialize();
 }
 
 float WCSPH::getRadius() const

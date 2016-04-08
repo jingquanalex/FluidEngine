@@ -15,6 +15,7 @@ private:
 	Object* groundObject;
 	float defaultYaw, defaultPitch;
 	float yaw, pitch, distance;
+	glm::vec3 targetPosition;
 
 	Views view;
 	bool stateLookAround = false;
@@ -36,8 +37,10 @@ public:
 	void keyboardUp(unsigned char key);
 
 	void setTargetObject(Object* target, Object* target2 = nullptr);
+	void setTarget(glm::vec3 target);
 	void setDistance(float distance);
 	void setOrientation(float yaw, float pitch);
+
 	Object* getTargetObject() const;
 	float getDistance() const;
 };

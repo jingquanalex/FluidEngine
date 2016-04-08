@@ -8,6 +8,7 @@ extern int window_height;
 
 CameraFPS::CameraFPS() : Camera()
 {
+	targetPoint = vec3(0);
 	yaw = -90.0f;
 	pitch = 0.0f;
 	moveSpeed = 10.0f;

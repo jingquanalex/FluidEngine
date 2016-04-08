@@ -26,12 +26,6 @@ void Particles::load(float dt, Camera* camera)
 	solver = new WCSPH(dt, &particles, camera);
 	//solver = new PCISPH(dt, &particles, camera);
 
-	// Load a box model to contain the particles
-	box = new Object();
-	box->setScale(vec3(10));
-	box->setWireframeMode(true);
-	box->load("cube.obj");
-
 	// Skybox
 	skyQuad = new Quad();
 	skyQuad->load("lake", "skyquad");
@@ -217,8 +211,7 @@ void Particles::drawDepth()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	skyQuad->draw();
-	box->draw();
-
+	
 	// Render particles' color and depth
 	glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
 	glViewport(0, 0, mapSize.x, mapSize.y);
@@ -315,7 +308,6 @@ void Particles::draw()
 	if (renderMode == 0)
 	{
 		skyQuad->draw();
-		box->draw();
 
 		glUseProgram(shader->getProgram());
 		glUniform1f(glGetUniformLocation(shader->getProgram(), "colorThickness"), 0.0f);
@@ -493,6 +485,30 @@ void Particles::keyboard(unsigned char key)
 			break;
 		case 'g':
 			solver->toggleGravity();
+			break;
+		case 'q':
+			solver->setViscosity(0.8f);
+			break;
+		case 'w':
+			solver->setViscosity(3.8f);
+			break;
+		case 'e':
+			solver->setViscosity(33.8f);
+			break;
+		case 'r':
+			solver->setViscosity(63.8f);
+			break;
+		case 'a':
+			solver->setSurfaceTension(0.0f);
+			break;
+		case 's':
+			solver->setSurfaceTension(1.0f);
+			break;
+		case 'd':
+			solver->setSurfaceTension(2.0f);
+			break;
+		case 'f':
+			solver->setSurfaceTension(3.0f);
 			break;
 		}
 	}

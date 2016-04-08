@@ -30,8 +30,6 @@ private:
 	GLuint vao, vbo;
 	GLuint texid;
 
-	Object* box;
-
 	bool statePicked;
 	int mouseX, mouseY;
 	int mouseLastX = 0, mouseLastY = 0;
@@ -41,7 +39,7 @@ private:
 	Quad* skyQuad;
 	Quad* screenQuad;
 	glm::ivec2 mapSize;
-	int renderMode = 1;
+	int renderMode = 0;
 
 	Shader* shaderBFilter;
 	Shader* shaderNormal;

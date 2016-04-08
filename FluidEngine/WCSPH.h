@@ -72,6 +72,8 @@ public:
 
 	void clear();
 	void setDebugParticle(int id);
+	void setViscosity(float viscosity);
+	void setSurfaceTension(float tension);
 	float getRadius() const;
 	float getSmoothingLength() const;
 	int getParticleAtRay(glm::vec3 ray) const;

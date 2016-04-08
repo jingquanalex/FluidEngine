@@ -15,8 +15,6 @@ protected:
 	bool isActive;
 	bool isOrtho;
 
-	glm::vec3 targetPoint;
-
 	glm::mat4 matProjection, matView;
 	glm::mat4 matInvProjection;
 	glm::vec3 position, direction, up;
@@ -66,7 +64,7 @@ public:
 	glm::mat4 getMatInvProjection() const;
 	glm::vec2 getResolution() const;
 	glm::vec3 getPosition() const;
-	glm::vec3 getDirectionVec() const;
+	glm::vec3 getDirection() const;
 	float getMaxSpeed() const;
 	float getAcceleration() const;
 	float getSmoothness() const;

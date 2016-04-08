@@ -23,65 +23,73 @@ CameraTarget::~CameraTarget()
 
 void CameraTarget::update(float dt)
 {
-	if (!isActive || targetObject == nullptr) return;
+	if (!isActive) return;
 
-	mouseDeltaX = mouseSensitivity * (mouseX - mouseLastX);
-	mouseDeltaY = mouseSensitivity * (mouseY - mouseLastY);
-	mouseLastX = mouseX;
-	mouseLastY = mouseY;
+	direction = normalize(targetPosition - position);
 
 	updateViewMatrix();
 }
 
 void CameraTarget::updateViewMatrix()
 {
-	if (targetObject == nullptr) return;
-
-	mat4 matRotation = targetObject->getRotationMatrix();
-	vec3 forward = vec3(matRotation[2][0], matRotation[2][1], matRotation[2][2]);
-	vec3 up = vec3(matRotation[1][0], matRotation[1][1], matRotation[1][2]);
-	vec3 right = vec3(matRotation[0][0], matRotation[0][1], matRotation[0][2]);
-
-	switch (view)
+	if (targetObject == nullptr)
 	{
-	case Views::Chase:
-		if (stateLookAround)
+		vec3 dirVec = rotate(vec3(0, 0, 1), radians(yaw), vec3(0, 1, 0));
+		vec3 right = cross(-dirVec, vec3(0, 1, 0));
+
+		position = targetPosition + rotate(dirVec, radians(pitch), right) * distance;
+		matView = lookAt(position, targetPosition, vec3(0, 1, 0));
+	}
+	else
+	{
+		// Airplane Camera stuff
+
+		mat4 matRotation = targetObject->getRotationMatrix();
+		vec3 forward = vec3(matRotation[2][0], matRotation[2][1], matRotation[2][2]);
+		vec3 up = vec3(matRotation[1][0], matRotation[1][1], matRotation[1][2]);
+		vec3 right = vec3(matRotation[0][0], matRotation[0][1], matRotation[0][2]);
+
+		switch (view)
 		{
-			vec3 dirVec = rotate(vec3(0, 0, 1), radians(yaw), vec3(0, 1, 0));
-			vec3 right = cross(-dirVec, vec3(0, 1, 0));
-			
-			position = targetObject->getPosition() + rotate(dirVec, radians(pitch), right) * distance;
-			matView = lookAt(position, targetObject->getPosition(), vec3(0, 1, 0));
+		case Views::Chase:
+			if (stateLookAround)
+			{
+				vec3 dirVec = rotate(vec3(0, 0, 1), radians(yaw), vec3(0, 1, 0));
+				vec3 right = cross(-dirVec, vec3(0, 1, 0));
+
+				position = targetPosition + rotate(dirVec, radians(pitch), right) * distance;
+				matView = lookAt(position, targetPosition, vec3(0, 1, 0));
+			}
+			else
+			{
+				position = targetPosition + rotate(-forward, radians(-defaultPitch), right) * distance;
+				matView = lookAt(position, targetPosition, up);
+			}
+			break;
+
+		case Views::Cockpit:
+			position = targetPosition + forward;
+			matView = lookAt(position, position + forward, up);
+			break;
+
+		case Views::Left:
+			position = targetPosition + right * 1.5 - up * 0.5;
+			matView = lookAt(position, position + forward, up);
+			break;
+
+		case Views::Right:
+			position = targetPosition - forward * 3.0 - right * 1.5 - up * 0.5;
+			matView = lookAt(position, position + forward, up);
+			break;
+
+		case Views::Ground:
+			matView = lookAt(groundObject->getPosition(), targetPosition, vec3(0, 1, 0));
+			break;
+
+		case Views::Sky:
+			matView = lookAt(groundObject->getPosition(), targetPosition, vec3(0, 1, 0));
+			break;
 		}
-		else
-		{
-			position = targetObject->getPosition() + rotate(-forward, radians(-defaultPitch), right) * distance;
-			matView = lookAt(position, targetObject->getPosition(), up);
-		}
-		break;
-
-	case Views::Cockpit:
-		position = targetObject->getPosition() + forward;
-		matView = lookAt(position, position + forward, up);
-		break;
-
-	case Views::Left:
-		position = targetObject->getPosition() + right * 1.5 - up * 0.5;
-		matView = lookAt(position, position + forward, up);
-		break;
-
-	case Views::Right:
-		position = targetObject->getPosition() - forward * 3.0 - right * 1.5 - up * 0.5;
-		matView = lookAt(position, position + forward, up);
-		break;
-
-	case Views::Ground:
-		matView = lookAt(groundObject->getPosition(), targetObject->getPosition(), vec3(0, 1, 0));
-		break;
-
-	case Views::Sky:
-		matView = lookAt(groundObject->getPosition(), targetObject->getPosition(), vec3(0, 1, 0));
-		break;
 	}
 
 	if (!isActive) return;
@@ -101,9 +109,20 @@ void CameraTarget::mouse(int button, int state)
 
 	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
 	{
+		stateLookAround = true;
+	}
+	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP)
+	{
+		stateLookAround = false;
+	}
+
+	// Airplane stuff
+	/*if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
+	{
 		if (view == Views::Chase)
 		{
 			stateLookAround = true;
+			// Maintain cursor center position while moving mouse
 			mouseTriggered = true;
 			isWrappingPointer = true;
 			glutWarpPointer(glutGet(GLUT_WINDOW_WIDTH) / 2, glutGet(GLUT_WINDOW_HEIGHT) / 2);
@@ -118,9 +137,9 @@ void CameraTarget::mouse(int button, int state)
 		if (view == Views::Chase)
 		{
 			stateLookAround = false;
-			mouseTriggered = false;
+			//mouseTriggered = false;
 		}
-	}
+	}*/
 }
 
 // Track the delta for the mouse movements
@@ -128,10 +147,10 @@ void CameraTarget::mouseMotion(int x, int y)
 {
 	if (!isActive) return;
 
+	Camera::mouseMotion(x, y);
+
 	if (stateLookAround)
 	{
-		Camera::mouseMotion(x, y);
-
 		// Update yaw and pitch and limit pitch
 		yaw += -mouseDeltaX * mouseSensitivity;
 		pitch += -mouseDeltaY * mouseSensitivity;
@@ -143,20 +162,17 @@ void CameraTarget::mouseMotionPassive(int x, int y)
 {
 	if (!isActive) return;
 
-	if (stateLookAround)
-	{
-		Camera::mouseMotionPassive(x, y);
-	}
+	Camera::mouseMotionPassive(x, y);
 }
 
 void CameraTarget::mouseWheel(int dir)
 {
 	if (!isActive) return;
 
-	//if (stateLookAround)
+	if (stateLookAround)
 	{
-		distance += -dir;
-		distance = clamp(distance, 0.0f, 100.0f);
+		distance += -dir * 0.5f;
+		distance = clamp(distance, 0.0001f, 100.0f);
 	}
 }
 
@@ -196,6 +212,12 @@ void CameraTarget::setTargetObject(Object* target, Object* target2)
 {
 	this->targetObject = target;
 	this->groundObject = target2;
+	setTarget(target->getPosition());
+}
+
+void CameraTarget::setTarget(glm::vec3 target)
+{
+	this->targetPosition = target;
 }
 
 void CameraTarget::setDistance(float distance)

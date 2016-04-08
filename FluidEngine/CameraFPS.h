@@ -15,6 +15,8 @@ private:
 	bool stateForward = false, stateBackward = false, 
 		stateLeft = false, stateRight = false;
 
+	glm::vec3 targetPoint;
+
 public:
 
 	CameraFPS();

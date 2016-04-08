@@ -15,8 +15,10 @@ class Scene
 private:
 
 	Timer* frameTimer;
-	CameraFPS* camera;
+	//CameraFPS* camera;
+	CameraTarget* camera;
 
+	Object* box;
 	Particles* particles;
 
 	const float maxframeTime = 1 / 4.0f;

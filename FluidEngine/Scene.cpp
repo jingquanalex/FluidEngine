@@ -18,8 +18,19 @@ Scene::Scene()
 	frameTimer = new Timer(1.0f);
 	frameTimer->start();
 
-	camera = new CameraFPS();
+	// Load a box model to contain the particles
+	box = new Object();
+	box->setScale(vec3(10));
+	box->setWireframeMode(true);
+	box->load("cube.obj");
+
+	//camera = new CameraFPS();
+	camera = new CameraTarget();
 	camera->setActive(true);
+	camera->setDistance(8.0f);
+	camera->setTarget(vec3(0, -4, 0));
+	camera->setOrientation(-135.0f, -35.0f);
+	camera->setMouseSensitivity(0.16f);
 
 	particles = new Particles();
 }
@@ -86,6 +97,7 @@ void Scene::display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+	box->draw();
 	particles->draw();
 	
 	glutSwapBuffers();
