@@ -1,6 +1,7 @@
 #pragma once
 
 #include <thread>
+#include <stdio.h>
 #include "Timer.h"
 #include "CameraFPS.h"
 #include "CameraTarget.h"
@@ -8,6 +9,7 @@
 #include "Light.h"
 #include "Quad.h"
 #include "ChunkManager.h"
+#include "Font.h"
 
 class Scene
 {
@@ -17,7 +19,7 @@ private:
 	Timer* frameTimer;
 	//CameraFPS* camera;
 	CameraTarget* camera;
-
+	Font* font;
 	Object* box;
 	Particles* particles;
 
@@ -27,6 +29,10 @@ private:
 	float accumulator = 0.0f;
 	int fps = 0;
 	int currentTime, previousTime = 0;
+
+	int displayTextMode = 1;
+
+	std::string Trim(float d);
 
 public:
 

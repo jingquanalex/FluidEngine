@@ -48,7 +48,11 @@ void Quad::load(string shadername)
 void Quad::load(string mapname, string shadername)
 {
 	load(shadername);
+	loadCubemap(mapname);
+}
 
+void Quad::loadCubemap(std::string mapname)
+{
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glDepthFunc(GL_LEQUAL);
 
@@ -68,7 +72,10 @@ void Quad::load(string mapname, string shadername)
 	if (texCubeId == 0)
 	{
 		printf("SOIL loading error: '%s'\n", SOIL_last_result());
+		return;
 	}
+
+	listTexCubeId.push_back(texCubeId);
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeId);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -82,7 +89,7 @@ void Quad::load(string mapname, string shadername)
 void Quad::draw()
 {
 	glUseProgram(shader->getProgram());
-	glBindTexture(GL_TEXTURE_CUBE_MAP, texCubeId);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, listTexCubeId.at(currentTexIndex));
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
@@ -106,9 +113,19 @@ void Quad::draw(GLuint depthMapId, Camera* camera)
 	glBindVertexArray(0);
 }
 
+void Quad::cycleNextMap()
+{
+	currentTexIndex = ++currentTexIndex >= (int)listTexCubeId.size() ? 0 : currentTexIndex;
+}
+
+void Quad::cyclePreviousMap()
+{
+	currentTexIndex = --currentTexIndex <= -1 ? (int)listTexCubeId.size() - 1 : currentTexIndex;
+}
+
 GLuint Quad::getCubeMap() const
 {
-	return texCubeId;
+	return listTexCubeId.at(currentTexIndex);
 }
 
 GLuint Quad::getVao() const

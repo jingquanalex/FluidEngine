@@ -22,13 +22,17 @@ void Particles::load(float dt, Camera* camera)
 	// Set max particles count for vbo and load particle shaders
 	maxCount = 10000;
 	this->camera = camera;
+	this->dt = dt;
 	shader = new Shader("particle");
 	solver = new WCSPH(dt, &particles, camera);
 	//solver = new PCISPH(dt, &particles, camera);
 
 	// Skybox
-	skyQuad = new Quad();
-	skyQuad->load("lake", "skyquad");
+	cubemaps = new Quad();
+	cubemaps->load("lakeblur", "skyquad");
+	cubemaps->loadCubemap("lake");
+	cubemaps->loadCubemap("lake2");
+	cubemaps->loadCubemap("church");
 
 	// Add some particles temp
 	//addParticles(10, 0.5);
@@ -185,6 +189,75 @@ void Particles::update()
 	// Solve SPH
 	solver->compute(mouseDelta, renderMode);
 
+	// Increment/decrement sph attributes
+	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.005f;
+	if (stateIncRestdensity)
+	{
+		solver->setRestDensity(solver->getRestDensity() + 10.0f * inctime * dt);
+	}
+	else if (stateDecRestdensity)
+	{
+		if (solver->getRestDensity() <= 0.0f)
+		{
+			solver->setRestDensity(0.0f);
+		}
+		else
+		{
+			solver->setRestDensity(solver->getRestDensity() - 10.0f * inctime * dt);
+		}
+	}
+
+	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.001f;
+	if (stateIncGasconstant)
+	{
+		solver->setGasConstant(solver->getGasConstant() + 0.00001f * inctime * dt);
+	}
+	else if (stateDecGasconstant)
+	{
+		if (solver->getGasConstant() <= 0.0f)
+		{
+			solver->setGasConstant(0.0f);
+		}
+		else
+		{
+			solver->setGasConstant(solver->getGasConstant() - 0.00001f * inctime * dt);
+		}
+	}
+
+	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.025f;
+	if (stateIncViscosity)
+	{
+		solver->setViscosity(solver->getViscosity() + 0.1f * inctime * dt);
+	}
+	else if (stateDecViscosity)
+	{
+		if (solver->getViscosity() <= 0.0f)
+		{
+			solver->setViscosity(0.0f);
+		}
+		else
+		{
+			solver->setViscosity(solver->getViscosity() - 0.1f * inctime * dt);
+		}
+	}
+
+	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.005f;
+	if (stateIncSurfacetension)
+	{
+		solver->setSurfaceTension(solver->getSurfaceTension() + 0.1f * inctime * dt);
+	}
+	else if (stateDecSurfacetension)
+	{
+		if (solver->getSurfaceTension() <= 0.0f)
+		{
+			solver->setSurfaceTension(0.0f);
+		}
+		else
+		{
+			solver->setSurfaceTension(solver->getSurfaceTension() - 0.1f * inctime * dt);
+		}
+	}
+
 	// Create particle data list to send to gpu
 	sParticles.clear();
 	for (Particle &p : particles)
@@ -210,7 +283,7 @@ void Particles::drawDepth()
 	glViewport(0, 0, mapSize.x, mapSize.y);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	skyQuad->draw();
+	cubemaps->draw();
 	
 	// Render particles' color and depth
 	glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
@@ -307,7 +380,7 @@ void Particles::draw()
 {
 	if (renderMode == 0)
 	{
-		skyQuad->draw();
+		cubemaps->draw();
 
 		glUseProgram(shader->getProgram());
 		glUniform1f(glGetUniformLocation(shader->getProgram(), "colorThickness"), 0.0f);
@@ -340,7 +413,7 @@ void Particles::draw()
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, blurMapH);
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skyQuad->getCubeMap());
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemaps->getCubeMap());
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, gaussMapH);
 	glBindVertexArray(screenQuad->getVao());
@@ -408,6 +481,7 @@ void Particles::removeParticles(int value)
 	}
 	else
 	{
+		Particle::ID = 0;
 		particles.clear();
 		count = 0;
 	}
@@ -481,35 +555,88 @@ void Particles::keyboard(unsigned char key)
 			break;
 		case 'c':
 			removeParticles(count);
-			Particle::ID = 0;
 			break;
 		case 'g':
 			solver->toggleGravity();
 			break;
+		case']':
+			cubemaps->cycleNextMap();
+			break;
+		case'[':
+			cubemaps->cyclePreviousMap();
+			break;
+		}
+
+		if (!stateHeldtime)
+		{
+			heldtime = glutGet(GLUT_ELAPSED_TIME);
+			stateHeldtime = true;
+		}
+
+		switch (key)
+		{
 		case 'q':
-			solver->setViscosity(0.8f);
+			stateDecRestdensity = true;
 			break;
 		case 'w':
-			solver->setViscosity(3.8f);
+			stateIncRestdensity = true;
 			break;
 		case 'e':
-			solver->setViscosity(33.8f);
+			stateDecGasconstant = true;
 			break;
 		case 'r':
-			solver->setViscosity(63.8f);
+			stateIncGasconstant = true;
 			break;
-		case 'a':
-			solver->setSurfaceTension(0.0f);
+		case 't':
+			stateDecViscosity = true;
 			break;
-		case 's':
-			solver->setSurfaceTension(1.0f);
+		case 'y':
+			stateIncViscosity = true;
 			break;
-		case 'd':
-			solver->setSurfaceTension(2.0f);
+		case 'u':
+			stateDecSurfacetension = true;
 			break;
-		case 'f':
-			solver->setSurfaceTension(3.0f);
+		case 'i':
+			stateIncSurfacetension = true;
 			break;
 		}
 	}
+}
+
+void Particles::keyboardUp(unsigned char key)
+{
+	stateHeldtime = false;
+
+	switch (key)
+	{
+	case 'q':
+		stateDecRestdensity = false;
+		break;
+	case 'w':
+		stateIncRestdensity = false;
+		break;
+	case 'e':
+		stateDecGasconstant = false;
+		break;
+	case 'r':
+		stateIncGasconstant = false;
+		break;
+	case 't':
+		stateDecViscosity = false;
+		break;
+	case 'y':
+		stateIncViscosity = false;
+		break;
+	case 'u':
+		stateDecSurfacetension = false;
+		break;
+	case 'i':
+		stateIncSurfacetension = false;
+		break;
+	}
+}
+
+WCSPH* Particles::getSolver()
+{
+	return solver;
 }

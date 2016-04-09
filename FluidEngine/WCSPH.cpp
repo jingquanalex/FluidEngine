@@ -32,7 +32,7 @@ WCSPH::WCSPH(float dt, vector<Particle>* particles, Camera* camera)
 	radius = 0.1f;
 	smoothingLength = radius * 4;
 	restDensity = 59.0f;
-	viscosity = 3.8f;
+	viscosity = 2.8f;
 	surfaceTensionCoef = 1.0f;
 	gasConstant = 0.0000001f;
 	gravity = vec3(0, -9.8f, 0);
@@ -363,6 +363,18 @@ void WCSPH::setDebugParticle(int id)
 	pDebugId = id;
 }
 
+void WCSPH::setRestDensity(float restdensity)
+{
+	this->restDensity = restdensity;
+	initialize();
+}
+
+void WCSPH::setGasConstant(float gasconstant)
+{
+	this->gasConstant = gasconstant;
+	initialize();
+}
+
 void WCSPH::setViscosity(float viscosity)
 {
 	this->viscosity = viscosity;
@@ -373,6 +385,26 @@ void WCSPH::setSurfaceTension(float tension)
 {
 	this->surfaceTensionCoef = tension;
 	initialize();
+}
+
+float WCSPH::getRestDensity() const
+{
+	return restDensity;
+}
+
+float WCSPH::getGasConstant() const
+{
+	return gasConstant;
+}
+
+float WCSPH::getViscosity() const
+{
+	return viscosity;
+}
+
+float WCSPH::getSurfaceTension() const
+{
+	return surfaceTensionCoef;
 }
 
 float WCSPH::getRadius() const

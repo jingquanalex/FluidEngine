@@ -78,9 +78,9 @@ void main()
 	vec3 L = (view * vec4(lightDir, 0.0)).xyz;
     vec3 V = -normalize(eyePos);
     vec3 H = normalize(V + L);
-    float specular = pow(max(dot(N, H), 0.0), 3000.0);
+    float specular = pow(max(dot(N, H), 0.0), 2000.0);
 	
-	float diffuse = max(dot(N, L), 0.0) * 0.5 + 0.5;
+	float diffuse = max(dot(N, L), 0.0) * 0.2 + 0.8;
 	
 	float fresPower = 2.0f;
 	float fresBias = 0.01;
@@ -90,7 +90,7 @@ void main()
 	
 	vec4 envReflect = texture(envMap, reflect(normalize(eyePos), N));
 	
-	float refractVal = 0.1;
+	float refractVal = 0.3;
 	vec4 envRefract = texture(sceneMap, Texcoord + N.xy * thickness * refractVal);
 	
 	vec4 color = texture(colorMap, Texcoord);
@@ -107,25 +107,25 @@ void main()
 			outColor = vec4(depth);
 			break;
 		case 3:
-			outColor = vec4(N, 1.0);
-			break;
-		case 4:
 			outColor = vec4(diffuse);
 			break;
-		case 5:
+		case 4:
 			outColor = colorAbsorption;
 			break;
+		case 5:
+			outColor = diffuse * colorAbsorption;
+			break;
 		case 6:
-			outColor = envRefract;
+			outColor = finalColor;
 			break;
 		case 7:
-			outColor = finalColor;
+			outColor = diffuse * finalColor;
 			break;
 		case 8:
 			outColor = diffuse * finalColor + specular;
 			break;
 		case 9:
-			outColor = fresnel * envReflect;
+			outColor = envReflect;
 			break;
 		case 0:
 			break;

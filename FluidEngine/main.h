@@ -4,7 +4,7 @@
 #include "Includes.h"
 #include "Scene.h"
 
-std::string g_windowTitle = "FluidEngine b1";
+std::string g_windowTitle = "FluidEngine";
 std::string g_mediaDirectory = "../FluidEngine/media/";
 
 // Window display area.

@@ -1,11 +1,13 @@
 #pragma once
 
 #include "Includes.h"
+#include "Shader.h"
+#include "Quad.h"
 #include <map>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-// Code: http://learnopengl.com/#!In-Practice/Text-Rendering
+// Code Credit: http://learnopengl.com/#!In-Practice/Text-Rendering
 
 class Font
 {
@@ -19,6 +21,11 @@ class Font
 	};
 
 	std::map<GLchar, Character> Characters;
+	Shader* shader;
+	GLuint VAO, VBO;
+	glm::mat4 projection;
+
+	void loadChar(FT_Face face, char c);
 
 public:
 
@@ -26,5 +33,7 @@ public:
 	~Font();
 
 	void load(std::string fontname);
+	void updateProjection();
+	void RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color);
 
 };

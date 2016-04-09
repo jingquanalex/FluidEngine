@@ -5,6 +5,7 @@
 //#include "WCSPH.h"
 #include "PCISPH.h"
 #include "Quad.h"
+#include "Font.h"
 
 // Particle Manager: Generate, solve and render particles
 // Particles are rendered on 2D quads created with geometry shader
@@ -36,7 +37,7 @@ private:
 	glm::ivec2 mouseDelta;
 	Camera* camera;
 
-	Quad* skyQuad;
+	Quad* cubemaps;
 	Quad* screenQuad;
 	glm::ivec2 mapSize;
 	int renderMode = 0;
@@ -59,6 +60,16 @@ private:
 	GLuint gaussMapV;
 	GLuint gaussMapH;
 
+	float dt;
+	int heldtime = 0;
+	float inctime;
+	bool stateHeldtime;
+
+	bool stateIncRestdensity = false, stateDecRestdensity = false;
+	bool stateIncGasconstant = false, stateDecGasconstant = false;
+	bool stateIncViscosity = false, stateDecViscosity = false;
+	bool stateIncSurfacetension = false, stateDecSurfacetension = false;
+
 public:
 
 	Particles();
@@ -79,5 +90,8 @@ public:
 	void mouseMove(int x, int y);
 	void mouseMovePassive(int x, int y);
 	void keyboard(unsigned char key);
+	void keyboardUp(unsigned char key);
+
+	WCSPH* getSolver();
 
 };

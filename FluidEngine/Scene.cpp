@@ -18,6 +18,8 @@ Scene::Scene()
 	frameTimer = new Timer(1.0f);
 	frameTimer->start();
 
+	font = new Font();
+
 	// Load a box model to contain the particles
 	box = new Object();
 	box->setScale(vec3(10));
@@ -45,6 +47,7 @@ void Scene::load()
 	int loadStart = glutGet(GLUT_ELAPSED_TIME);
 
 	particles->load(dt, camera);
+	font->load("arial.ttf");
 	
 	float loadtime = (glutGet(GLUT_ELAPSED_TIME) - loadStart) / 1000.0f;
 	cout << "Load time: " << loadtime << "s" << endl;
@@ -100,6 +103,73 @@ void Scene::display()
 	box->draw();
 	particles->draw();
 	
+	if (displayTextMode >= 1)
+	{
+		font->RenderText("F1 - Toggle help display", 25.0f, (float)window_height - 35.0f, 1.0f, vec3(1));
+
+		if (displayTextMode == 1)
+		{
+			stringstream ss;
+			ss.precision(10);
+			ss << fixed << "Rest Density: " << Trim(particles->getSolver()->getRestDensity());
+			font->RenderText(ss.str(), 25.0f, (float)window_height - 75.0f, 1.0f, vec3(1));
+			ss.str("");
+			ss << fixed << "Gas Constant: " << Trim(particles->getSolver()->getGasConstant());
+			font->RenderText(ss.str(), 25.0f, (float)window_height - 95.0f, 1.0f, vec3(1));
+			ss.str("");
+			ss << fixed << "Viscosity: " << Trim(particles->getSolver()->getViscosity());
+			font->RenderText(ss.str(), 25.0f, (float)window_height - 115.0f, 1.0f, vec3(1));
+			ss.str("");
+			ss << fixed << "Surface Tension Force: " << Trim(particles->getSolver()->getSurfaceTension());
+			font->RenderText(ss.str(), 25.0f, (float)window_height - 135.0f, 1.0f, vec3(1));
+		}
+		
+		if (displayTextMode >= 2)
+		{
+			font->RenderText("RMouse + drag - Rotate camera", 25.0f, (float)window_height - 75.0f, 1.0f, vec3(1));
+			font->RenderText("RMouse + mousewheel - Move camera near/far", 25.0f, (float)window_height - 95.0f, 1.0f, vec3(1));
+
+			font->RenderText("Particle Solver", 25.0f, (float)window_height - 135.0f, 1.0f, vec3(1));
+			font->RenderText("LMouse (particle) + drag - Apply force to particle", 25.0f, (float)window_height - 155.0f, 1.0f, vec3(1));
+			font->RenderText("Space - Add 100 particles", 25.0f, (float)window_height - 175.0f, 1.0f, vec3(1));
+			font->RenderText("c - Clear particles", 25.0f, (float)window_height - 195.0f, 1.0f, vec3(1));
+			font->RenderText("g - Toggle gravity", 25.0f, (float)window_height - 215.0f, 1.0f, vec3(1));
+			
+			font->RenderText("q, w - Decrease/Increase rest density", 25.0f, (float)window_height - 255.0f, 1.0f, vec3(1));
+			font->RenderText("e, r - Decrease/Increase gas constant", 25.0f, (float)window_height - 275.0f, 1.0f, vec3(1));
+			font->RenderText("t, y - Decrease/Increase viscosity", 25.0f, (float)window_height - 295.0f, 1.0f, vec3(1));
+			font->RenderText("u, i - Decrease/Increase surface tension force", 25.0f, (float)window_height - 315.0f, 1.0f, vec3(1));
+			stringstream ss;
+			ss.precision(10);
+			ss << fixed << "Rest Density: " << Trim(particles->getSolver()->getRestDensity());
+			font->RenderText(ss.str(), 25.0f, (float)window_height - 335.0f, 1.0f, vec3(1));
+			ss.str("");
+			ss << fixed << "Gas Constant: " << Trim(particles->getSolver()->getGasConstant());
+			font->RenderText(ss.str(), 25.0f, (float)window_height - 355.0f, 1.0f, vec3(1));
+			ss.str("");
+			ss << fixed << "Viscosity: " << Trim(particles->getSolver()->getViscosity());
+			font->RenderText(ss.str(), 25.0f, (float)window_height - 375.0f, 1.0f, vec3(1));
+			ss.str("");
+			ss << fixed << "Surface Tension Force: " << Trim(particles->getSolver()->getSurfaceTension());
+			font->RenderText(ss.str(), 25.0f, (float)window_height - 395.0f, 1.0f, vec3(1));
+
+			font->RenderText("Particle Renderer", 25.0f, (float)window_height - 435.0f, 1.0f, vec3(1));
+			font->RenderText("1 - Full composition", 25.0f, (float)window_height - 455.0f, 1.0f, vec3(1));
+			font->RenderText("2 - Depth", 25.0f, (float)window_height - 475.0f, 1.0f, vec3(1));
+			font->RenderText("3 - Normals", 25.0f, (float)window_height - 495.0f, 1.0f, vec3(1));
+			font->RenderText("4 - Diffuse", 25.0f, (float)window_height - 515.0f, 1.0f, vec3(1));
+			font->RenderText("5 - Color absorption", 25.0f, (float)window_height - 535.0f, 1.0f, vec3(1));
+			font->RenderText("6 - Refraction", 25.0f, (float)window_height - 555.0f, 1.0f, vec3(1));
+			font->RenderText("7 - Final color", 25.0f, (float)window_height - 575.0f, 1.0f, vec3(1));
+			font->RenderText("8 - Final color + lighting", 25.0f, (float)window_height - 595.0f, 1.0f, vec3(1));
+			font->RenderText("9 - Fresnel + reflection", 25.0f, (float)window_height - 615.0f, 1.0f, vec3(1));
+			font->RenderText("0 - Points", 25.0f, (float)window_height - 635.0f, 1.0f, vec3(1));
+
+			font->RenderText("Cubemaps", 25.0f, (float)window_height - 675.0f, 1.0f, vec3(1));
+			font->RenderText("[, ] - Cycle cubemaps", 25.0f, (float)window_height - 695.0f, 1.0f, vec3(1));
+			
+		}
+	}
 	glutSwapBuffers();
 }
 
@@ -109,6 +179,7 @@ void Scene::reshape(int width, int height)
 	camera->setResolution(width, height);
 	window_width = width;
 	window_height = height;
+	font->updateProjection();
 }
 
 // Mouse buttons
@@ -141,8 +212,8 @@ void Scene::mouseWheel(int button, int dir, int x, int y)
 // Common ascii keys
 void Scene::keyboard(unsigned char key)
 {
-	if (key == 27) exit(0);
-
+	if (key == 27) exit(0); // esc
+	
 	camera->keyboard(key);
 	particles->keyboard(key);
 }
@@ -151,11 +222,17 @@ void Scene::keyboard(unsigned char key)
 void Scene::keyboardUp(unsigned char key)
 {
 	camera->keyboardUp(key);
+	particles->keyboardUp(key);
 }
 
 // Function, arrow and other special keys
 void Scene::keyboardSpecial(int key)
 {
+	if (key == GLUT_KEY_F1)
+	{
+		displayTextMode = ++displayTextMode > 2 ? 0 : displayTextMode;
+	}
+
 	camera->keyboardSpecial(key);
 }
 
@@ -163,4 +240,18 @@ void Scene::keyboardSpecial(int key)
 void Scene::keyboardSpecialUp(int key)
 {
 	camera->keyboardSpecialUp(key);
+}
+
+string Scene::Trim(float d)
+{
+	size_t len = _snprintf(0, 0, "%.10f", d);
+	string s(len + 1, 0);
+	_snprintf(&s[0], len + 1, "%.10f", d);
+	// remove nul terminator
+	s.pop_back();
+	// remove trailing zeros
+	s.erase(s.find_last_not_of('0') + 1, string::npos);
+	// add 0 if 0.
+	if (s.back() == '.') s.push_back('0');
+	return s;
 }
