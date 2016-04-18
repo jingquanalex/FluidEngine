@@ -15,8 +15,10 @@ Scene::Scene()
 
 	Shader::setupUniformBuffers();
 
-	frameTimer = new Timer(1.0f);
+	frameTimer = new Timer(fpsUpdateInterval);
 	frameTimer->start();
+	frameAvgTimer = new Timer(3.0f);
+	frameAvgTimer->start();
 
 	font = new Font();
 
@@ -58,7 +60,7 @@ void Scene::idle()
 	// frameTime - time to render a frame in seconds
 	currentTime = glutGet(GLUT_ELAPSED_TIME);
 	float frameTime = (currentTime - previousTime) / 1000.0f;
-	if (frameTime > maxframeTime) frameTime = maxframeTime;
+	//if (frameTime > maxframeTime) frameTime = maxframeTime;
 	previousTime = currentTime;
 
 	// Update logic at a constant dt, seperate from frame time
@@ -74,13 +76,29 @@ void Scene::idle()
 	camera->update(frameTime);
 
 	// Calculate frames per second
-	fps++;
+	frame_accum++;
+	if (currentTime - timeBase > fpsUpdateInterval * 1000.0f)
+	{
+		fps = frame_accum * 1000.0f / (currentTime - timeBase);
+		timeBase = currentTime;
+		frame_accum = 0;
+	}
+
 	if (frameTimer->ticked())
 	{
+		if (listFps.size() > 6)  listFps.erase(listFps.begin());
+		listFps.push_back(fps);
+	}
+
+	if (frameAvgTimer->ticked())
+	{
+		float sum = 0.0f;
+		for (float n : listFps) sum += n;
+		fpsAvg = sum / listFps.size();
+
 		stringstream title;
-		title << g_windowTitle << " [" << fps << "]";
+		title << g_windowTitle << " [" << (int)fpsAvg << "]";
 		glutSetWindowTitle(title.str().c_str());
-		fps = 0;
 	}
 
 	// Update all timers in timer list
@@ -110,18 +128,24 @@ void Scene::display()
 		if (displayTextMode == 1)
 		{
 			stringstream ss;
-			ss.precision(10);
-			ss << fixed << "Rest Density: " << Trim(particles->getSolver()->getRestDensity());
+			ss.setf(ios::fixed, ios_base::floatfield);
+			ss << setprecision(1) << "FPS: " << fps << " (Avg: " << fpsAvg << ")";
 			font->RenderText(ss.str(), 25.0f, (float)window_height - 75.0f, 1.0f, vec3(1));
 			ss.str("");
-			ss << fixed << "Gas Constant: " << Trim(particles->getSolver()->getGasConstant());
+			ss << "Particles: " << particles->getSolver()->getParticleCount();
 			font->RenderText(ss.str(), 25.0f, (float)window_height - 95.0f, 1.0f, vec3(1));
 			ss.str("");
-			ss << fixed << "Viscosity: " << Trim(particles->getSolver()->getViscosity());
+			ss << setprecision(3) << "Rest Density: " << (particles->getSolver()->getRestDensity());
 			font->RenderText(ss.str(), 25.0f, (float)window_height - 115.0f, 1.0f, vec3(1));
 			ss.str("");
-			ss << fixed << "Surface Tension Force: " << Trim(particles->getSolver()->getSurfaceTension());
+			ss << setprecision(10) << "Gas Constant: " << Trim(particles->getSolver()->getGasConstant());
 			font->RenderText(ss.str(), 25.0f, (float)window_height - 135.0f, 1.0f, vec3(1));
+			ss.str("");
+			ss << setprecision(3) << "Viscosity: " << (particles->getSolver()->getViscosity());
+			font->RenderText(ss.str(), 25.0f, (float)window_height - 155.0f, 1.0f, vec3(1));
+			ss.str("");
+			ss << setprecision(3) << "Surface Tension Force: " << (particles->getSolver()->getSurfaceTension());
+			font->RenderText(ss.str(), 25.0f, (float)window_height - 175.0f, 1.0f, vec3(1));
 		}
 		
 		if (displayTextMode >= 2)
@@ -140,17 +164,17 @@ void Scene::display()
 			font->RenderText("t, y - Decrease/Increase viscosity", 25.0f, (float)window_height - 295.0f, 1.0f, vec3(1));
 			font->RenderText("u, i - Decrease/Increase surface tension force", 25.0f, (float)window_height - 315.0f, 1.0f, vec3(1));
 			stringstream ss;
-			ss.precision(10);
-			ss << fixed << "Rest Density: " << Trim(particles->getSolver()->getRestDensity());
+			ss.setf(ios::fixed, ios_base::floatfield);
+			ss << setprecision(3) << "Rest Density: " << (particles->getSolver()->getRestDensity());
 			font->RenderText(ss.str(), 25.0f, (float)window_height - 335.0f, 1.0f, vec3(1));
 			ss.str("");
-			ss << fixed << "Gas Constant: " << Trim(particles->getSolver()->getGasConstant());
+			ss << setprecision(10) << "Gas Constant: " << Trim(particles->getSolver()->getGasConstant());
 			font->RenderText(ss.str(), 25.0f, (float)window_height - 355.0f, 1.0f, vec3(1));
 			ss.str("");
-			ss << fixed << "Viscosity: " << Trim(particles->getSolver()->getViscosity());
+			ss << setprecision(3) << "Viscosity: " << (particles->getSolver()->getViscosity());
 			font->RenderText(ss.str(), 25.0f, (float)window_height - 375.0f, 1.0f, vec3(1));
 			ss.str("");
-			ss << fixed << "Surface Tension Force: " << Trim(particles->getSolver()->getSurfaceTension());
+			ss << setprecision(3) << "Surface Tension Force: " << (particles->getSolver()->getSurfaceTension());
 			font->RenderText(ss.str(), 25.0f, (float)window_height - 395.0f, 1.0f, vec3(1));
 
 			font->RenderText("Particle Renderer", 25.0f, (float)window_height - 435.0f, 1.0f, vec3(1));

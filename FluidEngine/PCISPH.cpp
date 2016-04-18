@@ -28,7 +28,7 @@ PCISPH::PCISPH(float dt, vector<Particle>* particles, Camera* camera) : WCSPH(dt
 	// Gird
 	cellSize = smoothingLength;
 	cellCount = 10007;
-	pGrid.reserve(cellCount);
+	//pGrid.reserve(cellCount);
 
 	initialize();
 }

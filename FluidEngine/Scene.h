@@ -2,6 +2,7 @@
 
 #include <thread>
 #include <stdio.h>
+#include <iomanip>
 #include "Timer.h"
 #include "CameraFPS.h"
 #include "CameraTarget.h"
@@ -16,20 +17,21 @@ class Scene
 
 private:
 
-	Timer* frameTimer;
+	Timer* frameTimer, * frameAvgTimer;
 	//CameraFPS* camera;
 	CameraTarget* camera;
 	Font* font;
 	Object* box;
 	Particles* particles;
 
-	const float maxframeTime = 1 / 4.0f;
+	float fpsUpdateInterval = 0.5f;
 	float dt = 1 / 120.0f;
 
 	float accumulator = 0.0f;
-	int fps = 0;
+	float fps, fpsAvg;
+	std::vector<float> listFps;
 	int currentTime, previousTime = 0;
-
+	int timeBase = 0, frame_accum = 0;
 	int displayTextMode = 1;
 
 	std::string Trim(float d);

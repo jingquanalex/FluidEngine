@@ -2,8 +2,8 @@
 
 #include "Includes.h"
 #include "Object.h"
-//#include "WCSPH.h"
-#include "PCISPH.h"
+#include "WCSPH.h"
+//#include "PCISPH.h"
 #include "Quad.h"
 #include "Font.h"
 

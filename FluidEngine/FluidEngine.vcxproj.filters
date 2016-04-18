@@ -93,9 +93,6 @@
     <ClInclude Include="WCSPH.h">
       <Filter>Header Files\SPH</Filter>
     </ClInclude>
-    <ClInclude Include="PCISPH.h">
-      <Filter>Header Files\SPH</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -159,9 +156,6 @@
       <Filter>Source Files\SPH</Filter>
     </ClCompile>
     <ClCompile Include="WCSPH.cpp">
-      <Filter>Source Files\SPH</Filter>
-    </ClCompile>
-    <ClCompile Include="PCISPH.cpp">
       <Filter>Source Files\SPH</Filter>
     </ClCompile>
   </ItemGroup>

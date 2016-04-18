@@ -162,7 +162,7 @@ void Particles::update()
 	auto it = particles.begin();
 	while(it != particles.end())
 	{
-		if (length(it->Position) > 10)
+		if (dot(it->Position, it->Position) > pow(10, 2))
 		{
 			it = particles.erase(remove(particles.begin(), particles.end(), *it), particles.end());
 			count--;
@@ -555,6 +555,9 @@ void Particles::keyboard(unsigned char key)
 			break;
 		case 'c':
 			removeParticles(count);
+			break;
+		case 'x':
+			solver->resetParticleAttributes();
 			break;
 		case 'g':
 			solver->toggleGravity();

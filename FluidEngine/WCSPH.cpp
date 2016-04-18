@@ -50,7 +50,7 @@ WCSPH::WCSPH(float dt, vector<Particle>* particles, Camera* camera)
 	// Gird
 	cellSize = smoothingLength;
 	cellCount = 10007;
-	pGrid.reserve(cellCount);
+	//pGrid.reserve(cellCount);
 
 	initialize();
 }
@@ -88,7 +88,12 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 
 	pGrid.clear();
 
-	for (Particle &p : *particles)
+	//for (Particle &p : *particles)
+#if CONCURRENCY
+	parallel_for_each(particles->begin(), particles->end(), [&](Particle& p)
+#else
+	for_each(particles->begin(), particles->end(), [&](Particle& p)
+#endif
 	{
 		// Insert particles into cells based on its positional key
 		pGrid.insert(make_pair(getHashKey(getCellPos(p.Position)), &p));
@@ -100,12 +105,16 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 
 		// Default color
 		p.Color = vec4(0.6, 0.9, 1.0, 1.0);
-	}
+	});
 
 	// === +Compute Density ===
 
-	for (Particle &p : *particles)
-	//for_each(particles->begin(), particles->end(), [&](Particle& p)
+	//for (Particle &p : *particles)
+#if CONCURRENCY
+	parallel_for_each(particles->begin(), particles->end(), [&](Particle& p)
+#else
+	for_each(particles->begin(), particles->end(), [&](Particle& p)
+#endif
 	{
 		p.Neighbors.clear();
 		p.Density = 0.0f;
@@ -138,11 +147,16 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 				}
 			}
 		}
-	}
+	});
 
 	// === Compute Normal (for curvature force) And Pressure ===
 
-	for (Particle &p : *particles)
+	//for (Particle &p : *particles)
+#if CONCURRENCY
+	parallel_for_each(particles->begin(), particles->end(), [&](Particle& p)
+#else
+	for_each(particles->begin(), particles->end(), [&](Particle& p)
+#endif
 	{
 		p.Normal = vec3(0);
 
@@ -161,11 +175,16 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 
 		// Tait equation (Becker & Teschner 2007)
 		p.Pressure = k * (pow(p.Density / restDensity, 7) - 1);
-	}
+	});
 
 	// === Compute Forces ===
 
-	for (Particle &p : *particles)
+	//for (Particle &p : *particles)
+#if CONCURRENCY
+	parallel_for_each(particles->begin(), particles->end(), [&](Particle& p)
+#else
+	for_each(particles->begin(), particles->end(), [&](Particle& p)
+#endif
 	{
 		vec3 fGravity = m * gravity;
 		vec3 fPressure = vec3(0);
@@ -219,11 +238,16 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 		p.Force = fPressure + fViscosity + fExternal + fSurfaceTension;
 		//p.Force = fPressure + fViscosity + fExternal;
 		if (gravityEnabled) p.Force += fGravity;
-	}
+	});
 
 	// === Integrate New Velocity and Position ===
 
-	for (Particle &p : *particles)
+	//for (Particle &p : *particles)
+#if CONCURRENCY
+	parallel_for_each(particles->begin(), particles->end(), [&](Particle& p)
+#else
+	for_each(particles->begin(), particles->end(), [&](Particle& p)
+#endif
 	{
 		// Leapfrog integration
 		vec3 acceleration = p.Force / m;
@@ -249,7 +273,7 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 		}
 
 		resolveCollision(&p);
-	}
+	});
 }
 
 // TODO Proper Collision response
@@ -407,6 +431,11 @@ float WCSPH::getSurfaceTension() const
 	return surfaceTensionCoef;
 }
 
+int WCSPH::getParticleCount() const
+{
+	return (int)particles->size();
+}
+
 float WCSPH::getRadius() const
 {
 	return radius;
@@ -470,4 +499,18 @@ bool WCSPH::isIntersectingRaySphere(vec3 ray, vec3 spherePos, float radius) cons
 void WCSPH::toggleGravity()
 {
 	gravityEnabled = !gravityEnabled;
+}
+
+void WCSPH::resetParticleAttributes()
+{
+	maxParticles = 5000;
+	mass = 28.00f;
+	radius = 0.1f;
+	smoothingLength = radius * 4;
+	restDensity = 59.0f;
+	viscosity = 2.8f;
+	surfaceTensionCoef = 1.0f;
+	gasConstant = 0.0000001f;
+	gravity = vec3(0, -9.8f, 0);
+	initialize();
 }

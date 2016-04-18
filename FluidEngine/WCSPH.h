@@ -5,9 +5,16 @@
 #include "Camera.h"
 #include <unordered_map>
 #include <ppl.h>
-#include <concurrent_vector.h>
+#include <concurrent_unordered_map.h>
 
+#define CONCURRENCY 1;
+
+#if CONCURRENCY
+typedef concurrency::concurrent_unordered_multimap<int, Particle*> Grid;
+#else
 typedef std::unordered_multimap<int, Particle*> Grid;
+#endif
+
 
 class WCSPH
 {
@@ -25,7 +32,6 @@ protected:
 	int getHashKey(glm::ivec3 cellPos) const;
 
 	std::vector<Particle>* particles;
-	//Concurrency::concurrent_vector<Particle>* particles;
 
 	float dt;
 	float mass;
@@ -81,11 +87,13 @@ public:
 	float getGasConstant() const;
 	float getViscosity() const;
 	float getSurfaceTension() const;
+	int getParticleCount() const;
 	
 	float getRadius() const;
 	float getSmoothingLength() const;
 	int getParticleAtRay(glm::vec3 ray) const;
 	bool isIntersectingRaySphere(glm::vec3 ray, glm::vec3 spherePos, float radius) const;
 	void toggleGravity();
+	void resetParticleAttributes();
 	
 };
