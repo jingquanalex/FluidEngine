@@ -91,6 +91,7 @@ public:
 	void mouseMovePassive(int x, int y);
 	void keyboard(unsigned char key);
 	void keyboardUp(unsigned char key);
+	void keyboardSpecial(int key);
 
 	WCSPH* getSolver();
 

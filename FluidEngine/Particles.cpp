@@ -20,7 +20,7 @@ Particles::~Particles()
 void Particles::load(float dt, Camera* camera)
 {
 	// Set max particles count for vbo and load particle shaders
-	maxCount = 10000;
+	maxCount = 20000;
 	this->camera = camera;
 	this->dt = dt;
 	shader = new Shader("particle");
@@ -635,6 +635,25 @@ void Particles::keyboardUp(unsigned char key)
 		break;
 	case 'i':
 		stateIncSurfacetension = false;
+		break;
+	}
+}
+
+void Particles::keyboardSpecial(int key)
+{
+	switch (key)
+	{
+	case GLUT_KEY_UP:
+		solver->setGravity(vec3(0, 9.8, 0));
+		break;
+	case GLUT_KEY_DOWN:
+		solver->setGravity(vec3(0, -9.8, 0));
+		break;
+	case GLUT_KEY_LEFT:
+		solver->setGravity(vec3(-9.8, 0, 0));
+		break;
+	case GLUT_KEY_RIGHT:
+		solver->setGravity(vec3(9.8, 0, 0));
 		break;
 	}
 }

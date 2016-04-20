@@ -6,8 +6,9 @@
 #include <unordered_map>
 #include <ppl.h>
 #include <concurrent_unordered_map.h>
+#include <concurrent_vector.h>
 
-#define CONCURRENCY 1;
+#define CONCURRENCY 1
 
 #if CONCURRENCY
 typedef concurrency::concurrent_unordered_multimap<int, Particle*> Grid;
@@ -32,6 +33,7 @@ protected:
 	int getHashKey(glm::ivec3 cellPos) const;
 
 	std::vector<Particle>* particles;
+	//concurrency::concurrent_vector<Particle>* particles;
 
 	float dt;
 	float mass;
@@ -95,5 +97,6 @@ public:
 	bool isIntersectingRaySphere(glm::vec3 ray, glm::vec3 spherePos, float radius) const;
 	void toggleGravity();
 	void resetParticleAttributes();
+	void setGravity(glm::vec3 gravity);
 	
 };

@@ -17,7 +17,9 @@ class Scene
 
 private:
 
-	Timer* frameTimer, * frameAvgTimer;
+	Timer* frameTimer;
+	Timer* frameAvgTimer;
+	Timer* particlesTimer;
 	//CameraFPS* camera;
 	CameraTarget* camera;
 	Font* font;
@@ -25,9 +27,8 @@ private:
 	Particles* particles;
 
 	float fpsUpdateInterval = 0.5f;
-	float dt = 1 / 120.0f;
+	float dt = 1 / 60.0f;
 
-	float accumulator = 0.0f;
 	float fps, fpsAvg;
 	std::vector<float> listFps;
 	int currentTime, previousTime = 0;

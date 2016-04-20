@@ -7,9 +7,9 @@ out vec4 outColor;
 uniform sampler2D depthmap;
 uniform vec2 blurDir;
 
-const float filterRadius = 10.0;
+const float filterRadius = 30.0;
 const float blurScale = 0.1;
-const float blurFalloff = 100.0;
+const float blurFalloff = 90.0;
 
 void main()
 {

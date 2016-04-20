@@ -23,22 +23,32 @@ WCSPH::WCSPH(float dt, vector<Particle>* particles, Camera* camera)
 	* determine mass first
 	* then find balance with gasconstant and restdensity
 	* higher the gasconstant the easier particle swirl
-	* viscosity > 0.8 for stable simulation at current mass
+	* viscosity > 1.0 for stable simulation at current mass
 	*/
 
+	//maxParticles = 5000;
+
 	// Particles
-	maxParticles = 5000;
+
 	mass = 28.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
 	restDensity = 59.0f;
-	viscosity = 2.8f;
-	surfaceTensionCoef = 1.0f;
+	viscosity = 1.3f;
+	surfaceTensionCoef = 2.0f;
 	gasConstant = 0.0000001f;
 	gravity = vec3(0, -9.8f, 0);
 
-	/*maxParticles = 5000;
-	mass = 100.00f;
+	/*mass = 98.00f;
+	radius = 0.1f;
+	smoothingLength = radius * 4;
+	restDensity = 180.0f;
+	viscosity = 2.3f;
+	surfaceTensionCoef = 0.7f;
+	gasConstant = 0.0000002f;
+	gravity = vec3(0, -9.8f, 0);*/
+
+	/*mass = 100.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
 	restDensity = 999.0f;
@@ -501,15 +511,19 @@ void WCSPH::toggleGravity()
 	gravityEnabled = !gravityEnabled;
 }
 
+void WCSPH::setGravity(glm::vec3 gravity)
+{
+	this->gravity = gravity;
+}
+
 void WCSPH::resetParticleAttributes()
 {
-	maxParticles = 5000;
 	mass = 28.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
 	restDensity = 59.0f;
-	viscosity = 2.8f;
-	surfaceTensionCoef = 1.0f;
+	viscosity = 1.3f;
+	surfaceTensionCoef = 2.0f;
 	gasConstant = 0.0000001f;
 	gravity = vec3(0, -9.8f, 0);
 	initialize();

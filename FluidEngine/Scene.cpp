@@ -19,6 +19,8 @@ Scene::Scene()
 	frameTimer->start();
 	frameAvgTimer = new Timer(3.0f);
 	frameAvgTimer->start();
+	particlesTimer = new Timer(dt);
+	particlesTimer->start();
 
 	font = new Font();
 
@@ -48,7 +50,8 @@ void Scene::load()
 {
 	int loadStart = glutGet(GLUT_ELAPSED_TIME);
 
-	particles->load(dt, camera);
+	particlesTimer->setTickInterval(1 / 120.0f); // debug
+	particles->load(1 / 160.0f, camera);
 	font->load("arial.ttf");
 	
 	float loadtime = (glutGet(GLUT_ELAPSED_TIME) - loadStart) / 1000.0f;
@@ -63,16 +66,11 @@ void Scene::idle()
 	//if (frameTime > maxframeTime) frameTime = maxframeTime;
 	previousTime = currentTime;
 
-	// Update logic at a constant dt, seperate from frame time
-	accumulator += frameTime;
-	while (accumulator >= dt)
+	if (particlesTimer->ticked())
 	{
 		particles->update();
-
-		accumulator -= dt;
 	}
 
-	// Update following based on dt
 	camera->update(frameTime);
 
 	// Calculate frames per second
@@ -121,6 +119,7 @@ void Scene::display()
 	box->draw();
 	particles->draw();
 	
+	// TODO: Unoptimized
 	if (displayTextMode >= 1)
 	{
 		font->RenderText("F1 - Toggle help display", 25.0f, (float)window_height - 35.0f, 1.0f, vec3(1));
@@ -158,7 +157,7 @@ void Scene::display()
 			font->RenderText("Space - Add 100 particles", 25.0f, (float)window_height - 175.0f, 1.0f, vec3(1));
 			font->RenderText("c - Clear particles", 25.0f, (float)window_height - 195.0f, 1.0f, vec3(1));
 			font->RenderText("g - Toggle gravity", 25.0f, (float)window_height - 215.0f, 1.0f, vec3(1));
-			
+			font->RenderText("p - Pause simulation", 25.0f, (float)window_height - 235.0f, 1.0f, vec3(1));
 			font->RenderText("q, w - Decrease/Increase rest density", 25.0f, (float)window_height - 255.0f, 1.0f, vec3(1));
 			font->RenderText("e, r - Decrease/Increase gas constant", 25.0f, (float)window_height - 275.0f, 1.0f, vec3(1));
 			font->RenderText("t, y - Decrease/Increase viscosity", 25.0f, (float)window_height - 295.0f, 1.0f, vec3(1));
@@ -237,6 +236,18 @@ void Scene::mouseWheel(int button, int dir, int x, int y)
 void Scene::keyboard(unsigned char key)
 {
 	if (key == 27) exit(0); // esc
+	if (key == 'p')
+	{
+		if (particlesTimer->getIsRunning())
+		{
+			particlesTimer->stop();
+		}
+		else
+		{
+			particlesTimer->start();
+		}
+		
+	}
 	
 	camera->keyboard(key);
 	particles->keyboard(key);
@@ -258,6 +269,7 @@ void Scene::keyboardSpecial(int key)
 	}
 
 	camera->keyboardSpecial(key);
+	particles->keyboardSpecial(key);
 }
 
 // Special key up event
