@@ -6,6 +6,7 @@
 //#include "PCISPH.h"
 #include "Quad.h"
 #include "Font.h"
+#include <concurrent_vector.h>
 
 // Particle Manager: Generate, solve and render particles
 // Particles are rendered on 2D quads created with geometry shader
@@ -22,6 +23,7 @@ private:
 		glm::vec4 Color;
 	};
 
+	//concurrency::concurrent_vector<Particle> particles;
 	std::vector<Particle> particles;
 	std::vector<sParticle> sParticles;
 	int count, maxCount;

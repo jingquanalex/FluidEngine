@@ -74,6 +74,7 @@ protected:
 public:
 
 	WCSPH(float dt, std::vector<Particle>* particles, Camera* camera);
+	//WCSPH(float dt, concurrency::concurrent_vector<Particle>* particles, Camera* camera);
 
 	virtual void initialize();
 	virtual void compute(glm::ivec2 mouseDelta, int renderMode);

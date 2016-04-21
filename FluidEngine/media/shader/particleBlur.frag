@@ -9,7 +9,7 @@ uniform vec2 blurDir;
 
 const float filterRadius = 30.0;
 const float blurScale = 0.1;
-const float blurFalloff = 90.0;
+const float blurFalloff = 500.0;
 
 void main()
 {

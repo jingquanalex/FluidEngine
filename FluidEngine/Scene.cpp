@@ -51,7 +51,7 @@ void Scene::load()
 	int loadStart = glutGet(GLUT_ELAPSED_TIME);
 
 	particlesTimer->setTickInterval(1 / 120.0f); // debug
-	particles->load(1 / 160.0f, camera);
+	particles->load(1 / 170.0f, camera);
 	font->load("arial.ttf");
 	
 	float loadtime = (glutGet(GLUT_ELAPSED_TIME) - loadStart) / 1000.0f;

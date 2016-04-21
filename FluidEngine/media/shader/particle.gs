@@ -26,8 +26,8 @@ void main()
 	eyepos = position.xyz;
 	color = gsColor[0];
 	radius = fRadius;
-	if (renderMode != 0) radius *= 1.5; // Increase radius for ss fluid
-	if (colorThickness != 0.0) radius *= 2.0;
+	if (renderMode != 0) radius *= 2.0; // Increase radius for ss fluid
+	if (colorThickness != 0.0) radius *= 1.0;
 
 	gl_Position = projection * (position + vec4(-radius, -radius, 0.0, 0.0));
 	texcoord = vec2(0.0, 0.0);

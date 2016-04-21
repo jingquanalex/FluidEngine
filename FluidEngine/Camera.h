@@ -16,7 +16,7 @@ protected:
 	bool isOrtho;
 
 	glm::mat4 matProjection, matView;
-	glm::mat4 matInvProjection;
+	glm::mat4 matInvProjection, matInvView;
 	glm::vec3 position, direction, up;
 	float aspectRatio, fov, zNear, zFar;
 	glm::vec2 resolution;
@@ -60,6 +60,7 @@ public:
 	
 	glm::mat4 getMatViewProjection() const;
 	glm::mat4 getMatView() const;
+	glm::mat4 getMatInvView() const;
 	glm::mat4 getMatProjection() const;
 	glm::mat4 getMatInvProjection() const;
 	glm::vec2 getResolution() const;

@@ -190,7 +190,7 @@ void Particles::update()
 	solver->compute(mouseDelta, renderMode);
 
 	// Increment/decrement sph attributes
-	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.005f;
+	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.01f;
 	if (stateIncRestdensity)
 	{
 		solver->setRestDensity(solver->getRestDensity() + 10.0f * inctime * dt);
@@ -224,7 +224,7 @@ void Particles::update()
 		}
 	}
 
-	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.025f;
+	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.1f;
 	if (stateIncViscosity)
 	{
 		solver->setViscosity(solver->getViscosity() + 0.1f * inctime * dt);
@@ -241,7 +241,7 @@ void Particles::update()
 		}
 	}
 
-	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.005f;
+	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.1f;
 	if (stateIncSurfacetension)
 	{
 		solver->setSurfaceTension(solver->getSurfaceTension() + 0.1f * inctime * dt);
@@ -450,7 +450,7 @@ void Particles::addParticles(int numPerSide)
 			for (float k = 0; k <= numPerSide; k++)
 			{
 				Particle particle;
-				particle.Position = vec3(i, j, k) * solver->getRadius() - 
+				particle.Position = vec3(i, j, k) * solver->getRadius() * 2 - 
 					vec3(numPerSide * solver->getRadius());
 				particle.Color = vec4(1.0);
 				particles.push_back(particle);
@@ -550,8 +550,11 @@ void Particles::keyboard(unsigned char key)
 		case 'b':
 			addParticles();
 			break;
+		case 'v':
+			addParticles(21);
+			break;
 		case ' ':
-			addParticles(100, 2.5f);
+			addParticles(500, 2.5f);
 			break;
 		case 'c':
 			removeParticles(count);

@@ -33,10 +33,10 @@ WCSPH::WCSPH(float dt, vector<Particle>* particles, Camera* camera)
 	mass = 28.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
-	restDensity = 59.0f;
+	restDensity = 100.0f;
 	viscosity = 1.3f;
-	surfaceTensionCoef = 2.0f;
-	gasConstant = 0.0000001f;
+	surfaceTensionCoef = 6.0f;
+	gasConstant = 0.000001f;
 	gravity = vec3(0, -9.8f, 0);
 
 	/*mass = 98.00f;
@@ -176,6 +176,12 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 			{
 				p.Normal += h * m / pN->Density * Poly6Gradient(p.Position, pN->Position, h);
 			}
+
+			// Color debug particles
+			if (p.Id == pDebugId)
+			{
+				pN->Color = vec4(1, 0, 0, 1);
+			}
 		}
 
 		// === Pressure ===
@@ -272,16 +278,6 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 			p.Color += vec4(0.1f) * length(p.Velocity) / 2;
 		}
 
-		// Color debug particles
-		if (p.Id == pDebugId)
-		{
-			//p.Color = vec4(1, 0, 0, 1);
-			for (Particle* pN : p.Neighbors)
-			{
-				pN->Color = vec4(1, 0, 0, 1);
-			}
-		}
-
 		resolveCollision(&p);
 	});
 }
@@ -295,38 +291,39 @@ void WCSPH::resolveCollision(Particle* p)
 void WCSPH::resolveCollision(glm::vec3& position, glm::vec3& velocity)
 {
 	float boxhalfwidth = 5.0f;
+	float velocityDamping = 0.25f;
 
 	if (position.y < -boxhalfwidth)
 	{
 		position.y = -boxhalfwidth;
-		velocity.y = -velocity.y / 2;
+		velocity.y = -velocity.y * velocityDamping;
 	}
 	else if (position.y > boxhalfwidth)
 	{
 		position.y = boxhalfwidth;
-		velocity.y = -velocity.y / 2;
+		velocity.y = -velocity.y * velocityDamping;
 	}
 
 	if (position.x < -boxhalfwidth)
 	{
 		position.x = -boxhalfwidth;
-		velocity.x = -velocity.x / 2;
+		velocity.x = -velocity.x * velocityDamping;
 	}
 	else if (position.x > boxhalfwidth)
 	{
 		position.x = boxhalfwidth;
-		velocity.x = -velocity.x / 2;
+		velocity.x = -velocity.x * velocityDamping;
 	}
 
 	if (position.z < -boxhalfwidth)
 	{
 		position.z = -boxhalfwidth;
-		velocity.z = -velocity.z / 2;
+		velocity.z = -velocity.z * velocityDamping;
 	}
 	else if (position.z > boxhalfwidth)
 	{
 		position.z = boxhalfwidth;
-		velocity.z = -velocity.z / 2;
+		velocity.z = -velocity.z * velocityDamping;
 	}
 }
 
@@ -521,10 +518,11 @@ void WCSPH::resetParticleAttributes()
 	mass = 28.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
-	restDensity = 59.0f;
+	restDensity = 100.0f;
 	viscosity = 1.3f;
-	surfaceTensionCoef = 2.0f;
-	gasConstant = 0.0000001f;
+	surfaceTensionCoef = 6.0f;
+	gasConstant = 0.000001f;
 	gravity = vec3(0, -9.8f, 0);
+
 	initialize();
 }

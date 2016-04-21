@@ -248,6 +248,11 @@ mat4 Camera::getMatView() const
 	return matView;
 }
 
+mat4 Camera::getMatInvView() const
+{
+	return matInvView;
+}
+
 mat4 Camera::getMatProjection() const
 {
 	return matProjection;

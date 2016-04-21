@@ -39,10 +39,10 @@ vec3 uvToEye(vec2 texCoord, float z)
 
 void main()
 {
-	vec4 scene = texture(sceneMap, Texcoord);
 	float depth = texture(depthMap, Texcoord).r;
+	vec4 scene = texture(sceneMap, Texcoord);
 	
-	if (depth > 0.999)
+	if (depth >= 1.0)
 	{
 		outColor = scene;
 		return;
@@ -88,9 +88,11 @@ void main()
 	
 	float thickness = texture(thickMap, Texcoord).r;
 	
-	vec4 envReflect = texture(envMap, reflect(normalize(eyePos), N));
+	mat3 invView = mat3(transpose(view));
+	vec3 I = normalize(invView * eyePos - viewPos);
+	vec4 envReflect = texture(envMap, reflect(I, invView * N));
 	
-	float refractVal = 0.3;
+	float refractVal = 0.33;
 	vec4 envRefract = texture(sceneMap, Texcoord + N.xy * thickness * refractVal);
 	
 	vec4 color = texture(colorMap, Texcoord);

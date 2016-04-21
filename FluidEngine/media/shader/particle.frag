@@ -49,21 +49,23 @@ void main()
 	N.xy = texcoord * 2.0 - 1.0;
 	float r2 = dot(N.xy, N.xy);
 	if (r2 > 1.0) discard;
+	N.z = sqrt(1.0 - r2);
 	
 	if (colorThickness != 0.0)
 	{
-		float dist = 1.0 - sqrt(r2);
-		outColor = vec4(dist * colorThickness);
+		outColor = vec4(N.z * colorThickness);
 		return;
 	}
 	
-	N.z = sqrt(1.0 - r2);
-	
 	// Calculate depth
-	vec4 fragPos = vec4(eyepos + N * radius, 1.0);
+	/*vec4 fragPos = vec4(eyepos + N * radius, 1.0);
 	vec4 clipPos = projection * fragPos;
-	float depth = clipPos.z / clipPos.w;
-	gl_FragDepth = LinearizeDepth(depth);
+	float depth = clipPos.z / clipPos.w * 0.5 + 0.5;
+	gl_FragDepth = LinearizeDepth(depth);*/
+	
+	float z = eyepos.z + N.z * radius;
+	z = far * (z + near) / (z * (far - near));
+	gl_FragDepth = z;
 	
 	outColor = color;
 }
