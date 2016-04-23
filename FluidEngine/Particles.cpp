@@ -20,7 +20,7 @@ Particles::~Particles()
 void Particles::load(float dt, Camera* camera)
 {
 	// Set max particles count for vbo and load particle shaders
-	maxCount = 20000;
+	maxCount = 30000;
 	this->camera = camera;
 	this->dt = dt;
 	shader = new Shader("particle");
@@ -340,7 +340,7 @@ void Particles::drawDepth()
 	glBlendFunc(GL_ONE, GL_ONE);
 
 	glUseProgram(shader->getProgram());
-	glUniform1f(glGetUniformLocation(shader->getProgram(), "colorThickness"), 0.05f);
+	glUniform1f(glGetUniformLocation(shader->getProgram(), "colorThickness"), 0.01f);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_POINTS, 0, count);
 	glBindVertexArray(0);
@@ -653,10 +653,10 @@ void Particles::keyboardSpecial(int key)
 		solver->setGravity(vec3(0, -9.8, 0));
 		break;
 	case GLUT_KEY_LEFT:
-		solver->setGravity(vec3(-9.8, 0, 0));
+		solver->setGravity(vec3(9.8, 0, 0));
 		break;
 	case GLUT_KEY_RIGHT:
-		solver->setGravity(vec3(9.8, 0, 0));
+		solver->setGravity(vec3(-9.8, 0, 0));
 		break;
 	}
 }

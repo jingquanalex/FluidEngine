@@ -33,9 +33,9 @@ WCSPH::WCSPH(float dt, vector<Particle>* particles, Camera* camera)
 	mass = 28.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
-	restDensity = 100.0f;
+	restDensity = 59.0f;
 	viscosity = 1.3f;
-	surfaceTensionCoef = 6.0f;
+	surfaceTensionCoef = 8.0f;
 	gasConstant = 0.000001f;
 	gravity = vec3(0, -9.8f, 0);
 
@@ -217,7 +217,7 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 			/*fPressure += -m * (p.Pressure + pN->Pressure) / (2.0 * pN->Density) *
 				SpikyGradient(p.Position, pN->Position, h);*/
 
-			fPressure += -m * m *
+			fPressure += -m *
 				(p.Pressure / pow(p.Density, 2) + pN->Pressure / pow(pN->Density, 2)) *
 				SpikyGradient(p.Position, pN->Position, h);
 
@@ -274,7 +274,7 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 		// Color particles
 		if (renderMode == 0)
 		{
-			p.Color -= vec4(0.02f) * p.Density / restDensity;
+			p.Color -= vec4(0.01f) * p.Density / restDensity;
 			p.Color += vec4(0.1f) * length(p.Velocity) / 2;
 		}
 
@@ -518,9 +518,9 @@ void WCSPH::resetParticleAttributes()
 	mass = 28.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
-	restDensity = 100.0f;
+	restDensity = 59.0f;
 	viscosity = 1.3f;
-	surfaceTensionCoef = 6.0f;
+	surfaceTensionCoef = 8.0f;
 	gasConstant = 0.000001f;
 	gravity = vec3(0, -9.8f, 0);
 

@@ -72,6 +72,8 @@ void main()
 
 	vec3 N = normalize(cross(ddx, ddy));
 	
+	float thickness = texture(thickMap, Texcoord).r;
+	
 	vec3 lightPos = vec3(0.0, 5.0, 0.0);
 	vec3 lightDir = vec3(0.0, 1.0, 0.0);
 	
@@ -79,14 +81,13 @@ void main()
     vec3 V = -normalize(eyePos);
     vec3 H = normalize(V + L);
     float specular = pow(max(dot(N, H), 0.0), 2000.0);
+	if (thickness < 0.1) specular = 0.0;
 	
-	float diffuse = max(dot(N, L), 0.0) * 0.2 + 0.8;
+	float diffuse = max(dot(N, L), 0.0) * 0.5 + 0.5;
 	
-	float fresPower = 2.0f;
+	float fresPower = 4.0f;
 	float fresBias = 0.01;
 	float fresnel = fresBias + (1.0 - fresBias) * pow(1.0 - max(dot(N, V), 0.0), fresPower);
-	
-	float thickness = texture(thickMap, Texcoord).r;
 	
 	mat3 invView = mat3(transpose(view));
 	vec3 I = normalize(invView * eyePos - viewPos);
@@ -97,13 +98,15 @@ void main()
 	
 	vec4 color = texture(colorMap, Texcoord);
 	vec4 colorAbsorption = exp(-(vec4(1.0) - color) * thickness);
+	vec4 colorRefract = colorAbsorption * envRefract;
 	
-	vec4 finalColor = colorAbsorption * envRefract;
+	float rThickness = clamp(1.2 - thickness, 0.0, 1.0);
+	vec4 finalColor = mix(diffuse * colorRefract, colorRefract, rThickness);
 	
 	switch(renderMode)
 	{
 		case 1:
-			outColor = diffuse * finalColor + specular + fresnel * envReflect;
+			outColor = finalColor + specular + fresnel * envReflect * thickness;
 			break;
 		case 2:
 			outColor = vec4(depth);
@@ -118,13 +121,13 @@ void main()
 			outColor = diffuse * colorAbsorption;
 			break;
 		case 6:
-			outColor = finalColor;
+			outColor = colorRefract;
 			break;
 		case 7:
-			outColor = diffuse * finalColor;
+			outColor = finalColor;
 			break;
 		case 8:
-			outColor = diffuse * finalColor + specular;
+			outColor = finalColor + specular;
 			break;
 		case 9:
 			outColor = envReflect;
