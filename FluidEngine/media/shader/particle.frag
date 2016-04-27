@@ -12,6 +12,7 @@ in vec3 eyepos;
 in float radius;
 
 out vec4 outColor;
+out vec4 outNormal;
 
 uniform float colorThickness = 0.0;
 uniform int renderMode;
@@ -38,13 +39,14 @@ void main()
 		Screen space fluid rendering
 		http://developer.download.nvidia.com/presentations/2010/gdc/Direct3D_Effects.pdf
 	
-		1. Output particle viewspace depth
+		1. Output sphere eye space depth
 		2. Blur with bilateral filtering
-		3. Get eye-space position from depth
+		3. ddx ddy for smooth normals
+		4. Profit
 	
 	*/
 	
-	// Calculate eye space normal
+	// Discard fragments outside of sphere
 	vec3 N;
 	N.xy = texcoord * 2.0 - 1.0;
 	float r2 = dot(N.xy, N.xy);
@@ -57,15 +59,18 @@ void main()
 		return;
 	}
 	
-	// Calculate depth
 	/*vec4 fragPos = vec4(eyepos + N * radius, 1.0);
 	vec4 clipPos = projection * fragPos;
-	float depth = clipPos.z / clipPos.w * 0.5 + 0.5;
-	gl_FragDepth = LinearizeDepth(depth);*/
+	float z = clipPos.z / clipPos.w;
+	gl_FragDepth = z;*/
 	
+	// Eye space depth
 	float z = eyepos.z + N.z * radius;
 	z = far * (z + near) / (z * (far - near));
 	gl_FragDepth = z;
 	
 	outColor = color;
+	
+	mat3 invv = mat3(transpose(view));
+	outNormal = vec4(N, 1.0);
 }

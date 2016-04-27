@@ -10,13 +10,13 @@ layout (std140, binding = 0) uniform Matrices
 };
 
 in vec4 gsColor[];
+in float gsRadius[];
 
 out vec2 texcoord;
 out vec4 color;
 out vec3 eyepos;
 out float radius;
 
-uniform float fRadius;
 uniform float colorThickness = 0.0;
 uniform int renderMode;
 
@@ -25,7 +25,8 @@ void main()
 	vec4 position = gl_in[0].gl_Position;
 	eyepos = position.xyz;
 	color = gsColor[0];
-	radius = fRadius;
+	radius = gsRadius[0];
+	
 	if (renderMode != 0) radius *= 2.0; // Increase radius for ss fluid
 	if (colorThickness != 0.0) radius *= 2.0;
 

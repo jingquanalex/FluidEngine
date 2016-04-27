@@ -25,6 +25,12 @@
     <Filter Include="Source Files\SPH">
       <UniqueIdentifier>{34cd41f2-d620-43f3-876c-22789d2bd98e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Molecules">
+      <UniqueIdentifier>{08d25026-8dfa-4f48-96e9-7a22d2e61556}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Molecules">
+      <UniqueIdentifier>{882660f7-a9ea-464b-a896-7a79d5e0aeb0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -93,6 +99,9 @@
     <ClInclude Include="WCSPH.h">
       <Filter>Header Files\SPH</Filter>
     </ClInclude>
+    <ClInclude Include="MLoader.h">
+      <Filter>Header Files\Molecules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -157,6 +166,9 @@
     </ClCompile>
     <ClCompile Include="WCSPH.cpp">
       <Filter>Source Files\SPH</Filter>
+    </ClCompile>
+    <ClCompile Include="MLoader.cpp">
+      <Filter>Source Files\Molecules</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

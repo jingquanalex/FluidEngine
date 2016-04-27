@@ -54,7 +54,7 @@ void Timer::update(float dt)
 	currentTime += dt;
 
 	// If tick inverval is elasped, set tick.
-	if (currentTime > tickInterval)
+	if (currentTime >= tickInterval)
 	{
 		// If timer is set to run over a duration.
 		if (tickDuration != 0.0f)
@@ -62,12 +62,23 @@ void Timer::update(float dt)
 			durationLeft -= currentTime;
 		}
 
-		currentTime = 0.0f;
+		// Correct accumulation till dt > interval
+		if (dt > tickInterval)
+		{
+			currentTime = 0;
+		}
+		else
+		{
+			currentTime -= tickInterval;
+		}
+
+		//currentTime -= max(tickInterval, dt);
+
 		hasTicked = true;
 	}
 
 	// Stop timer if it has ran its duration
-	if (tickDuration != 0.0f && durationLeft < 0.0f)
+	if (tickDuration != 0.0f && durationLeft <= 0.0f)
 	{
 		isRunning = false;
 	}

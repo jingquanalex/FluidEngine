@@ -27,12 +27,16 @@ void Particles::load(float dt, Camera* camera)
 	solver = new WCSPH(dt, &particles, camera);
 	//solver = new PCISPH(dt, &particles, camera);
 
+	mloader = new MLoader();
+	mloader->load();
+	stateMoleculeMode = false;
+
 	// Skybox
 	cubemaps = new Quad();
 	cubemaps->load("lakeblur", "skyquad");
-	cubemaps->loadCubemap("lake");
+	/*cubemaps->loadCubemap("lake");
 	cubemaps->loadCubemap("lake2");
-	cubemaps->loadCubemap("church");
+	cubemaps->loadCubemap("church");*/
 
 	// Add some particles temp
 	//addParticles(10, 0.5);
@@ -53,11 +57,11 @@ void Particles::load(float dt, Camera* camera)
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(sParticle),
 		(GLvoid*)offsetof(sParticle, sParticle::Color));
 
-	glBindVertexArray(0);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(sParticle),
+		(GLvoid*)offsetof(sParticle, sParticle::Radius));
 
-	glUseProgram(shader->getProgram());
-	glUniform1f(glGetUniformLocation(shader->getProgram(), "fRadius"), solver->getRadius());
-	glUseProgram(0);
+	glBindVertexArray(0);
 
 	// Setup render targets and their textures
 	//mapSize = ivec2(1024);
@@ -103,6 +107,16 @@ void Particles::load(float dt, Camera* camera)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorMap, 0);
+
+	glGenTextures(1, &normalMap);
+	glBindTexture(GL_TEXTURE_2D, normalMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mapSize.x, mapSize.y, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalMap, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glGenFramebuffers(1, &blurFbo);
@@ -158,103 +172,106 @@ void Particles::load(float dt, Camera* camera)
 // Update particle positions and send to vbo
 void Particles::update()
 {
-	// Remove stray particles
-	auto it = particles.begin();
-	while(it != particles.end())
+	if (isSolverRunning)
 	{
-		if (dot(it->Position, it->Position) > pow(10, 2))
+		// Remove stray particles
+		auto it = particles.begin();
+		while (it != particles.end())
 		{
-			it = particles.erase(remove(particles.begin(), particles.end(), *it), particles.end());
-			count--;
+			if (dot(it->Position, it->Position) > pow(10, 2))
+			{
+				it = particles.erase(remove(particles.begin(), particles.end(), *it), particles.end());
+				count--;
+			}
+			else
+			{
+				it++;
+			}
+		}
+
+		// Click and drag particle force
+		if (statePicked)
+		{
+			//cout << mouseDelta.x << " " << mouseDelta.y << endl;
+			mouseDelta = ivec2(mouseX - mouseLastX, mouseY - mouseLastY);
 		}
 		else
 		{
-			it++;
+			mouseDelta = ivec2(0);
 		}
-	}
+		mouseLastX = mouseX;
+		mouseLastY = mouseY;
 
-	// Click and drag particle force
-	if (statePicked)
-	{
-		//cout << mouseDelta.x << " " << mouseDelta.y << endl;
-		mouseDelta = ivec2(mouseX - mouseLastX, mouseY - mouseLastY);
-	}
-	else
-	{
-		mouseDelta = ivec2(0);
-	}
-	mouseLastX = mouseX;
-	mouseLastY = mouseY;
+		// Solve SPH
+		solver->compute(mouseDelta, renderMode);
 
-	// Solve SPH
-	solver->compute(mouseDelta, renderMode);
+		// Increment/decrement sph attributes linearlly
+		inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.01f;
+		if (stateIncRestdensity)
+		{
+			solver->setRestDensity(solver->getRestDensity() + 10.0f * inctime * dt);
+		}
+		else if (stateDecRestdensity)
+		{
+			if (solver->getRestDensity() <= 0.0f)
+			{
+				solver->setRestDensity(0.0f);
+			}
+			else
+			{
+				solver->setRestDensity(solver->getRestDensity() - 10.0f * inctime * dt);
+			}
+		}
 
-	// Increment/decrement sph attributes
-	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.01f;
-	if (stateIncRestdensity)
-	{
-		solver->setRestDensity(solver->getRestDensity() + 10.0f * inctime * dt);
-	}
-	else if (stateDecRestdensity)
-	{
-		if (solver->getRestDensity() <= 0.0f)
+		inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.001f;
+		if (stateIncGasconstant)
 		{
-			solver->setRestDensity(0.0f);
+			solver->setGasConstant(solver->getGasConstant() + 0.00001f * inctime * dt);
 		}
-		else
+		else if (stateDecGasconstant)
 		{
-			solver->setRestDensity(solver->getRestDensity() - 10.0f * inctime * dt);
+			if (solver->getGasConstant() <= 0.0f)
+			{
+				solver->setGasConstant(0.0f);
+			}
+			else
+			{
+				solver->setGasConstant(solver->getGasConstant() - 0.00001f * inctime * dt);
+			}
 		}
-	}
 
-	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.001f;
-	if (stateIncGasconstant)
-	{
-		solver->setGasConstant(solver->getGasConstant() + 0.00001f * inctime * dt);
-	}
-	else if (stateDecGasconstant)
-	{
-		if (solver->getGasConstant() <= 0.0f)
+		inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.1f;
+		if (stateIncViscosity)
 		{
-			solver->setGasConstant(0.0f);
+			solver->setViscosity(solver->getViscosity() + 0.1f * inctime * dt);
 		}
-		else
+		else if (stateDecViscosity)
 		{
-			solver->setGasConstant(solver->getGasConstant() - 0.00001f * inctime * dt);
+			if (solver->getViscosity() <= 0.0f)
+			{
+				solver->setViscosity(0.0f);
+			}
+			else
+			{
+				solver->setViscosity(solver->getViscosity() - 0.1f * inctime * dt);
+			}
 		}
-	}
 
-	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.1f;
-	if (stateIncViscosity)
-	{
-		solver->setViscosity(solver->getViscosity() + 0.1f * inctime * dt);
-	}
-	else if (stateDecViscosity)
-	{
-		if (solver->getViscosity() <= 0.0f)
+		inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.1f;
+		if (stateIncSurfacetension)
 		{
-			solver->setViscosity(0.0f);
+			solver->setSurfaceTension(solver->getSurfaceTension() + 0.1f * inctime * dt);
 		}
-		else
+		else if (stateDecSurfacetension)
 		{
-			solver->setViscosity(solver->getViscosity() - 0.1f * inctime * dt);
-		}
-	}
-
-	inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.1f;
-	if (stateIncSurfacetension)
-	{
-		solver->setSurfaceTension(solver->getSurfaceTension() + 0.1f * inctime * dt);
-	}
-	else if (stateDecSurfacetension)
-	{
-		if (solver->getSurfaceTension() <= 0.0f)
-		{
-			solver->setSurfaceTension(0.0f);
-		}
-		else
-		{
-			solver->setSurfaceTension(solver->getSurfaceTension() - 0.1f * inctime * dt);
+			if (solver->getSurfaceTension() <= 0.0f)
+			{
+				solver->setSurfaceTension(0.0f);
+			}
+			else
+			{
+				solver->setSurfaceTension(solver->getSurfaceTension() - 0.1f * inctime * dt);
+			}
 		}
 	}
 
@@ -265,10 +282,11 @@ void Particles::update()
 		sParticle sp;
 		sp.Position = p.Position;
 		sp.Color = p.Color;
+		sp.Radius = solver->getRadius();
 		sParticles.push_back(sp);
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo); 
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(sParticle), sParticles.data());
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -285,8 +303,10 @@ void Particles::drawDepth()
 
 	cubemaps->draw();
 	
-	// Render particles' color and depth
+	// Render particle color, normal and depth
 	glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
+	GLenum buff[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, buff);
 	glViewport(0, 0, mapSize.x, mapSize.y);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -298,6 +318,10 @@ void Particles::drawDepth()
 	glBindVertexArray(vao);
 	glDrawArrays(GL_POINTS, 0, count);
 	glBindVertexArray(0);
+	if (stateMoleculeMode)
+	{
+		mloader->draw();
+	}
 	glUseProgram(0);
 
 	// 2 pass bilateral filter depth map
@@ -390,6 +414,10 @@ void Particles::draw()
 		glBindVertexArray(vao);
 		glDrawArrays(GL_POINTS, 0, count);
 		glBindVertexArray(0);
+		if (stateMoleculeMode)
+		{
+			mloader->draw();
+		}
 		glUseProgram(0);
 
 		return;
@@ -398,23 +426,29 @@ void Particles::draw()
 	// Render to normal FBO
 	glUseProgram(shaderNormal->getProgram());
 	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "renderMode"), renderMode);
-	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "sceneMap"), 0);
-	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "colorMap"), 1);
-	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "depthMap"), 2);
-	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "envMap"), 3);
-	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "thickMap"), 4);
+	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "colorMap"), 0);
+	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "depthMap"), 1);
+	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "normalMap"), 2);
+	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "depthBlurMap"), 3);
+	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "sceneMap"), 4);
+	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "envMap"), 5);
+	glUniform1i(glGetUniformLocation(shaderNormal->getProgram(), "thickMap"), 6);
 	glUniform2fv(glGetUniformLocation(shaderNormal->getProgram(), "texSize"), 1, value_ptr(vec2(mapSize)));
 	glUniformMatrix4fv(glGetUniformLocation(shaderNormal->getProgram(), "invProj"),
 		1, GL_FALSE, value_ptr(camera->getMatInvProjection()));
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sceneMap); 
+	glBindTexture(GL_TEXTURE_2D, colorMap); 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, colorMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, blurMapH);
+	glBindTexture(GL_TEXTURE_2D, normalMap);
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemaps->getCubeMap());
+	glBindTexture(GL_TEXTURE_2D, blurMapH);
 	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, sceneMap);
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemaps->getCubeMap());
+	glActiveTexture(GL_TEXTURE6);
 	glBindTexture(GL_TEXTURE_2D, gaussMapH);
 	glBindVertexArray(screenQuad->getVao());
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -485,6 +519,11 @@ void Particles::removeParticles(int value)
 		particles.clear();
 		count = 0;
 	}
+}
+
+void Particles::togglePauseSimulation()
+{
+	isSolverRunning = !isSolverRunning;
 }
 
 // Pick a particle for more control

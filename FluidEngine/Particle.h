@@ -1,4 +1,14 @@
+#pragma once
+
 #include "Includes.h"
+
+// Particle data to upload to GPU
+struct sParticle
+{
+	glm::vec3 Position;
+	glm::vec4 Color;
+	float Radius;
+};
 
 class Particle
 {

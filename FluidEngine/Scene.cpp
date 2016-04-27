@@ -17,10 +17,10 @@ Scene::Scene()
 
 	frameTimer = new Timer(fpsUpdateInterval);
 	frameTimer->start();
-	frameAvgTimer = new Timer(3.0f);
+	frameAvgTimer = new Timer(9.0f);
 	frameAvgTimer->start();
-	particlesTimer = new Timer(dt);
-	particlesTimer->start();
+	sphTimer = new Timer();
+	sphTimer->start();
 
 	font = new Font();
 
@@ -50,12 +50,15 @@ void Scene::load()
 {
 	int loadStart = glutGet(GLUT_ELAPSED_TIME);
 
-	particlesTimer->setTickInterval(1 / 120.0f); // debug
+	// Set solver delta time
+	sphTimer->setTickInterval(1 / 120.0f);
 	particles->load(1 / 170.0f, camera);
 	font->load("arial.ttf");
 	
 	float loadtime = (glutGet(GLUT_ELAPSED_TIME) - loadStart) / 1000.0f;
 	cout << "Load time: " << loadtime << "s" << endl;
+
+	previousTime = glutGet(GLUT_ELAPSED_TIME);
 }
 
 void Scene::idle()
@@ -66,7 +69,14 @@ void Scene::idle()
 	//if (frameTime > maxframeTime) frameTime = maxframeTime;
 	previousTime = currentTime;
 
-	if (particlesTimer->ticked())
+	/*particle_accum += frameTime;
+	if (particle_accum >= 1 / 120.0f)
+	{
+		particles->update();
+		particle_accum -= 1 / 120.0f;
+	}*/
+
+	if (sphTimer->ticked())
 	{
 		particles->update();
 	}
@@ -238,14 +248,16 @@ void Scene::keyboard(unsigned char key)
 	if (key == 27) exit(0); // esc
 	if (key == 'p')
 	{
-		if (particlesTimer->getIsRunning())
+		particles->togglePauseSimulation();
+
+		/*if (sphTimer->getIsRunning())
 		{
-			particlesTimer->stop();
+			sphTimer->stop();
 		}
 		else
 		{
-			particlesTimer->start();
-		}
+			sphTimer->start();
+		}*/
 		
 	}
 	

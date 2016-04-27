@@ -7,6 +7,7 @@
 #include "Quad.h"
 #include "Font.h"
 #include <concurrent_vector.h>
+#include "MLoader.h"
 
 // Particle Manager: Generate, solve and render particles
 // Particles are rendered on 2D quads created with geometry shader
@@ -16,19 +17,15 @@ class Particles : public Object
 
 private:
 
-	// Particle data to upload to GPU
-	struct sParticle
-	{
-		glm::vec3 Position;
-		glm::vec4 Color;
-	};
-
 	//concurrency::concurrent_vector<Particle> particles;
 	std::vector<Particle> particles;
 	std::vector<sParticle> sParticles;
 	int count, maxCount;
 	WCSPH* solver;
 	//PCISPH* solver;
+
+	MLoader* mloader;
+	bool stateMoleculeMode;
 
 	GLuint vao, vbo;
 	GLuint texid;
@@ -53,6 +50,7 @@ private:
 	GLuint depthFbo;
 	GLuint depthMap;
 	GLuint colorMap;
+	GLuint normalMap;
 	GLuint blurFbo;
 	GLuint blurMapV;
 	GLuint blurMapH;
@@ -61,6 +59,7 @@ private:
 	GLuint gaussFbo;
 	GLuint gaussMapV;
 	GLuint gaussMapH;
+	
 
 	float dt;
 	int heldtime = 0;
@@ -71,6 +70,8 @@ private:
 	bool stateIncGasconstant = false, stateDecGasconstant = false;
 	bool stateIncViscosity = false, stateDecViscosity = false;
 	bool stateIncSurfacetension = false, stateDecSurfacetension = false;
+
+	bool isSolverRunning = true;
 
 public:
 
@@ -87,6 +88,7 @@ public:
 	void addParticles(int numPerSide);
 	void addParticles();
 	void removeParticles(int value);
+	void togglePauseSimulation();
 
 	void mouse(int button, int state);
 	void mouseMove(int x, int y);

@@ -19,19 +19,19 @@ private:
 
 	Timer* frameTimer;
 	Timer* frameAvgTimer;
-	Timer* particlesTimer;
+	Timer* sphTimer;
 	//CameraFPS* camera;
 	CameraTarget* camera;
 	Font* font;
 	Object* box;
 	Particles* particles;
 
+	float particle_accum = 0.0f;
 	float fpsUpdateInterval = 0.5f;
-	float dt = 1 / 60.0f;
 
-	float fps, fpsAvg;
+	float fps = 0.0f, fpsAvg = 0.0f;
 	std::vector<float> listFps;
-	int currentTime, previousTime = 0;
+	int currentTime, previousTime;
 	int timeBase = 0, frame_accum = 0;
 	int displayTextMode = 1;
 

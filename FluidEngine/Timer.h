@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
 class Timer
 {
@@ -28,7 +29,7 @@ private:
 
 public:
 
-	Timer(float interval, float duration = 0);
+	Timer(float interval = 0.0f, float duration = 0.0f);
 	~Timer();
 
 	// === Functions ===

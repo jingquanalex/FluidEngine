@@ -21,9 +21,11 @@ layout (std140, binding = 1) uniform Lighting
 };
 
 uniform int renderMode = 1;
-uniform sampler2D sceneMap;
 uniform sampler2D colorMap;
 uniform sampler2D depthMap;
+uniform sampler2D normalMap;
+uniform sampler2D depthBlurMap;
+uniform sampler2D sceneMap;
 uniform samplerCube envMap;
 uniform sampler2D thickMap;
 uniform vec2 texSize;
@@ -39,31 +41,31 @@ vec3 uvToEye(vec2 texCoord, float z)
 
 void main()
 {
-	float depth = texture(depthMap, Texcoord).r;
+	float depthBlur = texture(depthBlurMap, Texcoord).r;
 	vec4 scene = texture(sceneMap, Texcoord);
 	
-	if (depth >= 1.0)
+	if (depthBlur >= 1.0)
 	{
 		outColor = scene;
 		return;
 	}
 	
-	// Calculate eye-space position from depth
-	vec3 eyePos = uvToEye(Texcoord, depth);
+	// Calculate eye-space position from depthBlur
+	vec3 eyePos = uvToEye(Texcoord, depthBlur);
 	
 	// Calculate normal
 	vec2 texelSize = vec2(1.0 / texSize.x, 1.0 / texSize.y);
 	
-	vec3 ddx = uvToEye(Texcoord + vec2(texelSize.x, 0.0), texture(depthMap, Texcoord + vec2(texelSize.x, 0.0)).x) - eyePos;
-	vec3 ddx2 = eyePos - uvToEye(Texcoord - vec2(texelSize.x, 0.0), texture(depthMap, Texcoord - vec2(texelSize.x, 0.0)).x);
+	vec3 ddx = uvToEye(Texcoord + vec2(texelSize.x, 0.0), texture(depthBlurMap, Texcoord + vec2(texelSize.x, 0.0)).x) - eyePos;
+	vec3 ddx2 = eyePos - uvToEye(Texcoord - vec2(texelSize.x, 0.0), texture(depthBlurMap, Texcoord - vec2(texelSize.x, 0.0)).x);
 	
 	if (abs(ddx.z) > abs(ddx2.z))
 	{
 		ddx = ddx2;
 	}
 	
-	vec3 ddy = uvToEye(Texcoord + vec2(0.0, texelSize.y), texture(depthMap, Texcoord + vec2(0.0, texelSize.y)).x) - eyePos;
-	vec3 ddy2 = eyePos - uvToEye(Texcoord - vec2(0.0, texelSize.y), texture(depthMap, Texcoord - vec2(0.0, texelSize.y)).x);
+	vec3 ddy = uvToEye(Texcoord + vec2(0.0, texelSize.y), texture(depthBlurMap, Texcoord + vec2(0.0, texelSize.y)).x) - eyePos;
+	vec3 ddy2 = eyePos - uvToEye(Texcoord - vec2(0.0, texelSize.y), texture(depthBlurMap, Texcoord - vec2(0.0, texelSize.y)).x);
 	
 	if (abs(ddy.z) > abs(ddy2.z))
 	{
@@ -71,6 +73,13 @@ void main()
 	}
 
 	vec3 N = normalize(cross(ddx, ddy));
+	
+	
+	// TESTING DEBUG
+	float depth = texture(depthMap, Texcoord).r;
+	vec4 normals = texture(normalMap, Texcoord);
+	eyePos = uvToEye(Texcoord, depth);
+	N = normals.xyz;
 	
 	float thickness = texture(thickMap, Texcoord).r;
 	
@@ -81,13 +90,12 @@ void main()
     vec3 V = -normalize(eyePos);
     vec3 H = normalize(V + L);
     float specular = pow(max(dot(N, H), 0.0), 2000.0);
-	if (thickness < 0.1) specular = 0.0;
 	
 	float diffuse = max(dot(N, L), 0.0) * 0.5 + 0.5;
 	
 	float fresPower = 4.0f;
 	float fresBias = 0.01;
-	float fresnel = fresBias + (1.0 - fresBias) * pow(1.0 - max(dot(N, V), 0.0), fresPower);
+	float fresnel = fresBias + (1.0 - fresBias) * pow(1.0 - dot(N, V), fresPower);
 	
 	mat3 invView = mat3(transpose(view));
 	vec3 I = normalize(invView * eyePos - viewPos);
@@ -106,25 +114,30 @@ void main()
 	switch(renderMode)
 	{
 		case 1:
-			outColor = finalColor + specular + fresnel * envReflect * thickness;
+			if (thickness < 0.1) specular = 0.0;
+			outColor = finalColor + specular + fresnel * envReflect;
 			break;
 		case 2:
-			outColor = vec4(depth);
+			outColor = vec4(depthBlur);
 			break;
 		case 3:
-			outColor = vec4(diffuse);
+			outColor = vec4(N, 1.0);
 			break;
 		case 4:
 			outColor = colorAbsorption;
 			break;
 		case 5:
-			outColor = diffuse * colorAbsorption;
+			outColor = diffuse * color + specular;
 			break;
 		case 6:
-			outColor = colorRefract;
+			float rT = clamp(1.0 - thickness, 0.0, 1.0);
+			vec4 fColor = mix(colorAbsorption, envRefract, rT);
+			outColor = fColor + specular + fresnel * envReflect;
 			break;
 		case 7:
-			outColor = finalColor;
+			float rT2 = clamp(thickness, 0.0, 1.0);
+			vec4 fColor2 = mix(colorAbsorption, envRefract, rT2);
+			outColor = fColor2 + specular + fresnel * envReflect;
 			break;
 		case 8:
 			outColor = finalColor + specular;

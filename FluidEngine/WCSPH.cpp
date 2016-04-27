@@ -39,13 +39,13 @@ WCSPH::WCSPH(float dt, vector<Particle>* particles, Camera* camera)
 	gasConstant = 0.000001f;
 	gravity = vec3(0, -9.8f, 0);
 
-	/*mass = 98.00f;
+	/*mass = 28.00f;
 	radius = 0.1f;
 	smoothingLength = radius * 4;
-	restDensity = 180.0f;
-	viscosity = 2.3f;
-	surfaceTensionCoef = 0.7f;
-	gasConstant = 0.0000002f;
+	restDensity = 152.0f;
+	viscosity = 1.3f;
+	surfaceTensionCoef = 8.0f;
+	gasConstant = 0.0002f;
 	gravity = vec3(0, -9.8f, 0);*/
 
 	/*mass = 100.00f;
@@ -59,7 +59,7 @@ WCSPH::WCSPH(float dt, vector<Particle>* particles, Camera* camera)
 
 	// Gird
 	cellSize = smoothingLength;
-	cellCount = 10007;
+	cellCount = (int)pow(10.0f / smoothingLength, 3);
 	//pGrid.reserve(cellCount);
 
 	initialize();
@@ -95,7 +95,7 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 	Particle* pD = nullptr;
 
 	// === Neighbor Search ===
-
+	
 	pGrid.clear();
 
 	//for (Particle &p : *particles)
@@ -119,7 +119,7 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 
 	// === +Compute Density ===
 
-	//for (Particle &p : *particles)
+	//for (Particle& p : *particles)
 #if CONCURRENCY
 	parallel_for_each(particles->begin(), particles->end(), [&](Particle& p)
 #else
@@ -137,7 +137,7 @@ void WCSPH::compute(ivec2 mouseDelta, int renderMode)
 				for (int k = -1; k <= 1; k++)
 				{
 					// Sample particles in current cell
-					vec3 samplePos = p.Position + vec3(i, j, k) * h;
+					vec3 samplePos = p.Position + vec3(i, j, k) * cellSize;
 					auto itb = pGrid.equal_range(getHashKey(getCellPos(samplePos)));
 					for (auto it = itb.first; it != itb.second; it++)
 					{
