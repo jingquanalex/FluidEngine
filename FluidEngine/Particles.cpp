@@ -29,7 +29,7 @@ void Particles::load(float dt, Camera* camera)
 
 	mloader = new MLoader();
 	mloader->load();
-	stateMoleculeMode = false;
+	stateMoleculeMode = true;
 
 	// Skybox
 	cubemaps = new Quad();
@@ -609,6 +609,9 @@ void Particles::keyboard(unsigned char key)
 			break;
 		case'[':
 			cubemaps->cyclePreviousMap();
+			break;
+		case 'm':
+			stateMoleculeMode = !stateMoleculeMode;
 			break;
 		}
 
