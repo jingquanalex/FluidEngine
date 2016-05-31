@@ -28,7 +28,7 @@ void Particles::load(float dt, Camera* camera)
 	//solver = new PCISPH(dt, &particles, camera);
 
 	mloader = new MLoader();
-	//mloader->load();
+	mloader->load();
 	stateMoleculeMode = false;
 
 	// Skybox

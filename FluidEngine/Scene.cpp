@@ -191,14 +191,14 @@ void Scene::display()
 			font->RenderText("2 - Depth", 25.0f, (float)window_height - 475.0f, 1.0f, vec3(1));
 			font->RenderText("3 - Normals", 25.0f, (float)window_height - 495.0f, 1.0f, vec3(1));
 			font->RenderText("4 - Diffuse", 25.0f, (float)window_height - 515.0f, 1.0f, vec3(1));
-			font->RenderText("5 - Color absorption", 25.0f, (float)window_height - 535.0f, 1.0f, vec3(1));
-			font->RenderText("6 - Refraction", 25.0f, (float)window_height - 555.0f, 1.0f, vec3(1));
-			font->RenderText("7 - Final color", 25.0f, (float)window_height - 575.0f, 1.0f, vec3(1));
-			font->RenderText("8 - Final color + lighting", 25.0f, (float)window_height - 595.0f, 1.0f, vec3(1));
+			font->RenderText("5 - Diffuse + color", 25.0f, (float)window_height - 535.0f, 1.0f, vec3(1));
+			font->RenderText("6 - Thickness map + color", 25.0f, (float)window_height - 555.0f, 1.0f, vec3(1));
+			font->RenderText("7 - Refraction", 25.0f, (float)window_height - 575.0f, 1.0f, vec3(1));
+			font->RenderText("8 - Refraction + lighting", 25.0f, (float)window_height - 595.0f, 1.0f, vec3(1));
 			font->RenderText("9 - Fresnel + reflection", 25.0f, (float)window_height - 615.0f, 1.0f, vec3(1));
 			font->RenderText("0 - Points", 25.0f, (float)window_height - 635.0f, 1.0f, vec3(1));
 
-			font->RenderText("Cubemaps", 25.0f, (float)window_height - 675.0f, 1.0f, vec3(1));
+			font->RenderText("-,= - Cycle materials", 25.0f, (float)window_height - 675.0f, 1.0f, vec3(1));
 			font->RenderText("[, ] - Cycle cubemaps", 25.0f, (float)window_height - 695.0f, 1.0f, vec3(1));
 			
 		}
