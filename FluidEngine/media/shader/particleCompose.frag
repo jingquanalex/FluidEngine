@@ -76,10 +76,10 @@ void main()
 	
 	
 	// TESTING DEBUG
-	float depth = texture(depthMap, Texcoord).r;
+	/*float depth = texture(depthMap, Texcoord).r;
 	vec4 normals = texture(normalMap, Texcoord);
 	eyePos = uvToEye(Texcoord, depth);
-	N = normals.xyz;
+	N = normals.xyz;*/
 	
 	float thickness = texture(thickMap, Texcoord).r;
 	
@@ -101,8 +101,16 @@ void main()
 	vec3 I = normalize(invView * eyePos - viewPos);
 	vec4 envReflect = texture(envMap, reflect(I, invView * N));
 	
-	float refractVal = 0.33;
-	vec4 envRefract = texture(sceneMap, Texcoord + N.xy * thickness * refractVal);
+	vec3 refractVal = vec3(0.38, 0.3, 0.34);
+	vec4 envRefract = texture(sceneMap, Texcoord + N.xy * thickness * refractVal.r);
+	
+	// Chromatic abberation
+	if (renderMode == 15)
+	{
+		envRefract.r = texture(sceneMap, Texcoord + N.xy * thickness * refractVal.r).r;
+		envRefract.g = texture(sceneMap, Texcoord + N.xy * thickness * refractVal.g).g;
+		envRefract.b = texture(sceneMap, Texcoord + N.xy * thickness * refractVal.b).b;
+	}
 	
 	vec4 color = texture(colorMap, Texcoord);
 	vec4 colorAbsorption = exp(-(vec4(1.0) - color) * thickness);
@@ -111,10 +119,15 @@ void main()
 	float rThickness = clamp(1.2 - thickness, 0.0, 1.0);
 	vec4 finalColor = mix(diffuse * colorRefract, colorRefract, rThickness);
 	
+	// Limit sparse particles (splashes)
+	if (thickness < 0.1)
+	{
+		specular = 0.0;
+	}
+	
 	switch(renderMode)
 	{
 		case 1:
-			if (thickness < 0.1) specular = 0.0;
 			outColor = finalColor + specular + fresnel * envReflect;
 			break;
 		case 2:
@@ -124,28 +137,51 @@ void main()
 			outColor = vec4(N, 1.0);
 			break;
 		case 4:
-			outColor = colorAbsorption;
+			outColor = vec4(diffuse);
 			break;
 		case 5:
 			outColor = diffuse * color + specular;
 			break;
 		case 6:
-			float rT = clamp(1.0 - thickness, 0.0, 1.0);
-			vec4 fColor = mix(colorAbsorption, envRefract, rT);
-			outColor = fColor + specular + fresnel * envReflect;
+			outColor = colorAbsorption;
 			break;
 		case 7:
-			float rT2 = clamp(thickness, 0.0, 1.0);
-			vec4 fColor2 = mix(colorAbsorption, envRefract, rT2);
-			outColor = fColor2 + specular + fresnel * envReflect;
+			outColor = envRefract;
 			break;
 		case 8:
 			outColor = finalColor + specular;
 			break;
 		case 9:
-			outColor = envReflect;
+			outColor = fresnel * envReflect;
 			break;
 		case 0:
+			break;
+		case 10: // Paint
+			outColor = diffuse * color + specular;
+			break;
+		case 11: // Cloudy water
+			float rT = clamp(1.0 - thickness, 0.0, 1.0);
+			vec4 fColor = mix(colorAbsorption, envRefract, rT);
+			outColor = fColor + specular + fresnel * envReflect;
+			break;
+		case 12: // Alien fluid
+			float rT2 = clamp(thickness, 0.0, 1.0);
+			vec4 fColor2 = mix(colorAbsorption, envRefract, rT2);
+			outColor = vec4(0.5, 0.0, 0.0, 1.0) * fColor2 + specular + fresnel * envReflect;
+			outColor *= max(dot(N, L), 0.0) * 0.5 + 0.3;
+			break;
+		case 13: // Mercury
+			outColor = envReflect + specular;
+			break;
+		case 14: // Oil
+			outColor = vec4(max(dot(N, L), 0.0));
+			outColor.r *= texture(envMap, sin(2 * 3.14 * 0.90 / vec3(0.7) * reflect(I, invView * N))).r;
+			outColor.g *= texture(envMap, sin(2 * 3.14 * 0.90 / vec3(0.55) * reflect(I, invView * N))).g;
+			outColor.b *= texture(envMap, sin(2 * 3.14 * 0.90 / vec3(0.4) * reflect(I, invView * N))).b;
+			outColor *= pow(max(dot(N, H), 0.0), 90.0);;
+			break;
+		case 15: // Oil slick (chromatic abberation)
+			outColor = finalColor + specular + fresnel * envReflect;
 			break;
 	}
 }

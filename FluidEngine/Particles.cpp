@@ -28,15 +28,15 @@ void Particles::load(float dt, Camera* camera)
 	//solver = new PCISPH(dt, &particles, camera);
 
 	mloader = new MLoader();
-	mloader->load();
-	stateMoleculeMode = true;
+	//mloader->load();
+	stateMoleculeMode = false;
 
 	// Skybox
 	cubemaps = new Quad();
 	cubemaps->load("lakeblur", "skyquad");
-	/*cubemaps->loadCubemap("lake");
+	cubemaps->loadCubemap("lake");
 	cubemaps->loadCubemap("lake2");
-	cubemaps->loadCubemap("church");*/
+	cubemaps->loadCubemap("church");
 
 	// Add some particles temp
 	//addParticles(10, 0.5);
@@ -203,7 +203,7 @@ void Particles::update()
 		mouseLastY = mouseY;
 
 		// Solve SPH
-		solver->compute(mouseDelta, renderMode);
+		solver->compute(mouseDelta);
 
 		// Increment/decrement sph attributes linearlly
 		inctime = (float)(glutGet(GLUT_ELAPSED_TIME) - heldtime) * 0.01f;
@@ -281,8 +281,26 @@ void Particles::update()
 	{
 		sParticle sp;
 		sp.Position = p.Position;
-		sp.Color = p.Color;
-		sp.Radius = solver->getRadius();
+
+		if (renderMode == 0)
+		{
+			sp.Color = p.Color;
+		}
+		else
+		{
+			sp.Color = vec4(0.6, 0.9, 1.0, 1.0);
+		}
+
+		// If particles is less dense, set smaller radius (only for default settings)
+		if (p.Density / solver->getRestDensity() < 145)
+		{
+			sp.Radius = solver->getRadius() * p.Density / pow(solver->getRestDensity(), 2) * 1.1f;
+		}
+		else
+		{
+			sp.Radius = solver->getRadius();
+		}
+
 		sParticles.push_back(sp);
 	}
 
@@ -612,6 +630,28 @@ void Particles::keyboard(unsigned char key)
 			break;
 		case 'm':
 			stateMoleculeMode = !stateMoleculeMode;
+			break;
+
+		// Premade Materials
+		case 45:
+			if (renderMode > 10 && renderMode <= 15)
+			{
+				renderMode--;
+			}
+			else
+			{
+				renderMode = 15;
+			}
+			break;
+		case 61:
+			if (renderMode >= 10 && renderMode < 15)
+			{
+				renderMode++;
+			}
+			else
+			{
+				renderMode = 10;
+			}
 			break;
 		}
 

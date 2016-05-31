@@ -77,7 +77,7 @@ public:
 	//WCSPH(float dt, concurrency::concurrent_vector<Particle>* particles, Camera* camera);
 
 	virtual void initialize();
-	virtual void compute(glm::ivec2 mouseDelta, int renderMode);
+	virtual void compute(glm::ivec2 mouseDelta);
 
 	void clear();
 	void setDebugParticle(int id);
