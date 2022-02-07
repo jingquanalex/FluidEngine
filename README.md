@@ -5,4 +5,4 @@ lenges that make simulating fluids difficult. This project investigates these ch
 
 ## Links
 * [YouTube Video](https://www.youtube.com/watch?v=QqZqj00CqXg&t=45s)
-* [Thesis pdf](https://drive.google.com/open?id=0B2macuhZeO18TzQ0UmNsRUt6bUE)
+* [Thesis pdf](https://drive.google.com/file/d/0B2macuhZeO18TzQ0UmNsRUt6bUE/view?usp=sharing&resourcekey=0-Sg2ZCGEjMtI7wDMEzWjbLg)
